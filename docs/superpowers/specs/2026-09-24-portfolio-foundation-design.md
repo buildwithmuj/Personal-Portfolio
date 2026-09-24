@@ -1,7 +1,7 @@
 # Portfolio — technical foundation spec
 
 **Date:** 2026-09-24
-**Status:** Design approved in chat; awaiting written-spec review
+**Status:** Approved; amended during planning after dependency research (see §15)
 **Replaces:** the v1 folder-grid build (kept locally on `archive/v1-folder-grid`; not carried forward)
 **Followed by:** a content & design spec, written once the owner's raw content and inspiration screens arrive
 
@@ -48,16 +48,16 @@ screens (set the visual design), CV PDF, fonts, domain.
 
 | Area | Decision | Why |
 |---|---|---|
-| Framework | Astro 6, static output, no adapter | Zero JS by default; typed content collections; stable hash-based CSP for static pages; built-in image and font handling. Next.js 16 was rejected: nonce-based CSP forces every page to render dynamically, and its static alternative (SRI) is experimental. |
-| Language | TypeScript, extending `astro/tsconfigs/strictest` | |
+| Framework | Astro 7, static output, no adapter | Zero JS by default; typed content collections; hash-based CSP for static pages (stable since Astro 6); built-in image and font handling. Next.js 16 was rejected: nonce-based CSP forces every page to render dynamically, and its static alternative (SRI) is experimental. |
+| Language | TypeScript 6.0, extending `astro/tsconfigs/strictest` | TypeScript 7 is out, but `@astrojs/check` doesn't support it yet. |
 | Styling | Plain CSS: design tokens as custom properties, plus Astro scoped component styles | No dependencies; tokens are the seam where the design gets applied. |
 | Content | MDX for case studies, YAML for structured data, in the repo, validated by Zod 4 schemas | No CMS; Git is the editing workflow. |
 | Hosting | Cloudflare Workers static assets, with no Worker script | Free tier with unlimited bandwidth that allows commercial use; `_headers` support; preview URLs; Cloudflare's recommended successor to Pages. |
 | Deploys | Cloudflare Workers Builds through its GitHub app | Builds and deploys with no Cloudflare credential stored in GitHub. |
 | Repository | Public GitHub repo, fresh history, commits use the owner's GitHub noreply email | Free branch rulesets and secret scanning; the code is itself portfolio material. |
 | CI | GitHub Actions, checks only; it deploys nothing | |
-| Package manager | pnpm 10 | Blocks dependency install scripts by default; supports `minimumReleaseAge`. |
-| Runtime | Node 24 LTS, pinned in `.nvmrc`, `engines` and `packageManager` | Astro 6 needs Node 22 or later; 24 is the active LTS. |
+| Package manager | pnpm 10 (latest 10.x) | Blocks dependency install scripts by default; supports `minimumReleaseAge`. Stay on 10: Dependabot can't parse pnpm 11+ lockfiles yet. |
+| Runtime | Node 24 LTS, pinned in `.nvmrc`, `engines` and `packageManager` | Astro 7 needs Node 22.12 or later; 24 is the active LTS. |
 | Contact | `mailto:` link, copy-email button, Cal.com link | No server code at all. |
 
 ## 4. Floors and definition of done
@@ -67,10 +67,10 @@ this section is amended in writing, never quietly.
 
 | # | Floor | Enforced by |
 |---|---|---|
-| 1 | Lighthouse (mobile) on every page: Performance ≥ 95; Accessibility, Best Practices and SEO = 100 | Lighthouse CI, every PR |
-| 2 | Per page: JS ≤ 5 KB gzip, CSS ≤ 20 KB gzip, fonts ≤ 2 files and ≤ 100 KB, total transfer ≤ 500 KB (CV excluded) | Lighthouse CI budgets |
-| 3 | No requests to any third-party origin | CSP + Playwright |
-| 4 | Lab metrics: LCP ≤ 2.5 s, CLS ≤ 0.1, TBT ≤ 100 ms | Lighthouse CI |
+| 1 | Lighthouse (mobile) on every page: Performance ≥ 95; Accessibility, Best Practices and SEO = 100 | Lighthouse, every PR |
+| 2 | Per page: JS ≤ 5 KB, CSS ≤ 20 KB, fonts ≤ 2 files and ≤ 100 KB, total transfer ≤ 500 KB (CV excluded) | Lighthouse budgets |
+| 3 | No requests to any third-party origin | CSP + Playwright + Lighthouse |
+| 4 | Lab metrics: LCP ≤ 2.5 s, CLS ≤ 0.1, TBT ≤ 100 ms | Lighthouse |
 | 5 | WCAG 2.2 AA: zero axe violations in light and dark schemes, plus a manual keyboard-only and screen-reader pass (VoiceOver or NVDA) on the home page and one case study before launch | Playwright + axe; release checklist |
 | 6 | Zero CSP violations and zero console errors on every page | Playwright |
 | 7 | MDN HTTP Observatory grade A+ on the production URL | Release checklist |
@@ -81,6 +81,9 @@ this section is amended in writing, never quietly.
 Field targets after launch (at the 75th percentile: LCP < 2.5 s, INP < 200 ms, CLS < 0.1) are the aim,
 but they can only be read from Chrome UX Report data once traffic allows, because the site has no
 analytics.
+
+Floor 2's sizes are transfer sizes measured against the local `wrangler dev` server. That server doesn't
+compress responses, so the check is stricter than the gzip sizes production serves.
 
 The content & design spec may raise floor 2 for a named component, writing the new number here.
 
@@ -311,9 +314,10 @@ for little spam protection.
 
 ### Disclosure and privacy
 
-- `/.well-known/security.txt` (RFC 9116): `Contact` is the profile email, `Expires` comes from one
-  constant, and `Canonical` is the production URL. A unit test fails once `Expires` is less than 30 days
-  away.
+- `/.well-known/security.txt` (RFC 9116) is a static file in `public/.well-known/` with `Contact`,
+  `Expires` and `Preferred-Languages`.
+  - A unit test fails once `Expires` is less than 30 days away or more than a year away.
+  - An end-to-end test fails if `Contact` doesn't match the email on the site.
 - No cookies, analytics, forms or third-party requests, so no consent banner is needed.
 
 ## 8. Build and deployment
@@ -357,7 +361,7 @@ production URL.
 | `pnpm dev` | Development server |
 | `pnpm build` | Production build into `dist/` |
 | `pnpm serve` | Serves `dist/` through `wrangler dev`, with the real `_headers` |
-| `pnpm check`, `lint`, `format`, `test`, `test:e2e` | The same checks CI runs |
+| `pnpm check`, `lint`, `format:check`, `test`, `test:e2e`, `test:perf` | The same checks CI runs |
 
 **`.env.example`** states that the project needs no secrets and documents the variables Cloudflare
 sets during builds (`WORKERS_CI_BRANCH` and others).
@@ -370,14 +374,13 @@ sets during builds (`WORKERS_CI_BRANCH` and others).
 | Layer | Tool | Scope |
 |---|---|---|
 | Format | Prettier + `prettier-plugin-astro` | All files |
-| Lint | ESLint with `eslint-plugin-astro` (including its accessibility rules), `typescript-eslint` | `.astro`, `.ts` |
-| CSS | Stylelint | Colour literals outside `tokens.css` |
-| Types | `astro check` | `.astro`, `.ts` |
+| CSS lint | Stylelint | Colour literals outside `tokens.css` |
+| Types | `astro check` with the strictest TypeScript settings | `.astro`, `.ts` |
 | Content | The build | Schema violations (§6) |
-| Unit | Vitest | `lib/` only: SEO metadata builder, sorting, date formatting, `security.txt` expiry |
-| End to end | Playwright on Chromium, WebKit and Firefox, against `pnpm serve` | Below |
+| Unit | Node's built-in test runner (`node --test`, which runs TypeScript natively), `*.test.ts` | `lib/` helpers, test helpers, content rules, `security.txt` expiry |
+| End to end | Playwright on Chromium, WebKit and Firefox, against `pnpm serve`, `*.spec.ts` | Below |
 | Accessibility | `@axe-core/playwright`, WCAG 2.2 AA rule tags, in light and dark schemes | Every page |
-| Performance | Lighthouse CI, mobile preset, budgets from §4 | Every page |
+| Performance | Lighthouse 13, run from a dedicated Playwright project, budgets from §4 | Every page |
 | Links | lychee, offline mode against `dist/` | Internal links, every PR (external links weekly) |
 | Security | `pnpm audit`, CodeQL, secret scanning | Repository |
 
@@ -412,8 +415,8 @@ regression tests (until the design settles), load testing (the CDN absorbs load)
 | Kind | Allowed |
 |---|---|
 | Runtime / build | `astro`, `@astrojs/mdx`, `@astrojs/sitemap` (Astro brings `sharp`) |
-| Dev | `typescript`, `@astrojs/check`, `wrangler`, `prettier`, `prettier-plugin-astro`, `eslint`, `eslint-plugin-astro`, `eslint-plugin-jsx-a11y`, `typescript-eslint`, `stylelint`, `stylelint-config-standard`, `postcss-html`, `vitest`, `@playwright/test`, `@axe-core/playwright`, `@lhci/cli` |
-| CI actions (SHA-pinned) | `actions/checkout`, `pnpm/action-setup`, `actions/setup-node`, `lycheeverse/lychee-action`, `github/codeql-action` |
+| Dev | `typescript`, `@astrojs/check`, `@types/node`, `wrangler`, `prettier`, `prettier-plugin-astro`, `stylelint`, `stylelint-config-standard`, `postcss-html`, `@playwright/test`, `@axe-core/playwright`, `lighthouse`, `chrome-launcher` |
+| CI actions (SHA-pinned) | `actions/checkout`, `pnpm/action-setup`, `actions/setup-node`, `lycheeverse/lychee-action` (CodeQL runs as GitHub's default setup, not a workflow) |
 
 Adding anything else requires a written justification in its PR and an update to this list.
 
@@ -464,7 +467,7 @@ Each of these is out of v1. If one is added, it follows these rules.
 
 - An Astro project matching §5, with the placeholder content from §6.
 - `_headers`, `wrangler.jsonc`, pnpm settings, `.nvmrc`, `.env.example`.
-- `ci.yml`, `weekly.yml`, Dependabot config, Lighthouse CI config and budgets, lychee config.
+- `ci.yml`, `weekly.yml`, Dependabot config, Lighthouse budgets, lychee config.
 - The tests from §9, all passing.
 - `README.md` covering:
   - what the project is
@@ -491,3 +494,19 @@ Each of these is out of v1. If one is added, it follows these rules.
 | Inspiration screens | Content & design spec: tokens, components, layout, motion |
 | CV PDF, fonts | Content & design spec |
 | Domain | Later; §7 checklist |
+
+## 15. Amendments
+
+**2026-09-24, during planning.** Checking the npm registry and upstream docs on the planning date showed
+several assumptions were out of date:
+
+| Change | Reason |
+|---|---|
+| Astro 6 → **Astro 7** | Astro 7.0 shipped on 2026-06-22 and is at 7.3; Astro 6 got its last feature release in May. CSP, content collections and `astro:env` carry over. Astro 7 also brings Vite 8, a stricter Rust compiler (every non-void element must be closed) and the Sätteri Markdown pipeline. |
+| TypeScript pinned to **6.0** | TypeScript 7 exists, but `@astrojs/check` only supports TypeScript 5 or 6. |
+| pnpm kept at **10** (not 11 or 12) | Dependabot can't parse the lockfile format that pnpm 11 introduced. Cloudflare's build image defaults to pnpm 10.11, so `PNPM_VERSION` is set explicitly. |
+| **ESLint removed** | `eslint-plugin-astro` 3.x needs ESLint 10, but the accessibility plugin it relies on only supports ESLint 9 or older, so only a fork would bridge them. Strict `astro check`, Stylelint and axe on rendered pages cover what ESLint would catch here. |
+| `@lhci/cli` → **`lighthouse` + `chrome-launcher`** | Lighthouse CI hasn't published a release in 15 months and bundles Lighthouse 12. Lighthouse 13 is run directly from a Playwright project, reusing Playwright's server and Chromium. |
+| Vitest → **`node --test`** | Node 24 runs TypeScript natively, so unit tests need no dependency at all. |
+| **`@types/node`** added | Needed to type-check the Node-based tests and config files. |
+| `security.txt` is a **static file** | It's less fragile than generating it from a dot-directory route. Tests enforce the same guarantees: the expiry window and a `Contact` that matches the site's email. The optional `Canonical` field is dropped. |
