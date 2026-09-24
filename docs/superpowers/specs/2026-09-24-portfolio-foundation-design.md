@@ -68,8 +68,8 @@ this section is amended in writing, never quietly.
 | # | Floor | Enforced by |
 |---|---|---|
 | 1 | Lighthouse (mobile) on every page: Performance ≥ 95; Accessibility, Best Practices and SEO = 100 | Lighthouse, every PR |
-| 2 | Per page: JS ≤ 5 KB, CSS ≤ 20 KB, fonts ≤ 2 files and ≤ 100 KB, total transfer ≤ 500 KB (CV excluded) | Lighthouse budgets |
-| 3 | No requests to any third-party origin | CSP + Playwright + Lighthouse |
+| 2 | Per page: JS ≤ 5 KB, CSS ≤ 20 KB, fonts ≤ 2 files and ≤ 100 KB, total ≤ 500 KB (CV excluded) | Playwright page-weight check |
+| 3 | No requests to any third-party origin | CSP + Playwright page-weight check |
 | 4 | Lab metrics: LCP ≤ 2.5 s, CLS ≤ 0.1, TBT ≤ 100 ms | Lighthouse |
 | 5 | WCAG 2.2 AA: zero axe violations in light and dark schemes, plus a manual keyboard-only and screen-reader pass (VoiceOver or NVDA) on the home page and one case study before launch | Playwright + axe; release checklist |
 | 6 | Zero CSP violations and zero console errors on every page | Playwright |
@@ -82,8 +82,8 @@ Field targets after launch (at the 75th percentile: LCP < 2.5 s, INP < 200 ms, C
 but they can only be read from Chrome UX Report data once traffic allows, because the site has no
 analytics.
 
-Floor 2's sizes are transfer sizes measured against the local `wrangler dev` server. That server doesn't
-compress responses, so the check is stricter than the gzip sizes production serves.
+Floor 2's sizes are the decoded response sizes Playwright records from the local `wrangler dev`
+server. They're uncompressed, so the check is stricter than the gzip sizes production serves.
 
 The content & design spec may raise floor 2 for a named component, writing the new number here.
 
@@ -237,7 +237,7 @@ layers are split so they can't conflict:
 
 - **Per page, as a `<meta>` tag from Astro** (`security.csp`). Astro adds hashed `script-src` and
   `style-src` entries for its own output. The spec adds these directives:
-  `default-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests`.
+  `default-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'`.
 - **As an HTTP header from `_headers`:** only `frame-ancestors 'none'`. That header never contains
   `default-src`, `script-src` or `style-src`.
 
@@ -380,7 +380,7 @@ sets during builds (`WORKERS_CI_BRANCH` and others).
 | Unit | Node's built-in test runner (`node --test`, which runs TypeScript natively), `*.test.ts` | `lib/` helpers, test helpers, content rules, `security.txt` expiry |
 | End to end | Playwright on Chromium, WebKit and Firefox, against `pnpm serve`, `*.spec.ts` | Below |
 | Accessibility | `@axe-core/playwright`, WCAG 2.2 AA rule tags, in light and dark schemes | Every page |
-| Performance | Lighthouse 13, run from a dedicated Playwright project, budgets from §4 | Every page |
+| Performance | Lighthouse 13 for floors 1 and 4, run from a dedicated Playwright project; Playwright page-weight check for floors 2 and 3 | Every page |
 | Links | lychee, offline mode against `dist/` | Internal links, every PR (external links weekly) |
 | Security | `pnpm audit`, CodeQL, secret scanning | Repository |
 
@@ -467,7 +467,7 @@ Each of these is out of v1. If one is added, it follows these rules.
 
 - An Astro project matching §5, with the placeholder content from §6.
 - `_headers`, `wrangler.jsonc`, pnpm settings, `.nvmrc`, `.env.example`.
-- `ci.yml`, `weekly.yml`, Dependabot config, Lighthouse budgets, lychee config.
+- `ci.yml`, `weekly.yml`, Dependabot config, Lighthouse and page-weight checks, lychee config.
 - The tests from §9, all passing.
 - `README.md` covering:
   - what the project is
@@ -506,7 +506,9 @@ several assumptions were out of date:
 | TypeScript pinned to **6.0** | TypeScript 7 exists, but `@astrojs/check` only supports TypeScript 5 or 6. |
 | pnpm kept at **10** (not 11 or 12) | Dependabot can't parse the lockfile format that pnpm 11 introduced. Cloudflare's build image defaults to pnpm 10.11, so `PNPM_VERSION` is set explicitly. |
 | **ESLint removed** | `eslint-plugin-astro` 3.x needs ESLint 10, but the accessibility plugin it relies on only supports ESLint 9 or older, so only a fork would bridge them. Strict `astro check`, Stylelint and axe on rendered pages cover what ESLint would catch here. |
-| `@lhci/cli` → **`lighthouse` + `chrome-launcher`** | Lighthouse CI hasn't published a release in 15 months and bundles Lighthouse 12. Lighthouse 13 is run directly from a Playwright project, reusing Playwright's server and Chromium. |
+| `@lhci/cli` → **`lighthouse` + `chrome-launcher`** | Lighthouse CI hasn't published a release in 15 months and bundles Lighthouse 12. Lighthouse 13 is run directly from a Playwright project, reusing Playwright's server and Chromium, and checks scores and metrics only. |
+| Page weight measured by **Playwright** | Lighthouse 13 reorganised its audits, so byte and request budgets that read audit internals would be fragile. Playwright records every response directly, which is deterministic and browser-independent. |
+| **`upgrade-insecure-requests` removed** from the CSP | Every subresource is same-origin and `*.workers.dev` is HTTPS-only, so it adds nothing in production. It would also rewrite requests on the local `http://127.0.0.1` test server to HTTPS and break them. |
 | Vitest → **`node --test`** | Node 24 runs TypeScript natively, so unit tests need no dependency at all. |
 | **`@types/node`** added | Needed to type-check the Node-based tests and config files. |
 | `security.txt` is a **static file** | It's less fragile than generating it from a dot-directory route. Tests enforce the same guarantees: the expiry window and a `Contact` that matches the site's email. The optional `Canonical` field is dropped. |
