@@ -1,5 +1,6 @@
 ---
 import About from '../components/sections/About.astro';
+import Contact from '../components/sections/Contact.astro';
 import Hero from '../components/sections/Hero.astro';
 import Method from '../components/sections/Method.astro';
 import SelectedWork from '../components/sections/SelectedWork.astro';
@@ -46,4 +47,5 @@ const testimonials = await getTestimonials();
       intro={profile.sections.testimonials.intro}
     />
   )}
+  <Contact profile={profile} />
 </Base>

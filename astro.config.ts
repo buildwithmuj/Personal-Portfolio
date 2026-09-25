@@ -58,6 +58,8 @@ export default defineConfig({
         "object-src 'none'",
         "base-uri 'self'",
         "form-action 'none'",
+        // The Cal.com booking frame, created only when the visitor opens the panel (content spec §5.8).
+        'frame-src https://cal.com https://app.cal.com',
       ],
     },
   },
