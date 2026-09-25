@@ -1,20 +1,12 @@
 ---
 import About from '../components/sections/About.astro';
-import ExperienceSkills from '../components/sections/ExperienceSkills.astro';
 import Hero from '../components/sections/Hero.astro';
 import Method from '../components/sections/Method.astro';
 import SelectedWork from '../components/sections/SelectedWork.astro';
 import Testimonials from '../components/sections/Testimonials.astro';
 import Base from '../layouts/Base.astro';
 import { featuredStudies } from '../lib/case-studies.ts';
-import {
-  getCaseStudies,
-  getExperience,
-  getMethod,
-  getProfile,
-  getSkills,
-  getTestimonials,
-} from '../lib/content.ts';
+import { getCaseStudies, getMethod, getProfile, getTestimonials } from '../lib/content.ts';
 import { personJsonLd } from '../lib/structured-data.ts';
 
 const profile = await getProfile();
@@ -30,8 +22,6 @@ const structuredData = personJsonLd({
 const featured = featuredStudies(await getCaseStudies());
 const method = await getMethod();
 const testimonials = await getTestimonials();
-const roles = await getExperience();
-const skills = await getSkills();
 ---
 
 <Base structuredData={structuredData}>
@@ -56,11 +46,4 @@ const skills = await getSkills();
       intro={profile.sections.testimonials.intro}
     />
   )}
-  <ExperienceSkills
-    roles={roles}
-    skills={skills}
-    years={profile.stats[0]?.value ?? ''}
-    heading={profile.sections.experience.heading}
-    intro={profile.sections.experience.intro}
-  />
 </Base>
