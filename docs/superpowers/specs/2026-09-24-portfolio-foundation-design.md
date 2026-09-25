@@ -68,7 +68,7 @@ this section is amended in writing, never quietly.
 | # | Floor | Enforced by |
 |---|---|---|
 | 1 | Lighthouse (mobile) on every page: Performance ≥ 95; Accessibility, Best Practices and SEO = 100 | Lighthouse, every PR |
-| 2 | Per page: JS ≤ 5 KB, CSS ≤ 20 KB, fonts ≤ 2 files and ≤ 100 KB, total ≤ 500 KB (CV excluded) | Playwright page-weight check |
+| 2 | Per page: JS ≤ 5 KB, CSS ≤ 28 KB (raised from 20 KB on 2026-09-25, §15), fonts ≤ 2 files and ≤ 100 KB, total ≤ 500 KB (CV excluded) | Playwright page-weight check |
 | 3 | No requests to any third-party origin | CSP + Playwright page-weight check |
 | 4 | Lab metrics: LCP ≤ 2.5 s, CLS ≤ 0.1, TBT ≤ 100 ms | Lighthouse |
 | 5 | WCAG 2.2 AA: zero axe violations in light and dark schemes, plus a manual keyboard-only and screen-reader pass (VoiceOver or NVDA) on the home page and one case study before launch | Playwright + axe; release checklist |
@@ -534,3 +534,5 @@ and the default branch, and `main`, for releases. It replaces "branch → PR →
 | `dev` + `main` branch model | The owner wants a working branch separate from the release branch. `dev` gets a Cloudflare preview (staging). `main` stays production and the build-mode logic is unchanged. |
 | CI also runs on pushes to `dev`; Dependabot targets `dev` | Checks run where work happens, and updates reach `main` only through a release. |
 | Releases merge with a **merge commit**; squash-only is dropped | Squashing or rebasing `dev` into `main` rewrites commits `dev` keeps, so the branches drift apart and later release pull requests re-show old changes. |
+
+**2026-09-25, CSS budget.** Floor 2's CSS budget rises from 20 KB to 28 KB per page (uncompressed; about 7 KB compressed). The owner approved the change when the designed home page reached 21.3 KB, so the rise-on-scroll, hero effects and animated cards could stay. `tests/support/page-weight.ts` enforces the new value.

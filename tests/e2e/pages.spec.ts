@@ -78,6 +78,7 @@ for (const path of builtPagePaths()) {
         "object-src 'none'",
         "base-uri 'self'",
         "form-action 'none'",
+        'frame-src https://cal.com https://app.cal.com',
       ]) {
         expect(content).toContain(directive);
       }

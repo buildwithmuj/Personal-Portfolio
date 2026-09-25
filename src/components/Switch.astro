@@ -12,30 +12,38 @@ interface Props {
 const { name, label, options } = Astro.props;
 ---
 
-<fieldset class="switch">
+<fieldset>
   <legend class="visually-hidden">{label}</legend>
-  {options.map((option, index) => (
-    <label>
-      <input
-        class="visually-hidden"
-        type="radio"
-        name={name}
-        value={option.value}
-        checked={index === 0}
-      />
-      <span>{option.label}</span>
-    </label>
-  ))}
+  <div class="switch">
+    {options.map((option, index) => (
+      <label>
+        <input
+          class="visually-hidden"
+          type="radio"
+          name={name}
+          value={option.value}
+          checked={index === 0}
+        />
+        <span>{option.label}</span>
+      </label>
+    ))}
+  </div>
 </fieldset>
 
 <style>
+  /* Browsers give a fieldset a min-content minimum width; reset it so the switch can wrap. */
+  fieldset {
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
   .switch {
     display: inline-flex;
     flex-wrap: wrap;
     gap: 2px;
-    margin: 0;
     padding: 4px;
-    border: 0;
     border-radius: 20px;
     background: var(--color-surface);
     box-shadow: var(--shadow-secondary);

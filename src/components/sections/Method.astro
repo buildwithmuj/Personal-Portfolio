@@ -66,11 +66,59 @@ const tracks = (['process', 'product'] as const).map((track) => ({
   }
 
   .step {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: var(--space-8);
     justify-content: space-between;
     min-height: 240px;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  /*
+   * A slowly drifting indigo glow in the top half of each card. It fades out before the title and
+   * description, so the text always sits on the plain card. Only transform animates (composited).
+   */
+  .step::before {
+    position: absolute;
+    z-index: -1;
+    inset: -40% -20% 30%;
+    background:
+      radial-gradient(45% 60% at 78% 38%, var(--color-blob-1), transparent 70%),
+      radial-gradient(40% 55% at 52% 22%, var(--color-blob-2), transparent 70%),
+      radial-gradient(40% 50% at 95% 70%, var(--color-blob-3), transparent 70%);
+    content: '';
+    mask-image: linear-gradient(to bottom, var(--color-text) 50%, transparent 85%);
+    animation: drift 14s ease-in-out infinite alternate;
+  }
+
+  .step:nth-child(2)::before {
+    animation-direction: alternate-reverse;
+    animation-delay: -4s;
+  }
+
+  .step:nth-child(3)::before {
+    animation-delay: -8s;
+  }
+
+  .step:nth-child(4)::before {
+    animation-direction: alternate-reverse;
+    animation-delay: -11s;
+  }
+
+  .step:nth-child(5)::before {
+    animation-delay: -2s;
+  }
+
+  @keyframes drift {
+    from {
+      transform: translate3d(-6%, -4%, 0) rotate(0deg) scale(1);
+    }
+
+    to {
+      transform: translate3d(6%, 5%, 0) rotate(14deg) scale(1.15);
+    }
   }
 
   .number {
@@ -89,6 +137,12 @@ const tracks = (['process', 'product'] as const).map((track) => ({
 
   p {
     color: var(--color-text-muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .step::before {
+      animation: none;
+    }
   }
 
   @media (width < 40rem) {

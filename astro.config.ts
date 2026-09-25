@@ -51,6 +51,8 @@ export default defineConfig({
     },
   },
   trailingSlash: 'never',
+  // Class-based scoping keeps each scoped selector ~10 bytes shorter (page-weight floor, spec §4).
+  scopedStyleStrategy: 'class',
   build: { format: 'file' },
   markdown: { syntaxHighlight: false },
   integrations: [

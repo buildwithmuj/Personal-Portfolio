@@ -176,11 +176,6 @@ a {
   background: var(--color-surface);
 }
 
-.card-inverse {
-  background: var(--color-inverse);
-  color: var(--color-on-inverse);
-}
-
 /* Buttons */
 .btn {
   display: inline-flex;
@@ -216,11 +211,6 @@ a {
   background: var(--color-surface);
   box-shadow: var(--shadow-secondary);
   color: var(--color-text);
-}
-
-.btn-on-inverse {
-  background: var(--color-on-inverse);
-  color: var(--color-inverse);
 }
 
 /*

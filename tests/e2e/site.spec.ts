@@ -36,13 +36,14 @@ test('the skip link comes first and moves focus to main', async ({ page, browser
 test('Tab reaches every link and button on the home page', async ({ page, browserName }) => {
   test.skip(browserName === 'webkit', 'WebKit does not move focus to links with Tab by default');
   await page.goto('/');
-  const count = await page.locator('a[href]:visible, button:visible').count();
+  const focusable = 'a[href]:visible, button:visible, summary:visible, input[type="radio"]:checked';
+  const count = await page.locator(focusable).count();
   const reached = new Set<number>();
   for (let i = 0; i < count; i++) {
     await page.keyboard.press('Tab');
     reached.add(
       await page.evaluate(() =>
-        [...document.querySelectorAll('a[href], button')].indexOf(
+        [...document.querySelectorAll('a[href], button, summary, input[type="radio"]')].indexOf(
           document.activeElement as Element,
         ),
       ),

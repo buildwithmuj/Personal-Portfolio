@@ -119,6 +119,16 @@ const firstYear = roles.map((role) => role.start.slice(0, 4)).toSorted()[0];
     gap: var(--gap-pair);
   }
 
+  .card-inverse {
+    background: var(--color-inverse);
+    color: var(--color-on-inverse);
+  }
+
+  .btn-on-inverse {
+    background: var(--color-on-inverse);
+    color: var(--color-inverse);
+  }
+
   .column {
     display: flex;
     flex-direction: column;
