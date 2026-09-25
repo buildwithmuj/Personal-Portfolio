@@ -36,3 +36,19 @@ describe('GitHub Actions hardening (spec §7)', () => {
     });
   }
 });
+
+describe('Branch model (spec §8): work on dev, release on main', () => {
+  it('ci.yml runs on pull requests and on pushes to main and dev', () => {
+    const ci = workflows.find((w) => w.name === 'ci.yml')?.text ?? '';
+    assert.match(ci, /^ {2}pull_request:$/m);
+    assert.match(ci, /^ {2}push:\n {4}branches: \[main, dev\]$/m);
+  });
+
+  it('every Dependabot update targets dev', () => {
+    const dependabot = readFileSync('.github/dependabot.yml', 'utf8');
+    const ecosystems = dependabot.match(/package-ecosystem:/g)?.length ?? 0;
+    const targets = dependabot.match(/^ {4}target-branch: dev$/gm)?.length ?? 0;
+    assert.ok(ecosystems > 0);
+    assert.equal(targets, ecosystems);
+  });
+});

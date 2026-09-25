@@ -1,7 +1,9 @@
 version: 2
 updates:
+  # Updates land on dev, where work happens; they reach main with the next release (spec §8).
   - package-ecosystem: npm
     directory: /
+    target-branch: dev
     schedule:
       interval: weekly
     cooldown:
@@ -19,6 +21,7 @@ updates:
         versions: ['>=25']
   - package-ecosystem: github-actions
     directory: /
+    target-branch: dev
     schedule:
       interval: weekly
     cooldown:
