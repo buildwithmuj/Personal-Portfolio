@@ -53,7 +53,11 @@ export async function runLighthouse(url: string): Promise<LighthouseReport> {
       // On Windows the OS can hold the directory's files locked for a moment after the process
       // exits, so the delete can throw EPERM even though Chrome is already dead and the audit
       // above already completed. https://github.com/GoogleChrome/chrome-launcher/issues/266
-      if ((err as NodeJS.ErrnoException).code !== 'EPERM') throw err;
+      // This race is Windows-only (taskkill + a separate rmSync, not a POSIX SIGKILL), so on
+      // every other platform any error here — including an EPERM — still fails the test.
+      const isWindowsCleanupRace =
+        process.platform === 'win32' && (err as NodeJS.ErrnoException).code === 'EPERM';
+      if (!isWindowsCleanupRace) throw err;
     }
   }
 }
