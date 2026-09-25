@@ -1,6 +1,7 @@
 import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 import { visibleStudies } from './case-studies.ts';
 import { isProduction } from './mode.ts';
+import { visibleTestimonials } from './testimonials.ts';
 
 export async function getProfile(): Promise<CollectionEntry<'profile'>['data']> {
   const entry = await getEntry('profile', 'main');
@@ -18,4 +19,11 @@ export async function getMethod(): Promise<CollectionEntry<'method'>['data'][]> 
   return (await getCollection('method'))
     .map((entry) => entry.data)
     .toSorted((a, b) => a.order - b.order);
+}
+
+/** Testimonials; placeholders only outside production (content spec §5.6). */
+export async function getTestimonials(): Promise<CollectionEntry<'testimonials'>['data'][]> {
+  return visibleTestimonials(await getCollection('testimonials'), !isProduction).map(
+    (entry) => entry.data,
+  );
 }

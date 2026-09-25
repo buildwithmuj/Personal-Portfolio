@@ -115,4 +115,14 @@ const method = defineCollection({
   }),
 });
 
-export const collections = { profile, caseStudies, method };
+const testimonials = defineCollection({
+  loader: file('src/content/testimonials.yaml'),
+  schema: z.object({
+    name: z.string().min(1),
+    role: z.string().min(1),
+    quote: z.string().min(1).max(320),
+    placeholder: z.boolean().default(false),
+  }),
+});
+
+export const collections = { profile, caseStudies, method, testimonials };

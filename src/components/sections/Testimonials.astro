@@ -1,0 +1,102 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Shell from '../Shell.astro';
+
+interface Props {
+  testimonials: CollectionEntry<'testimonials'>['data'][];
+  heading: string;
+  intro: string;
+}
+
+const { testimonials, heading, intro } = Astro.props;
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .map((part) => part[0] ?? '')
+    .join('')
+    .slice(0, 2);
+---
+
+<Shell id="testimonials" heading={heading} intro={intro}>
+  <ul class="quotes" role="list">
+    {testimonials.map((testimonial) => (
+      <li class="quote">
+        <figure>
+          <figcaption>
+            <span class="avatar" aria-hidden="true">
+              {initials(testimonial.name)}
+            </span>
+            <span class="who">
+              <span class="name">{testimonial.name}</span>
+              <span class="role">{testimonial.role}</span>
+            </span>
+          </figcaption>
+          <blockquote>
+            <p>{testimonial.quote}</p>
+          </blockquote>
+        </figure>
+      </li>
+    ))}
+  </ul>
+</Shell>
+
+<style>
+  /* Measured from the reference's "What Clients Are Saying" cards. */
+  .quotes {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--inset);
+    padding: 0;
+    list-style: none;
+  }
+
+  .quote {
+    padding: var(--card-pad-sm);
+    border-radius: var(--radius-card);
+    background: var(--color-surface);
+  }
+
+  figcaption {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+    padding-block-end: 15px;
+    border-block-end: 1px solid var(--color-border);
+  }
+
+  .avatar {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--color-shell);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+  }
+
+  .who {
+    display: grid;
+  }
+
+  .name {
+    font-weight: var(--weight-medium);
+  }
+
+  .role {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    line-height: var(--leading-snug);
+  }
+
+  blockquote {
+    margin: 24px 0 0;
+  }
+
+  @media (width < 40rem) {
+    .quotes {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

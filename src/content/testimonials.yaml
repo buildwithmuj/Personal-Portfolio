@@ -1,0 +1,22 @@
+# Testimonials (content spec §5.6). Entries with placeholder: true never reach the live site.
+# Replace them with real quotes that the person has agreed to publish, and set placeholder: false.
+placeholder-one:
+  name: Placeholder Name
+  role: Role, organisation
+  quote: Placeholder testimonial. A real, consented quote from someone Mujtaba has worked with goes here.
+  placeholder: true
+placeholder-two:
+  name: Placeholder Name
+  role: Role, organisation
+  quote: Placeholder testimonial about how he untangles complex processes and gets people aligned.
+  placeholder: true
+placeholder-three:
+  name: Placeholder Name
+  role: Role, organisation
+  quote: Placeholder testimonial about delivery, from business case to adoption.
+  placeholder: true
+placeholder-four:
+  name: Placeholder Name
+  role: Role, organisation
+  quote: Placeholder testimonial about working with him on a product.
+  placeholder: true

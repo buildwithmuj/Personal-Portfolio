@@ -8,13 +8,7 @@ const { label, items } = Astro.props;
 ---
 
 <div class="proof">
-  <div class="proof-head">
-    <p class="proof-label">{label}</p>
-    <label class="pause">
-      <input type="checkbox" />
-      <span>Pause scrolling</span>
-    </label>
-  </div>
+  <p class="proof-label">{label}</p>
   <div class="marquee">
     <ul class="track" role="list">
       {items.map((item) => (
@@ -35,30 +29,8 @@ const { label, items } = Astro.props;
     gap: var(--space-4);
   }
 
-  .proof-head {
-    display: flex;
-    gap: var(--space-4);
-    align-items: center;
-    justify-content: space-between;
-  }
-
   .proof-label {
     font-weight: var(--weight-medium);
-  }
-
-  .pause {
-    display: inline-flex;
-    gap: var(--space-2);
-    align-items: center;
-    color: var(--color-text-muted);
-    font-size: var(--text-xs);
-    cursor: pointer;
-  }
-
-  .pause input {
-    width: 1rem;
-    height: 1rem;
-    accent-color: var(--color-inverse);
   }
 
   .marquee {
@@ -88,10 +60,8 @@ const { label, items } = Astro.props;
     white-space: nowrap;
   }
 
-  /* Hover and focus pause it (content spec §5.2); the checkbox is the lasting control WCAG 2.2.2 needs. */
-  .marquee:hover .track,
-  .proof:focus-within .track,
-  .proof:has(.pause input:checked) .track {
+  /* Hovering pauses it (content spec §5.2). */
+  .marquee:hover .track {
     animation-play-state: paused;
   }
 
@@ -115,8 +85,7 @@ const { label, items } = Astro.props;
       animation: none;
     }
 
-    .track[aria-hidden='true'],
-    .pause {
+    .track[aria-hidden='true'] {
       display: none;
     }
   }
