@@ -23,6 +23,17 @@ for (const path of builtPagePaths()) {
     });
     await page.goto(path, { waitUntil: 'networkidle' });
     await Promise.all(pending);
-    expect(checkPageWeight(resources, new URL(BASE_URL).origin)).toEqual([]);
+    const inline = await page.evaluate(() => {
+      const byteLength = (text: string) => new TextEncoder().encode(text).length;
+      const script = [...document.querySelectorAll('script:not([src])')]
+        .filter((el) => el.getAttribute('type') !== 'application/ld+json')
+        .reduce((sum, el) => sum + byteLength(el.textContent ?? ''), 0);
+      const stylesheet = [...document.querySelectorAll('style')].reduce(
+        (sum, el) => sum + byteLength(el.textContent ?? ''),
+        0,
+      );
+      return { script, stylesheet };
+    });
+    expect(checkPageWeight(resources, new URL(BASE_URL).origin, inline)).toEqual([]);
   });
 }

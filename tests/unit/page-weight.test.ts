@@ -45,4 +45,22 @@ describe('checkPageWeight (spec §4, floors 2 and 3)', () => {
     const failures = checkPageWeight([res('script', 100, 'https://cdn.example.net/x.js')], origin);
     assert.deepEqual(failures, ['third-party request: https://cdn.example.net/x.js']);
   });
+
+  it('counts inline script bytes towards the script budget', () => {
+    const failures = checkPageWeight([], origin, { script: 6 * KB, stylesheet: 0 });
+    assert.deepEqual(failures, ['script: 6144 B > 5120 B']);
+  });
+
+  it('counts inline stylesheet bytes towards the CSS budget', () => {
+    const failures = checkPageWeight([], origin, { script: 0, stylesheet: 21 * KB });
+    assert.deepEqual(failures, ['stylesheet: 21504 B > 20480 B']);
+  });
+
+  it('does not count inline bytes towards the total', () => {
+    const failures = checkPageWeight([res('document', 10 * KB)], origin, {
+      script: 6 * KB,
+      stylesheet: 21 * KB,
+    });
+    assert.ok(!failures.some((f) => f.startsWith('total:')));
+  });
 });

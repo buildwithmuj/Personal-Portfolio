@@ -6,6 +6,12 @@ export interface LoadedResource {
   bytes: number;
 }
 
+/** Astro inlines the copy-email script and every stylesheet, so no network response carries them. */
+export interface InlineBytes {
+  script: number;
+  stylesheet: number;
+}
+
 /** Spec §4, floor 2. */
 export const WEIGHT_BUDGET = {
   bytes: { script: 5 * 1024, stylesheet: 20 * 1024, font: 100 * 1024 },
@@ -14,13 +20,19 @@ export const WEIGHT_BUDGET = {
 } as const;
 
 /** One message per broken budget. An empty list means the page passes. */
-export function checkPageWeight(resources: readonly LoadedResource[], origin: string): string[] {
+export function checkPageWeight(
+  resources: readonly LoadedResource[],
+  origin: string,
+  inline: InlineBytes = { script: 0, stylesheet: 0 },
+): string[] {
   const failures: string[] = [];
   const bytesOf = (type: string) =>
     resources.filter((r) => r.type === type).reduce((sum, r) => sum + r.bytes, 0);
+  const inlineBytesOf = (type: string) =>
+    type === 'script' ? inline.script : type === 'stylesheet' ? inline.stylesheet : 0;
 
   for (const [type, max] of Object.entries(WEIGHT_BUDGET.bytes)) {
-    const bytes = bytesOf(type);
+    const bytes = bytesOf(type) + inlineBytesOf(type);
     if (bytes > max) failures.push(`${type}: ${bytes} B > ${max} B`);
   }
   const fontFiles = resources.filter((r) => r.type === 'font').length;
