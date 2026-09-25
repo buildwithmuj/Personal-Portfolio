@@ -13,9 +13,10 @@ interface Props {
   image?: { url: string; alt: string };
   type?: 'website' | 'article';
   structuredData?: string;
+  noindex?: boolean;
 }
 
-const { title, description, image, type = 'website', structuredData } = Astro.props;
+const { title, description, image, type = 'website', structuredData, noindex } = Astro.props;
 const profile = await getProfile();
 ---
 
@@ -34,7 +35,7 @@ const profile = await getProfile();
       path={Astro.url.pathname}
       description={description ?? profile.seo.description}
       image={image ?? { url: profile.seo.image, alt: profile.seo.imageAlt }}
-      noindex={!isProduction}
+      noindex={noindex === true || !isProduction}
       type={type}
       {...(structuredData ? { structuredData } : {})}
     />

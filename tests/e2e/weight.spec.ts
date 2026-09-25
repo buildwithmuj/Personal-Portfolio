@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { checkPageWeight, type LoadedResource } from '../support/page-weight.ts';
 import { BASE_URL, builtPagePaths } from '../support/site.ts';
 
-for (const path of builtPagePaths()) {
+for (const path of [...builtPagePaths(), '/does-not-exist']) {
   test(`${path} stays within the page-weight budget`, async ({ page, browserName }) => {
     test.skip(browserName !== 'chromium', 'Resource sizes do not depend on the browser engine');
     const resources: LoadedResource[] = [];

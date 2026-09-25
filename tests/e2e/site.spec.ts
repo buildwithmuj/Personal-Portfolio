@@ -12,6 +12,7 @@ test('an unknown path returns the 404 page with a 404 status and every security 
   for (const [name, value] of Object.entries(EXPECTED_HEADERS)) {
     expect(headers[name], name).toBe(value);
   }
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');
 });
 
 test('robots.txt allows crawling in production and names the sitemap', async ({
