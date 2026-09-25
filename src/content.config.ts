@@ -100,6 +100,7 @@ const caseStudies = defineCollection({
 const method = defineCollection({
   loader: file('src/content/method.yaml'),
   schema: z.object({
+    track: z.enum(['process', 'product']),
     order: z.number().int(),
     title: z.string().min(1),
     description: z.string().min(1),

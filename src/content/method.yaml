@@ -1,27 +1,63 @@
 # "How I work" (content spec §5.5). Drafted from the CV; for Mujtaba to review.
+# Two tracks, switched on the page: process optimisation and building products.
 # The page shows the title and description; tags are kept for later use.
 understand:
+  track: process
   order: 1
   title: Understand the real process
   description: Map how the work really happens today, with the people who do it.
   tags: [As-is mapping, Stakeholder workshops]
 design:
+  track: process
   order: 2
   title: Design the future state
   description: Shape the target operating model, and the solution that fits it.
   tags: [Target operating model, Solution design]
 justify:
+  track: process
   order: 3
   title: Make the case
   description: Build the business case and ROI, so the right people can say yes.
   tags: [Business case, ROI]
 build:
+  track: process
   order: 4
   title: Build in small, tested steps
   description: Deliver the automation, app or product iteratively, testing as I go.
   tags: [Automation, Apps, Products]
 embed:
+  track: process
   order: 5
   title: Embed the change
   description: Documentation, SOPs and adoption support, so the change sticks.
   tags: [Testing, SOPs, Change and adoption]
+product-problem:
+  track: product
+  order: 1
+  title: Start from a real problem
+  description: Find a pain point people actually have, and check it before building anything.
+  tags: [Discovery, Validation]
+product-prototype:
+  track: product
+  order: 2
+  title: Prototype fast
+  description: Low-code, no-code and AI tools get a working version in days, not months.
+  tags: [Low-code, AI tools]
+product-test:
+  track: product
+  order: 3
+  title: Test with real users
+  description: Put it in front of people early, and watch what they actually do.
+  tags: [User testing, Feedback]
+product-ship:
+  track: product
+  order: 4
+  title: Ship version one
+  description: Launch the smallest version that solves the problem well.
+  tags: [Launch, MVP]
+product-iterate:
+  track: product
+  order: 5
+  title: Learn and iterate
+  description: Measure, listen and improve, or retire it and carry the lessons forward.
+  tags: [Iteration, Metrics]

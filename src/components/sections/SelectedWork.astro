@@ -1,8 +1,8 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import { caseStudyLabel } from '../../lib/case-studies.ts';
-import CaseStudyCard from '../CaseStudyCard.astro';
 import Shell from '../Shell.astro';
+import Switch from '../Switch.astro';
+import WorkGrid from '../WorkGrid.astro';
 
 interface Props {
   studies: CollectionEntry<'caseStudies'>[];
@@ -14,33 +14,28 @@ const { studies, heading, intro } = Astro.props;
 ---
 
 <Shell id="work" heading={heading} intro={intro} join="bottom" reveal={false}>
-  <ul class="grid" role="list">
-    {studies.map((study) => (
-      <li>
-        <CaseStudyCard
-          href={`/work/${study.id}`}
-          title={study.data.title}
-          label={caseStudyLabel(study.data)}
-          cover={study.data.cover}
-          coverAlt={study.data.coverAlt}
-        />
-      </li>
-    ))}
-  </ul>
+  <Switch
+    slot="actions"
+    name="work-filter"
+    label="Show"
+    options={[
+      { value: 'client', label: 'Work' },
+      { value: 'product', label: 'Personal projects' },
+    ]}
+  />
+  <WorkGrid studies={studies} limit={4} />
+  <p class="more">
+    <a class="btn btn-secondary" href="/work">
+      View all work
+    </a>
+  </p>
 </Shell>
 
 <style>
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 35px var(--gap-work);
-    padding: 0;
-    list-style: none;
-  }
-
-  @media (width < 40rem) {
-    .grid {
-      grid-template-columns: 1fr;
-    }
+  .more {
+    display: flex;
+    justify-content: center;
+    max-width: none;
+    margin-block-start: 40px;
   }
 </style>

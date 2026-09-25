@@ -138,9 +138,17 @@ a {
 }
 
 .section-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
+  align-items: end;
+  justify-content: space-between;
+  margin-block-end: 40px;
+}
+
+.section-title {
   display: grid;
   gap: 6px;
-  margin-block-end: 40px;
 }
 
 .section-head h2 {

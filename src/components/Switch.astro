@@ -1,0 +1,74 @@
+---
+/**
+ * A pill-shaped segmented switch built from native radio buttons, so it works without JavaScript and
+ * keeps arrow-key navigation. The section around it hides content with :has() on the checked value.
+ */
+interface Props {
+  name: string;
+  label: string;
+  options: { value: string; label: string }[];
+}
+
+const { name, label, options } = Astro.props;
+---
+
+<fieldset class="switch">
+  <legend class="visually-hidden">{label}</legend>
+  {options.map((option, index) => (
+    <label>
+      <input
+        class="visually-hidden"
+        type="radio"
+        name={name}
+        value={option.value}
+        checked={index === 0}
+      />
+      <span>{option.label}</span>
+    </label>
+  ))}
+</fieldset>
+
+<style>
+  .switch {
+    display: inline-flex;
+    gap: 2px;
+    margin: 0;
+    padding: 4px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-secondary);
+  }
+
+  label {
+    position: relative;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+  }
+
+  span {
+    display: block;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    color: var(--color-text-muted);
+    font-weight: var(--weight-medium);
+    white-space: nowrap;
+    transition:
+      background-color var(--duration-fast) var(--ease-standard),
+      color var(--duration-fast) var(--ease-standard);
+  }
+
+  label:hover span {
+    color: var(--color-text);
+  }
+
+  input:checked + span {
+    background: var(--color-inverse);
+    color: var(--color-on-inverse);
+  }
+
+  input:focus-visible + span {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+</style>

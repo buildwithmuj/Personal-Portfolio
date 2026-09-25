@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import Shell from '../Shell.astro';
+import Switch from '../Switch.astro';
 
 interface Props {
   steps: CollectionEntry<'method'>['data'][];
@@ -9,22 +10,37 @@ interface Props {
 }
 
 const { steps, heading, intro } = Astro.props;
+const tracks = (['process', 'product'] as const).map((track) => ({
+  track,
+  steps: steps.filter((step) => step.track === track),
+}));
 ---
 
 <Shell id="method" heading={heading} intro={intro}>
-  <ol class="steps" role="list">
-    {steps.map((step, index) => (
-      <li class="card step">
-        <span class="number" aria-hidden="true">
-          {String(index + 1).padStart(2, '0')}
-        </span>
-        <div>
-          <h3>{step.title}</h3>
-          <p>{step.description}</p>
-        </div>
-      </li>
-    ))}
-  </ol>
+  <Switch
+    slot="actions"
+    name="method-track"
+    label="Show"
+    options={[
+      { value: 'process', label: 'Process optimisation' },
+      { value: 'product', label: 'Building products' },
+    ]}
+  />
+  {tracks.map((group) => (
+    <ol class="steps" role="list" data-track={group.track}>
+      {group.steps.map((step, index) => (
+        <li class="card step">
+          <span class="number" aria-hidden="true">
+            {String(index + 1).padStart(2, '0')}
+          </span>
+          <div>
+            <h3>{step.title}</h3>
+            <p>{step.description}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  ))}
 </Shell>
 
 <style>
@@ -39,6 +55,14 @@ const { steps, heading, intro } = Astro.props;
 
   .steps > li:last-child:nth-child(odd) {
     grid-column: 1 / -1;
+  }
+
+  /* The Process optimisation | Building products switch picks which track shows. */
+  :global(section:has(input[name='method-track'][value='product']:checked))
+    .steps[data-track='process'],
+  :global(section:has(input[name='method-track'][value='process']:checked))
+    .steps[data-track='product'] {
+    display: none;
   }
 
   .step {

@@ -25,13 +25,13 @@ const statusLabels: Record<CaseStudyStatus, string> = {
   retired: 'Retired',
 };
 
-/** "Client work · <sector>" or "Own product · <status>" (content spec §5.4). */
+/** "Client work · <sector>" or "Personal project · <status>" (content spec §5.4). */
 export function caseStudyLabel(data: {
   kind: 'client' | 'product';
   sector?: string | undefined;
   status?: CaseStudyStatus | undefined;
 }): string {
-  const kind = data.kind === 'client' ? 'Client work' : 'Own product';
+  const kind = data.kind === 'client' ? 'Client work' : 'Personal project';
   const detail = data.kind === 'client' ? data.sector : data.status && statusLabels[data.status];
   return detail ? `${kind} · ${detail}` : kind;
 }

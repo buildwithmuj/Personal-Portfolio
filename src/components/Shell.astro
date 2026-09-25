@@ -34,8 +34,11 @@ const headingId = `${id}-heading`;
 >
   {heading && (
     <header class="section-head">
-      <h2 id={headingId}>{heading}</h2>
-      {intro && <p>{intro}</p>}
+      <div class="section-title">
+        <h2 id={headingId}>{heading}</h2>
+        {intro && <p>{intro}</p>}
+      </div>
+      <slot name="actions" />
     </header>
   )}
   <slot />
