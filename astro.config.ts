@@ -1,5 +1,5 @@
 import sitemap from '@astrojs/sitemap';
-import { defineConfig } from 'astro/config';
+import { defineConfig, envField } from 'astro/config';
 import { SITE_URL } from './site.config.ts';
 
 // Cloudflare Workers Builds sets WORKERS_CI=1. Refuse to deploy with the placeholder URL.
@@ -11,6 +11,12 @@ if (process.env['WORKERS_CI'] === '1' && new URL(SITE_URL).hostname === 'example
 
 export default defineConfig({
   site: SITE_URL,
+  env: {
+    schema: {
+      // Set by Cloudflare Workers Builds; decides production vs preview (spec §8).
+      WORKERS_CI_BRANCH: envField.string({ context: 'server', access: 'public', optional: true }),
+    },
+  },
   trailingSlash: 'never',
   build: { format: 'file' },
   markdown: { syntaxHighlight: false },
