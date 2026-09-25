@@ -1,0 +1,9 @@
+# Link checking (spec §9). CI adds --offline to check internal links only; the weekly job checks
+# external links too.
+include_fragments = true
+fallback_extensions = ["html"]
+index_files = ["index.html"]
+exclude = [
+  '^https://example\.com',           # placeholder SITE_URL and case-study link until launch
+  '^https://(www\.)?linkedin\.com',  # LinkedIn answers automated requests with status 999
+]
