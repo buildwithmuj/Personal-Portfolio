@@ -8,7 +8,8 @@ interface Props {
 }
 
 const { profile } = Astro.props;
-const [firstRole = '', secondRole = ''] = profile.roles;
+// Screen readers get every role once, as a sentence; the visible line cycles through them.
+const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).format(profile.roles);
 const monogram = profile.name
   .split(/\s+/)
   .map((part) => part[0] ?? '')
@@ -35,13 +36,14 @@ const monogram = profile.name
       <div>
         <h1 id="hero-name">{profile.name}</h1>
         <p class="roles">
-          <span class="visually-hidden">
-            {firstRole} and {secondRole}
-          </span>
-          <span class="rotator" aria-hidden="true">
-            <span>{firstRole}</span>
-            <span>{secondRole}</span>
-          </span>
+          <span class="visually-hidden">{rolesSentence}</span>
+          <role-rotator
+            class="rotator"
+            aria-hidden="true"
+            data-roles={JSON.stringify(profile.roles)}
+          >
+            <span>{profile.roles[0]}</span>
+          </role-rotator>
         </p>
       </div>
     </div>
@@ -58,6 +60,34 @@ const monogram = profile.name
     <ProofStrip label={profile.proof.label} items={profile.proof.items} />
   </div>
 </Shell>
+
+<script>
+  // Cycles the visible role every few seconds by sliding it through the clipped line. Without
+  // JavaScript, or with reduced motion, the first role stays put.
+  class RoleRotator extends HTMLElement {
+    connectedCallback(): void {
+      const line = this.querySelector('span');
+      const roles = JSON.parse(this.dataset['roles'] ?? '[]') as string[];
+      if (!line || roles.length < 2) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      let index = 0;
+      const timing = {
+        duration: 250,
+        easing: 'cubic-bezier(0.2, 0, 0, 1)',
+        fill: 'forwards' as const,
+      };
+      window.setInterval(async () => {
+        await line.animate([{ transform: 'none' }, { transform: 'translateY(-110%)' }], timing)
+          .finished;
+        index = (index + 1) % roles.length;
+        line.textContent = roles[index] ?? '';
+        line.animate([{ transform: 'translateY(110%)' }, { transform: 'none' }], timing);
+      }, 2600);
+    }
+  }
+
+  customElements.define('role-rotator', RoleRotator);
+</script>
 
 <style>
   .hero {
@@ -138,46 +168,11 @@ const monogram = profile.name
   }
 
   .rotator {
-    display: grid;
+    display: block;
   }
 
   .rotator > span {
-    grid-area: 1 / 1;
-  }
-
-  .rotator > span:first-child {
-    animation: role-first var(--role-duration) var(--ease-standard) infinite;
-  }
-
-  .rotator > span:last-child {
-    animation: role-second var(--role-duration) var(--ease-standard) infinite;
-  }
-
-  /* The roles slide through the clipped .roles line; no opacity, so contrast never dips. */
-  @keyframes role-first {
-    0%,
-    45%,
-    100% {
-      transform: none;
-    }
-
-    50%,
-    95% {
-      transform: translateY(-110%);
-    }
-  }
-
-  @keyframes role-second {
-    0%,
-    45%,
-    100% {
-      transform: translateY(110%);
-    }
-
-    50%,
-    95% {
-      transform: none;
-    }
+    display: block;
   }
 
   .headline {
@@ -207,16 +202,6 @@ const monogram = profile.name
 
     .identity {
       margin-block-start: 0;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .rotator > span {
-      animation: none;
-    }
-
-    .rotator > span:last-child {
-      display: none;
     }
   }
 </style>

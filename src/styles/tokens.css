@@ -98,7 +98,6 @@
   --duration-base: 200ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --marquee-duration: 30s;
-  --role-duration: 6s;
 }
 
 @media (width < 40rem) {

@@ -128,6 +128,10 @@ a {
 
 /* Below 640px the top bar wraps to its own height and sits above the first shell. */
 @media (width < 40rem) {
+  .section-head {
+    grid-template-columns: 1fr;
+  }
+
   .stack > :first-child {
     padding-block-start: var(--shell-pad);
   }
@@ -138,11 +142,10 @@ a {
 }
 
 .section-head {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr auto;
   gap: var(--space-4) var(--space-6);
   align-items: end;
-  justify-content: space-between;
   margin-block-end: 40px;
 }
 
