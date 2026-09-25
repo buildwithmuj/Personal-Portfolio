@@ -1,6 +1,7 @@
 ---
 import type { ImageMetadata } from 'astro';
 import { Image } from 'astro:assets';
+import TagList from './TagList.astro';
 
 interface Props {
   href: string;
@@ -26,13 +27,7 @@ const { href, title, summary, cover, coverAlt, tags } = Astro.props;
     <a href={href}>{title}</a>
   </h3>
   <p>{summary}</p>
-  {tags.length > 0 && (
-    <ul class="tags" aria-label="Tags">
-      {tags.map((tag) => (
-        <li>{tag}</li>
-      ))}
-    </ul>
-  )}
+  <TagList tags={tags} />
 </article>
 
 <style>
@@ -43,15 +38,5 @@ const { href, title, summary, cover, coverAlt, tags } = Astro.props;
 
   img {
     border-radius: var(--radius-md);
-  }
-
-  .tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    padding: 0;
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
-    list-style: none;
   }
 </style>

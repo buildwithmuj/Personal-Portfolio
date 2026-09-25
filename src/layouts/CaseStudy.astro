@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
+import TagList from '../components/TagList.astro';
 import Base from './Base.astro';
 
 interface Props {
@@ -43,13 +44,7 @@ const { title, summary, role, timeframe, client, tags, links, cover, coverAlt } 
           </div>
         )}
       </dl>
-      {tags.length > 0 && (
-        <ul class="tags" aria-label="Tags">
-          {tags.map((tag) => (
-            <li>{tag}</li>
-          ))}
-        </ul>
-      )}
+      <TagList tags={tags} />
     </header>
     <Image
       class="cover"
@@ -112,16 +107,6 @@ const { title, summary, role, timeframe, client, tags, links, cover, coverAlt } 
 
   dd {
     margin: 0;
-  }
-
-  .tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    padding: 0;
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
-    list-style: none;
   }
 
   .cover {
