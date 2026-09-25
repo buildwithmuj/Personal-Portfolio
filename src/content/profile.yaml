@@ -55,7 +55,7 @@ main:
       heading: Let's work together
       intro: Hiring, or have a process that needs untangling? Book a call or send me an email.
   email: hello@example.com # PLACEHOLDER: the address to publish
-  bookingUrl: https://cal.com/mujtaba-shah-placeholder-not-real/30min # PLACEHOLDER: the Cal.com event link
+  bookingUrl: https://cal.com/mujtaba.shah/30min
   avatar: /avatar.jpg
   voiceIntro: /audio/intro.wav # PLACEHOLDER: record the real voice intro
   timeZone: Europe/London
