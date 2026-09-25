@@ -49,6 +49,13 @@ const profile = defineCollection({
       message: 'Must be a Cal.com event URL (https://cal.com/…)',
     }),
     avatar: publicImage.optional(),
+    voiceIntro: z
+      .string()
+      .regex(
+        /^\/[\w./-]+\.(?:mp3|m4a|ogg|wav)$/,
+        'A root-relative path to an audio file in public/',
+      )
+      .optional(),
     timeZone: z.string().min(1).default('Europe/London'),
     locationLabel: z.string().min(1),
     socials: z.array(z.object({ platform: z.enum(socialPlatforms), url: httpsUrl })),

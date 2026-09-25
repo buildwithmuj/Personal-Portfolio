@@ -2,6 +2,7 @@
 import type { CollectionEntry } from 'astro:content';
 import Shell from '../Shell.astro';
 import Stats from '../Stats.astro';
+import VoiceIntro from '../VoiceIntro.astro';
 
 interface Props {
   profile: CollectionEntry<'profile'>['data'];
@@ -56,6 +57,7 @@ const { profile } = Astro.props;
           Download CV
         </a>
       </li>
+      {profile.voiceIntro && <VoiceIntro src={profile.voiceIntro} />}
     </ul>
     <Stats stats={profile.stats} />
   </div>
@@ -92,7 +94,7 @@ const { profile } = Astro.props;
     list-style: none;
   }
 
-  .contact-row li {
+  .contact-row > :global(li) {
     display: inline-flex;
     gap: var(--space-2);
     align-items: center;
@@ -101,8 +103,8 @@ const { profile } = Astro.props;
     line-height: var(--leading-tight);
   }
 
-  /* The reference separates the items with small grey dots. */
-  .contact-row li + li::before {
+  /* The reference separates the items with small grey dots (global: VoiceIntro renders its own li). */
+  .contact-row > :global(li + li)::before {
     width: 4px;
     height: 4px;
     margin-inline-end: 12px;
