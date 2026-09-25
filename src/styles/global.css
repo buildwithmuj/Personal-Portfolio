@@ -128,10 +128,6 @@ a {
 
 /* Below 640px the top bar wraps to its own height and sits above the first shell. */
 @media (width < 40rem) {
-  .section-head {
-    grid-template-columns: 1fr;
-  }
-
   .stack > :first-child {
     padding-block-start: var(--shell-pad);
   }
@@ -152,6 +148,13 @@ a {
 .section-title {
   display: grid;
   gap: 6px;
+}
+
+/* On phones the switch drops below the heading. */
+@media (width < 40rem) {
+  .section-head {
+    grid-template-columns: 1fr;
+  }
 }
 
 .section-head :is(h1, h2) {

@@ -8,9 +8,12 @@ interface Props {
   label: string;
   cover: ImageMetadata;
   coverAlt: string;
+  /** 2 on the All work page, where the cards sit directly under the page title. */
+  headingLevel?: 2 | 3;
 }
 
-const { href, title, label, cover, coverAlt } = Astro.props;
+const { href, title, label, cover, coverAlt, headingLevel = 3 } = Astro.props;
+const Heading = headingLevel === 2 ? 'h2' : 'h3';
 ---
 
 <article class="case-card">
@@ -24,9 +27,9 @@ const { href, title, label, cover, coverAlt } = Astro.props;
     />
   </div>
   <p class="card-label">{label}</p>
-  <h3>
+  <Heading class="title">
     <a href={href}>{title}</a>
-  </h3>
+  </Heading>
 </article>
 
 <style>
@@ -60,25 +63,25 @@ const { href, title, label, cover, coverAlt } = Astro.props;
     color: var(--color-text-muted);
   }
 
-  h3 {
+  .title {
     font-size: var(--text-lg);
     line-height: 1.5;
   }
 
-  h3 a {
+  .title a {
     color: var(--color-text);
     text-decoration: none;
     transition: color var(--duration-fast) var(--ease-standard);
   }
 
   /* The whole card is clickable; the link's name stays the title. */
-  h3 a::after {
+  .title a::after {
     position: absolute;
     inset: 0;
     content: '';
   }
 
-  h3 a:focus-visible {
+  .title a:focus-visible {
     outline: none;
   }
 
@@ -87,7 +90,7 @@ const { href, title, label, cover, coverAlt } = Astro.props;
     outline-offset: 4px;
   }
 
-  .case-card:hover h3 a {
+  .case-card:hover .title a {
     color: var(--color-accent);
   }
 </style>

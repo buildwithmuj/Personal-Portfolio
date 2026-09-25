@@ -7,9 +7,11 @@ interface Props {
   studies: CollectionEntry<'caseStudies'>[];
   /** The most cards to show in each tab; omit to show them all. */
   limit?: number;
+  /** Heading level for the card titles. */
+  headingLevel?: 2 | 3;
 }
 
-const { studies, limit } = Astro.props;
+const { studies, limit, headingLevel = 3 } = Astro.props;
 const groups = (['client', 'product'] as const).map((kind) => {
   const all = studies.filter((study) => study.data.kind === kind);
   return { kind, studies: limit === undefined ? all : all.slice(0, limit) };
@@ -26,6 +28,7 @@ const groups = (['client', 'product'] as const).map((kind) => {
           label={caseStudyLabel(study.data)}
           cover={study.data.cover}
           coverAlt={study.data.coverAlt}
+          headingLevel={headingLevel}
         />
       </li>
     ))}
