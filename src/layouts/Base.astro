@@ -7,6 +7,7 @@ import Footer from '../components/Footer.astro';
 import TopBar from '../components/TopBar.astro';
 import { getProfile } from '../lib/content.ts';
 import { isProduction } from '../lib/mode.ts';
+import { withBase } from '../lib/paths.ts';
 
 interface Props {
   title?: string;
@@ -27,16 +28,16 @@ const profile = await getProfile();
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <Font cssVariable="--font-mona" preload />
-    <link rel="icon" href="/favicon.ico" sizes="32x32" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" href={withBase('/favicon.ico')} sizes="32x32" />
+    <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={withBase('/apple-touch-icon.png')} />
     <Seo
       {...(title ? { title } : {})}
       siteName={profile.name}
       headline={profile.titleTagline}
       path={Astro.url.pathname}
       description={description ?? profile.seo.description}
-      image={image ?? { url: profile.seo.image, alt: profile.seo.imageAlt }}
+      image={image ?? { url: withBase(profile.seo.image), alt: profile.seo.imageAlt }}
       noindex={noindex === true || !isProduction}
       type={type}
       {...(structuredData ? { structuredData } : {})}

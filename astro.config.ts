@@ -23,8 +23,13 @@ if (process.env['WORKERS_CI'] === '1' && isProductionBuild) {
   assertNoPlaceholders(PROFILE, readFileSync(PROFILE, 'utf8'));
 }
 
+// The GitHub Pages preview lives at https://buildwithmuj.github.io/Personal-Portfolio/ (pages.yml sets
+// these). The real site, Cloudflare and the tests build at the root.
+const pagesBase = process.env['PAGES_BASE'];
+
 export default defineConfig({
-  site: SITE_URL,
+  site: process.env['PAGES_SITE'] ?? SITE_URL,
+  ...(pagesBase ? { base: pagesBase } : {}),
   fonts: [
     {
       provider: fontProviders.local(),

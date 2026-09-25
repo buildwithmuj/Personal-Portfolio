@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { withBase } from '../../lib/paths.ts';
 import { formatRoleDates } from '../../lib/dates.ts';
 import Shell from '../Shell.astro';
 
@@ -24,7 +25,7 @@ const firstYear = roles.map((role) => role.start.slice(0, 4)).toSorted()[0];
       <p class="figure">
         {years} <span>/ years</span>
       </p>
-      <a class="btn btn-primary wide" href="/cv.pdf" download>
+      <a class="btn btn-primary wide" href={withBase('/cv.pdf')} download>
         Download CV
       </a>
       <p class="sub list-label">Roles:</p>

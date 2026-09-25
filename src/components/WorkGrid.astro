@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { withBase } from '../lib/paths.ts';
 import { caseStudyLabel } from '../lib/case-studies.ts';
 import CaseStudyCard from './CaseStudyCard.astro';
 
@@ -23,7 +24,7 @@ const groups = (['client', 'product'] as const).map((kind) => {
     {group.studies.map((study) => (
       <li>
         <CaseStudyCard
-          href={`/work/${study.id}`}
+          href={withBase(`/work/${study.id}`)}
           title={study.data.title}
           label={caseStudyLabel(study.data)}
           cover={study.data.cover}

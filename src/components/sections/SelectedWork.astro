@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { withBase } from '../../lib/paths.ts';
 import Shell from '../Shell.astro';
 import Switch from '../Switch.astro';
 import WorkGrid from '../WorkGrid.astro';
@@ -25,7 +26,7 @@ const { studies, heading, intro } = Astro.props;
   />
   <WorkGrid studies={studies} limit={4} />
   <p class="more">
-    <a class="btn btn-secondary" href="/work">
+    <a class="btn btn-secondary" href={withBase('/projects')}>
       View all
     </a>
   </p>

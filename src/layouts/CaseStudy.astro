@@ -4,6 +4,7 @@ import type { CollectionEntry } from 'astro:content';
 import Shell from '../components/Shell.astro';
 import TagList from '../components/TagList.astro';
 import { caseStudyLabel } from '../lib/case-studies.ts';
+import { withBase } from '../lib/paths.ts';
 import Base from './Base.astro';
 
 interface Props {
@@ -72,7 +73,7 @@ const { title, summary, role, timeframe, employer, tags, links, cover, coverAlt 
         </section>
       )}
       <p>
-        <a class="btn btn-secondary" href="/work">
+        <a class="btn btn-secondary" href={withBase('/projects')}>
           Back to all work
         </a>
       </p>

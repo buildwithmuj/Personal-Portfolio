@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { withBase } from '../lib/paths.ts';
 import { socialLabels } from '../lib/social.ts';
 import LiveClock from './LiveClock.astro';
 import SocialIcon from './SocialIcon.astro';
@@ -10,10 +11,10 @@ interface Props {
 
 const { profile } = Astro.props;
 const nav = [
-  { href: '/#about', label: 'About' },
-  { href: '/#work', label: 'Work' },
-  { href: '/#method', label: 'How I work' },
-  { href: '/#contact', label: 'Contact' },
+  { href: withBase('/#about'), label: 'About' },
+  { href: withBase('/#work'), label: 'Work' },
+  { href: withBase('/#method'), label: 'How I work' },
+  { href: withBase('/#contact'), label: 'Contact' },
 ];
 ---
 

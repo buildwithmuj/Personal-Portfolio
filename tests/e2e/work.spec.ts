@@ -28,12 +28,12 @@ test('the switch shows four client or four personal projects', async ({ page }) 
   for (const label of await labels.allTextContents()) expect(label).toMatch(/^Personal project · /);
   await expect(work.getByRole('link', { name: 'View all', exact: true })).toHaveAttribute(
     'href',
-    '/work',
+    '/projects',
   );
 });
 
 test('the All work page lists every case study', async ({ page }) => {
-  await page.goto('/work');
+  await page.goto('/projects');
   await expect(page.getByRole('heading', { level: 1, name: 'All work' })).toBeVisible();
   const labels = page.locator('#all-work .card-label');
   await expect(labels).toHaveCount(8);
@@ -56,7 +56,7 @@ test('a case study shows its details and MDX components', async ({ page }) => {
   );
   await expect(page.getByRole('link', { name: 'Back to all work' })).toHaveAttribute(
     'href',
-    '/work',
+    '/projects',
   );
 });
 

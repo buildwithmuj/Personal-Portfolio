@@ -9,8 +9,8 @@ const workflows = readdirSync(dir)
   .map((name) => ({ name, text: readFileSync(join(dir, name), 'utf8') }));
 
 describe('GitHub Actions hardening (spec §7)', () => {
-  it('has the ci and weekly workflows', () => {
-    assert.deepEqual(workflows.map((w) => w.name).sort(), ['ci.yml', 'weekly.yml']);
+  it('has the ci, pages and weekly workflows', () => {
+    assert.deepEqual(workflows.map((w) => w.name).sort(), ['ci.yml', 'pages.yml', 'weekly.yml']);
   });
 
   for (const { name, text } of workflows) {
@@ -24,7 +24,9 @@ describe('GitHub Actions hardening (spec §7)', () => {
 
     it(`${name} grants only read access to repository contents`, () => {
       assert.match(text, /^permissions:\n {2}contents: read\n/m);
-      assert.doesNotMatch(text, /: write/);
+      // pages.yml's deploy job alone may publish to GitHub Pages; nothing may write to the repository.
+      const writes = [...text.matchAll(/^\s*([\w-]+): write$/gm)].map((match) => match[1]);
+      assert.deepEqual(writes, name === 'pages.yml' ? ['pages', 'id-token'] : []);
     });
 
     it(`${name} never uses pull_request_target`, () => {

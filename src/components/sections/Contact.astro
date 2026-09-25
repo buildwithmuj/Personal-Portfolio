@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { withBase } from '../../lib/paths.ts';
 import { socialLabels } from '../../lib/social.ts';
 import BookingPanel from '../BookingPanel.astro';
 import CopyEmail from '../CopyEmail.astro';
@@ -59,7 +60,7 @@ const cvDate = new Intl.DateTimeFormat('en-GB', {
       >
         <path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"></path>
       </svg>
-      <a href="/cv.pdf" download>
+      <a href={withBase('/cv.pdf')} download>
         Download CV
       </a>
       <span class="muted end">PDF, {cvDate}</span>

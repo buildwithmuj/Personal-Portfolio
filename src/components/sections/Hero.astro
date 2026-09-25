@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { withBase } from '../../lib/paths.ts';
 import ProofStrip from '../ProofStrip.astro';
 import Shell from '../Shell.astro';
 
@@ -27,7 +28,7 @@ const monogram = profile.name
     )}
     <div class="identity">
       {profile.avatar ? (
-        <img class="avatar" src={profile.avatar} alt="" width="90" height="90" />
+        <img class="avatar" src={withBase(profile.avatar)} alt="" width="90" height="90" />
       ) : (
         <span class="avatar monogram" aria-hidden="true">
           {monogram}
