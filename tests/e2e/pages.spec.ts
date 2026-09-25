@@ -39,6 +39,18 @@ for (const path of builtPagePaths()) {
       for (const property of ['og:title', 'og:description', 'og:url', 'og:image', 'og:image:alt']) {
         await expect(page.locator(`meta[property="${property}"]`)).toHaveCount(1);
       }
+      await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', canonical);
+      const ogTitle = await page.locator('meta[property="og:title"]').getAttribute('content');
+      expect(ogTitle).toBe(await page.title());
+      const ogDescription = await page
+        .locator('meta[property="og:description"]')
+        .getAttribute('content');
+      expect(ogDescription).toBe(description);
+      const ogImage = await page.locator('meta[property="og:image"]').getAttribute('content');
+      const imagePathname = new URL(ogImage ?? '').pathname;
+      const imageResponse = await page.request.get(imagePathname);
+      expect(imageResponse.status()).toBe(200);
+      expect(imageResponse.headers()['content-type']).toMatch(/^image\//);
       await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute(
         'content',
         'summary_large_image',
