@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { builtPagePaths, SITE_URL } from '../support/site.ts';
+import { builtPagePaths, SITE_ORIGIN } from '../support/site.ts';
 
 for (const path of builtPagePaths()) {
   test.describe(`page ${path}`, () => {
@@ -34,7 +34,7 @@ for (const path of builtPagePaths()) {
       const description = await page.locator('meta[name="description"]').getAttribute('content');
       expect(description?.length ?? 0).toBeGreaterThan(0);
       expect(description?.length ?? 0).toBeLessThanOrEqual(160);
-      const canonical = path === '/' ? `${SITE_URL}/` : `${SITE_URL}${path}`;
+      const canonical = path === '/' ? `${SITE_ORIGIN}/` : `${SITE_ORIGIN}${path}`;
       await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', canonical);
       for (const property of ['og:title', 'og:description', 'og:url', 'og:image', 'og:image:alt']) {
         await expect(page.locator(`meta[property="${property}"]`)).toHaveCount(1);

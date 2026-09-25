@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { EXPECTED_HEADERS } from '../support/headers.ts';
-import { SERVER_ONLY, SITE_URL } from '../support/site.ts';
+import { SERVER_ONLY, SITE_ORIGIN } from '../support/site.ts';
 
 test('an unknown path returns the 404 page with a 404 status and every security header', async ({
   page,
@@ -21,7 +21,7 @@ test('robots.txt allows crawling in production and names the sitemap', async ({
 }) => {
   test.skip(browserName !== 'chromium', SERVER_ONLY);
   const text = await (await request.get('/robots.txt')).text();
-  expect(text).toBe(`User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap-index.xml\n`);
+  expect(text).toBe(`User-agent: *\nAllow: /\n\nSitemap: ${SITE_ORIGIN}/sitemap-index.xml\n`);
 });
 
 test('the skip link comes first and moves focus to main', async ({ page, browserName }) => {
