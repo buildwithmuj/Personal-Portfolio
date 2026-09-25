@@ -23,32 +23,40 @@ to run while it's still `https://example.com`.
 1. Turn on two-factor authentication for your GitHub account (Settings → Password and authentication)
    with a passkey or authenticator app.
 2. Create a new **public** repository with no README, licence or `.gitignore`. It must start empty.
-3. Push both branches:
+3. Push both long-lived branches: `main` (releases) and `dev` (where work happens).
 
    ```bash
    git remote add origin https://github.com/<you>/<repo>.git
    git push -u origin main
-   git push -u origin feat/foundation
+   git push -u origin dev
    ```
 
 ## 4. Repository settings
 
-**Settings → General → Pull Requests**
+**Settings → General**
 
-- Allow squash merging only: untick merge commits and rebase merging.
-- Tick "Always suggest updating pull request branches" and "Automatically delete head branches".
+- **Default branch:** switch it to `dev`. New pull requests and Dependabot then target `dev`, and the
+  scheduled weekly job runs against it.
+- **Pull Requests:**
+  - allow merge commits (releases from `dev` into `main` use them)
+  - allow squash merging (for short-lived branches into `dev`)
+  - untick rebase merging
+  - tick "Always suggest updating pull request branches"
+  - tick "Automatically delete head branches". The protected `dev` branch can't be deleted, so this only
+    removes short-lived branches.
 
-**Settings → Rules → Rulesets → New branch ruleset**
+**Settings → Rules → Rulesets → New branch ruleset**, created twice:
 
-- Name `main`, enforcement status **Active**, bypass list **empty**, target **Include default
-  branch**.
-- Tick these rules:
-  - Restrict deletions
-  - Require linear history
-  - Require a pull request before merging, with required approvals set to **0**
-  - Block force pushes
-- Leave "Require status checks to pass" for step 6. The `ci` check only shows up in the list once it
-  has run.
+- **`main`:**
+  - enforcement status **Active**, bypass list **empty**, target the branch `main` by name
+  - tick: Restrict deletions; Require a pull request before merging, with required approvals set to
+    **0**; Block force pushes
+  - leave "Require linear history" **off**, because releases are merge commits
+  - leave "Require status checks to pass" for step 6: the `ci` check only shows up in the list once it
+    has run
+- **`dev`:**
+  - enforcement status **Active**, bypass list **empty**, target the branch `dev` by name
+  - tick: Restrict deletions; Block force pushes. Direct pushes stay allowed, and CI runs on every push.
 
 **Settings → Actions → General**
 
@@ -68,16 +76,17 @@ to run while it's still `https://example.com`.
    this repository.
 3. Project name `portfolio` (it must match `name` in `wrangler.jsonc`). Production branch `main`.
 4. Build command `pnpm build`. Keep the default deploy command (`npx wrangler deploy`). Keep builds for
-   non-production branches **on**.
+   non-production branches **on**: that's what builds the `dev` preview (staging).
 5. Add build variables: `PNPM_VERSION` = `10.34.5` and `NODE_VERSION` = `24`. pnpm's root `engines`
    check fails on a mismatched Node.
 6. Save. Cloudflare may build `main` straight away. That build fails, because `main` only holds
    documentation so far. That's expected, and nothing is deployed.
 
-## 6. First pull request
+## 6. First release
 
-1. Open a pull request from `feat/foundation` into `main`.
-2. Wait for the `ci` check and the Cloudflare preview comment.
+1. Open a pull request from `dev` into `main`.
+2. Wait for the `ci` check, and for Cloudflare's preview build of `dev`. Its address is under the
+   Worker's Deployments (or Previews) in the dashboard, and on the pull request once Cloudflare comments.
 3. Edit the `main` ruleset: turn on "Require status checks to pass", add **`ci`**, and tick "Require
    branches to be up to date before merging".
 4. On the preview address, check four things:
@@ -87,7 +96,8 @@ to run while it's still `https://example.com`.
    - `curl -sI <preview-url>` shows the headers from `public/_headers`
 5. Scan the preview address with https://developer.mozilla.org/en-US/observatory and confirm A+ before
    merging, because floor 7 depends on how it scores the header CSP together with the meta CSP.
-6. Squash-merge. Cloudflare deploys production within a minute or two.
+6. Merge with a **merge commit** (not squash or rebase). Cloudflare deploys production within a minute
+   or two.
 
 ## 7. Launch checklist
 

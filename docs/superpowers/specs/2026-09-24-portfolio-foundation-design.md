@@ -273,6 +273,8 @@ for little spam protection.
 
 - **MFA:** GitHub, Cloudflare and, later, the registrar use a passkey or authenticator app, never SMS.
   Recovery codes are stored offline.
+- **Branches:** `dev` is where work happens and is the repository's default branch. `main` is the
+  release branch; production deploys from it.
 - **Branch ruleset on `main`:**
   - require a pull request
   - require the `ci` status checks to pass
@@ -280,7 +282,12 @@ for little spam protection.
   - block force pushes and deletion
   - nobody on the bypass list
   - zero required approvals, because GitHub doesn't let an owner approve their own PR
-- **Merges:** squash merge only, linear history.
+- **Branch ruleset on `dev`:** block force pushes and deletion. Direct pushes are allowed; CI runs on
+  every push.
+- **Merges:** a release is a pull request from `dev` into `main`, merged with a merge commit. Don't
+  squash or rebase a release: that rewrites commits that `dev` keeps, so the two branches drift apart
+  and every later release pull request shows old changes again. Short-lived branches merged into
+  `dev` may be squashed.
 - **Cloudflare:** its GitHub app is installed on this repository only, and no Cloudflare API tokens are
   created. Cloudflare's deployment history is the audit trail and the rollback mechanism.
 - **GitHub security features:** secret scanning with push protection, Dependabot alerts, and CodeQL
@@ -299,7 +306,7 @@ for little spam protection.
   - `minimumReleaseAge: 10080`, so a version must be seven days old before it can be installed
   - an explicit allow-list for dependencies that need build scripts
 - CI installs with `--frozen-lockfile` and fails on `pnpm audit --audit-level=high`.
-- Dependabot runs weekly for npm and GitHub Actions, groups its updates and uses `cooldown` with
+- Dependabot runs weekly for npm and GitHub Actions against `dev`, groups its updates and uses `cooldown` with
   `default-days: 7`.
 - Dependencies are limited to the list in §10.
 
@@ -325,11 +332,14 @@ for little spam protection.
 ## 8. Build and deployment
 
 ```
-branch ─► pull request ─┬─► GitHub Actions: ci.yml (§9)
-                        └─► Cloudflare: preview build; preview URL posted as a PR comment
-         squash-merge (checks green, branch up to date)
+work ─► dev ─┬─► GitHub Actions: ci.yml (§9) on every push
+             └─► Cloudflare: preview build of dev (staging)
+release: pull request dev → main ─► ci.yml must pass (branch up to date) ─► merge commit
 main ─► Cloudflare Workers Builds ─► production on *.workers.dev
 ```
+
+Work lands on `dev` directly, or through a short-lived branch and pull request into `dev` for bigger
+pieces. Cloudflare's preview build of `dev` is the staging site.
 
 **Environment modes**
 
@@ -457,7 +467,8 @@ Each of these is out of v1. If one is added, it follows these rules.
 1. Read this spec. Don't re-decide §3.
 2. Write an implementation plan and get the owner's approval before building.
 3. Write tests first for `lib/` helpers and for each end-to-end flow.
-4. Every change goes branch → PR → CI green → preview checked → squash-merge.
+4. Work lands on `dev` (directly or through a short-lived branch), CI goes green and the `dev` preview is
+   checked. A release is a pull request from `dev` into `main`, merged with a merge commit once CI passes.
 5. Stop and ask the owner before:
    - adding a dependency not in §10
    - adding any third-party request
@@ -514,3 +525,12 @@ several assumptions were out of date:
 | Vitest → **`node --test`** | Node 24 runs TypeScript natively, so unit tests need no dependency at all. |
 | **`@types/node`** added | Needed to type-check the Node-based tests and config files. |
 | `security.txt` is a **static file** | It's less fragile than generating it from a dot-directory route. Tests enforce the same guarantees: the expiry window and a `Contact` that matches the site's email. The optional `Canonical` field is dropped. |
+
+**2026-09-25, owner decision.** The repository uses two long-lived branches: `dev`, where work happens
+and the default branch, and `main`, for releases. It replaces "branch → PR → squash-merge into `main`":
+
+| Change | Reason |
+|---|---|
+| `dev` + `main` branch model | The owner wants a working branch separate from the release branch. `dev` gets a Cloudflare preview (staging). `main` stays production and the build-mode logic is unchanged. |
+| CI also runs on pushes to `dev`; Dependabot targets `dev` | Checks run where work happens, and updates reach `main` only through a release. |
+| Releases merge with a **merge commit**; squash-only is dropped | Squashing or rebasing `dev` into `main` rewrites commits `dev` keeps, so the branches drift apart and later release pull requests re-show old changes. |

@@ -17,7 +17,8 @@ describe('resolveSiteMode (spec §8)', () => {
     assert.equal(resolveSiteMode({ dev: false, branch: '' }), 'production');
   });
 
-  it('is preview for any other branch', () => {
-    assert.equal(resolveSiteMode({ dev: false, branch: 'feat/foundation' }), 'preview');
+  it('is preview for dev (the staging build) and any other branch', () => {
+    assert.equal(resolveSiteMode({ dev: false, branch: 'dev' }), 'preview');
+    assert.equal(resolveSiteMode({ dev: false, branch: 'fix/typo' }), 'preview');
   });
 });

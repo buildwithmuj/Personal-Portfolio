@@ -98,13 +98,22 @@ this doesn't go unnoticed.
 
 ## Deployment
 
-1. Push a branch and open a pull request. GitHub Actions runs every check. Cloudflare builds a preview
-   and posts its address on the pull request.
-2. Squash-merge once the checks pass. `main` only accepts pull requests with passing checks.
+There are two long-lived branches:
+
+- **`dev`** is where work happens, and it's the default branch.
+- **`main`** is for releases. Production deploys from it.
+
+1. **Work on `dev`.** Commit to it directly, or use a short-lived branch and a pull request into `dev`
+   for bigger pieces. Every push to `dev` runs the checks. Cloudflare also builds a preview of `dev`,
+   which is the staging site: drafts are shown and search engines are told not to index it.
+2. **Release.** Open a pull request from `dev` into `main`. `main` only accepts pull requests with
+   passing checks. Merge with a **merge commit**, not a squash or rebase, so `dev` and `main` keep a
+   shared history.
 3. Cloudflare builds `main` and deploys it to production.
 
 To roll back, pick an earlier deployment in the Cloudflare dashboard (Workers & Pages → the Worker →
-Deployments), or revert the pull request. First-time account and repository setup is in
+Deployments), or revert the release's merge commit on `main` (`git revert -m 1 <merge-sha>`) through a
+pull request. First-time account and repository setup is in
 [docs/setup.md](docs/setup.md).
 
 ## Security
