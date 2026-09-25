@@ -92,6 +92,10 @@ the build with a message naming the file and the field.
 `public/.well-known/security.txt` must carry an `Expires` date less than a year away. A test fails once
 it's within 30 days. Set a new date about 11 months ahead.
 
+GitHub pauses scheduled workflows in public repositories after 60 days without activity. If `weekly`
+stops running, re-enable it in the Actions tab, and keep a calendar reminder for the `Expires` date so
+this doesn't go unnoticed.
+
 ## Deployment
 
 1. Push a branch and open a pull request. GitHub Actions runs every check. Cloudflare builds a preview

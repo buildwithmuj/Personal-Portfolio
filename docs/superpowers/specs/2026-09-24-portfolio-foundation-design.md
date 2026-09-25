@@ -310,6 +310,8 @@ for little spam protection.
 - A CAA record limits issuance to the certificate authorities Cloudflare uses.
 - No dangling DNS records.
 - `*.workers.dev` is redirected to the domain or disabled.
+- Cloudflare zone features that rewrite HTML stay off: Email Address Obfuscation, Rocket Loader and
+  automatic Web Analytics injection. Each injects a script the CSP would block.
 - Only then consider HSTS `preload`.
 
 ### Disclosure and privacy

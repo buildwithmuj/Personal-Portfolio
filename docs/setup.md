@@ -69,7 +69,8 @@ to run while it's still `https://example.com`.
 3. Project name `portfolio` (it must match `name` in `wrangler.jsonc`). Production branch `main`.
 4. Build command `pnpm build`. Keep the default deploy command (`npx wrangler deploy`). Keep builds for
    non-production branches **on**.
-5. Add a build variable: `PNPM_VERSION` = `10.34.5`.
+5. Add build variables: `PNPM_VERSION` = `10.34.5` and `NODE_VERSION` = `24`. pnpm's root `engines`
+   check fails on a mismatched Node.
 6. Save. Cloudflare may build `main` straight away. That build fails, because `main` only holds
    documentation so far. That's expected, and nothing is deployed.
 
@@ -84,7 +85,9 @@ to run while it's still `https://example.com`.
    - `/robots.txt` says `Disallow: /`
    - `curl -s <preview-url> | grep 'name="robots"'` shows `noindex`
    - `curl -sI <preview-url>` shows the headers from `public/_headers`
-5. Squash-merge. Cloudflare deploys production within a minute or two.
+5. Scan the preview address with https://developer.mozilla.org/en-US/observatory and confirm A+ before
+   merging, because floor 7 depends on how it scores the header CSP together with the meta CSP.
+6. Squash-merge. Cloudflare deploys production within a minute or two.
 
 ## 7. Launch checklist
 
@@ -104,4 +107,6 @@ Before pointing a domain at the site, follow the checklist in spec §7:
 - a CAA record
 - no leftover DNS records
 - redirect or disable `*.workers.dev`
+- keep Cloudflare zone features that rewrite HTML off: Email Address Obfuscation, Rocket Loader and
+  automatic Web Analytics injection. Each injects a script the CSP would block.
 - only then, consider HSTS `preload`
