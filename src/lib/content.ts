@@ -40,3 +40,9 @@ export async function getSkills(): Promise<CollectionEntry<'skills'>['data']> {
   if (!entry) throw new Error('src/content/skills.yaml must define a `main` entry');
   return entry.data;
 }
+
+export async function getPage(id: string): Promise<CollectionEntry<'pages'>> {
+  const entry = await getEntry('pages', id);
+  if (!entry) throw new Error(`src/content/pages/${id}.md is missing`);
+  return entry;
+}

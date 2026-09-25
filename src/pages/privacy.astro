@@ -1,0 +1,36 @@
+---
+import { render } from 'astro:content';
+import Shell from '../components/Shell.astro';
+import Base from '../layouts/Base.astro';
+import { getPage } from '../lib/content.ts';
+
+const page = await getPage('privacy');
+const { Content } = await render(page);
+---
+
+<Base title={page.data.title} description={page.data.description}>
+  <Shell id="privacy" labelledBy="privacy-heading" reveal={false}>
+    <article class="card prose">
+      <h1 id="privacy-heading">{page.data.title}</h1>
+      <Content />
+    </article>
+  </Shell>
+</Base>
+
+<style>
+  .prose {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-regular);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .prose :global(p) {
+    color: var(--color-text-muted);
+    font-size: var(--text-base);
+  }
+</style>
