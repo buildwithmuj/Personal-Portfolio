@@ -15,3 +15,23 @@ export function visibleStudies<T extends Orderable>(
 export function featuredStudies<T extends Orderable>(entries: readonly T[]): T[] {
   return entries.filter((entry) => entry.data.featured);
 }
+
+export const caseStudyStatuses = ['live', 'in-progress', 'retired'] as const;
+export type CaseStudyStatus = (typeof caseStudyStatuses)[number];
+
+const statusLabels: Record<CaseStudyStatus, string> = {
+  live: 'Live',
+  'in-progress': 'In progress',
+  retired: 'Retired',
+};
+
+/** "Client work · <sector>" or "Own product · <status>" (content spec §5.4). */
+export function caseStudyLabel(data: {
+  kind: 'client' | 'product';
+  sector?: string | undefined;
+  status?: CaseStudyStatus | undefined;
+}): string {
+  const kind = data.kind === 'client' ? 'Client work' : 'Own product';
+  const detail = data.kind === 'client' ? data.sector : data.status && statusLabels[data.status];
+  return detail ? `${kind} · ${detail}` : kind;
+}

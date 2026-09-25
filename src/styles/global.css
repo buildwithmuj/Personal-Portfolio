@@ -139,8 +139,8 @@ a {
 
 .section-head {
   display: grid;
-  gap: var(--space-1);
-  margin-block-end: var(--space-8);
+  gap: 6px;
+  margin-block-end: 40px;
 }
 
 .section-head h2 {
@@ -148,6 +148,7 @@ a {
 }
 
 .section-head p {
+  max-width: 25rem;
   color: var(--color-text-muted);
   font-size: var(--text-sm);
 }

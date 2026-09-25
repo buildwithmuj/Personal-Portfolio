@@ -1,48 +1,46 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { caseStudyLabel } from '../../lib/case-studies.ts';
 import CaseStudyCard from '../CaseStudyCard.astro';
+import Shell from '../Shell.astro';
 
 interface Props {
   studies: CollectionEntry<'caseStudies'>[];
+  heading: string;
+  intro: string;
 }
 
-const { studies } = Astro.props;
+const { studies, heading, intro } = Astro.props;
 ---
 
-<section id="work" class="container work" aria-labelledby="work-heading">
-  <h2 id="work-heading">Selected work</h2>
-  <ul class="grid">
+<Shell id="work" heading={heading} intro={intro} join="bottom" reveal={false}>
+  <ul class="grid" role="list">
     {studies.map((study) => (
       <li>
         <CaseStudyCard
           href={`/work/${study.id}`}
           title={study.data.title}
-          summary={study.data.summary}
+          label={caseStudyLabel(study.data)}
           cover={study.data.cover}
           coverAlt={study.data.coverAlt}
-          tags={study.data.tags}
         />
       </li>
     ))}
   </ul>
-</section>
+</Shell>
 
 <style>
-  .work {
-    display: grid;
-    gap: var(--space-6);
-    padding-block: var(--space-12);
-  }
-
-  h2 {
-    font-size: var(--text-xl);
-  }
-
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
-    gap: var(--space-8);
+    grid-template-columns: repeat(2, 1fr);
+    gap: 35px var(--gap-work);
     padding: 0;
     list-style: none;
+  }
+
+  @media (width < 40rem) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

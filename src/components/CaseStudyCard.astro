@@ -1,42 +1,88 @@
 ---
 import type { ImageMetadata } from 'astro';
 import { Image } from 'astro:assets';
-import TagList from './TagList.astro';
 
 interface Props {
   href: string;
   title: string;
-  summary: string;
+  label: string;
   cover: ImageMetadata;
   coverAlt: string;
-  tags: string[];
 }
 
-const { href, title, summary, cover, coverAlt, tags } = Astro.props;
+const { href, title, label, cover, coverAlt } = Astro.props;
 ---
 
-<article class="card">
-  <Image
-    src={cover}
-    alt={coverAlt}
-    widths={[480, 960]}
-    sizes="(min-width: 48rem) 50vw, 100vw"
-    loading="lazy"
-  />
+<article class="case-card">
+  <div class="media">
+    <Image
+      src={cover}
+      alt={coverAlt}
+      widths={[348, 696]}
+      sizes="(min-width: 48rem) 336px, 100vw"
+      loading="lazy"
+    />
+  </div>
+  <p class="card-label">{label}</p>
   <h3>
     <a href={href}>{title}</a>
   </h3>
-  <p>{summary}</p>
-  <TagList tags={tags} />
 </article>
 
 <style>
-  .card {
+  /* Measured from the reference's project cards: 4:3 image, category, then title. */
+  .case-card {
+    position: relative;
     display: grid;
-    gap: var(--space-3);
+    gap: 2px;
+    border-radius: var(--radius-image);
+  }
+
+  .media {
+    margin-block-end: 14px;
+    overflow: hidden;
+    border-radius: var(--radius-image);
+    background: var(--color-surface);
   }
 
   img {
-    border-radius: var(--radius-md);
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    transition: scale var(--duration-base) var(--ease-standard);
+  }
+
+  .case-card:hover img {
+    scale: 1.03;
+  }
+
+  .card-label {
+    color: var(--color-text-muted);
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    line-height: 1.5;
+  }
+
+  h3 a {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  /* The whole card is clickable; the link's name stays the title. */
+  h3 a::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+  }
+
+  h3 a:focus-visible {
+    outline: none;
+  }
+
+  .case-card:has(a:focus-visible) {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 4px;
   }
 </style>

@@ -1,6 +1,7 @@
 import { defineCollection } from 'astro:content';
 import { file, glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { caseStudyStatuses } from './lib/case-studies.ts';
 import { socialPlatforms } from './lib/social.ts';
 
 const httpsUrl = z
@@ -64,24 +65,36 @@ const caseStudies = defineCollection({
   loader: glob({
     pattern: '*/index.mdx',
     base: './src/content/case-studies',
-    // The folder name is the slug (spec §6).
+    // The folder name is the slug (foundation spec §6).
     generateId: ({ entry }) => entry.split('/')[0] ?? entry,
   }),
   schema: ({ image }) =>
-    z.object({
-      title: z.string().min(1),
-      role: z.string().min(1),
-      timeframe: z.string().min(1),
-      summary: z.string().min(1).max(160),
-      cover: image(),
-      coverAlt: z.string().min(1),
-      tags: z.array(z.string().min(1)).default([]),
-      client: z.string().min(1).optional(),
-      links: z.array(z.object({ label: z.string().min(1), url: httpsUrl })).default([]),
-      featured: z.boolean().default(false),
-      order: z.number().int().default(100),
-      draft: z.boolean().default(false),
-    }),
+    z
+      .object({
+        title: z.string().min(1),
+        role: z.string().min(1),
+        timeframe: z.string().min(1),
+        summary: z.string().min(1).max(160),
+        cover: image(),
+        coverAlt: z.string().min(1),
+        kind: z.enum(['client', 'product']),
+        sector: z.string().min(1).optional(),
+        status: z.enum(caseStudyStatuses).optional(),
+        employer: z.string().min(1).optional(),
+        tags: z.array(z.string().min(1)).default([]),
+        links: z.array(z.object({ label: z.string().min(1), url: httpsUrl })).default([]),
+        featured: z.boolean().default(false),
+        order: z.number().int().default(100),
+        draft: z.boolean().default(false),
+      })
+      .superRefine((data, ctx) => {
+        if (data.kind === 'client' && !data.sector) {
+          ctx.addIssue({ code: 'custom', path: ['sector'], message: 'Client work needs a sector' });
+        }
+        if (data.kind === 'product' && !data.status) {
+          ctx.addIssue({ code: 'custom', path: ['status'], message: 'Own products need a status' });
+        }
+      }),
 });
 
 export const collections = { profile, caseStudies };

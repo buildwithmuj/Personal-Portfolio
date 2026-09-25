@@ -11,7 +11,7 @@ interface Props {
 }
 
 const { study, ogImageUrl, structuredData } = Astro.props;
-const { title, summary, role, timeframe, client, tags, links, cover, coverAlt } = study.data;
+const { title, summary, role, timeframe, employer, tags, links, cover, coverAlt } = study.data;
 ---
 
 <Base
@@ -37,10 +37,10 @@ const { title, summary, role, timeframe, client, tags, links, cover, coverAlt } 
           <dt>Timeframe</dt>
           <dd>{timeframe}</dd>
         </div>
-        {client && (
+        {employer && (
           <div>
-            <dt>Client</dt>
-            <dd>{client}</dd>
+            <dt>Employer</dt>
+            <dd>{employer}</dd>
           </div>
         )}
       </dl>
