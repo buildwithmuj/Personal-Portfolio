@@ -414,7 +414,7 @@ regression tests (until the design settles), load testing (the CDN absorbs load)
 
 | Kind | Allowed |
 |---|---|
-| Runtime / build | `astro`, `@astrojs/mdx`, `@astrojs/sitemap` (Astro brings `sharp`) |
+| Runtime / build | `astro`, `@astrojs/mdx`, `@astrojs/sitemap`, `sharp` (Astro's image service; pnpm doesn't hoist it, so it's a direct dependency) |
 | Dev | `typescript`, `@astrojs/check`, `@types/node`, `wrangler`, `prettier`, `prettier-plugin-astro`, `stylelint`, `stylelint-config-standard`, `postcss-html`, `@playwright/test`, `@axe-core/playwright`, `lighthouse`, `chrome-launcher` |
 | CI actions (SHA-pinned) | `actions/checkout`, `pnpm/action-setup`, `actions/setup-node`, `lycheeverse/lychee-action` (CodeQL runs as GitHub's default setup, not a workflow) |
 
