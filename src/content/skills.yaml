@@ -1,0 +1,15 @@
+# Skills and certifications (content spec §5.7), from the CV and LinkedIn.
+main:
+  intro: The methods, tools and credentials I bring.
+  skills:
+    - Process mapping and requirements
+    - Business cases and ROI
+    - RPA, APIs and Power Apps
+    - Power BI and data products
+    - Agile delivery and product ownership
+    - Low-code, no-code and AI building
+  certifications:
+    - Certified ScrumMaster (CSM)
+    - Professional Scrum Product Owner (PSPO I)
+    - Microsoft Power BI Data Analyst Associate
+    - 'AI Fluency: Framework & Foundations'

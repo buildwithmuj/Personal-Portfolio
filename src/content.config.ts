@@ -125,4 +125,26 @@ const testimonials = defineCollection({
   }),
 });
 
-export const collections = { profile, caseStudies, method, testimonials };
+const yearMonth = z.string().regex(/^\d{4}-\d{2}$/, 'Use YYYY-MM');
+
+const experience = defineCollection({
+  loader: file('src/content/experience.yaml'),
+  schema: z.object({
+    employer: z.string().min(1),
+    role: z.string().min(1),
+    start: yearMonth,
+    end: yearMonth.optional(),
+    summary: z.string().min(1),
+  }),
+});
+
+const skills = defineCollection({
+  loader: file('src/content/skills.yaml'),
+  schema: z.object({
+    intro: z.string().min(1),
+    skills: z.array(z.string().min(1)).min(1),
+    certifications: z.array(z.string().min(1)),
+  }),
+});
+
+export const collections = { profile, caseStudies, method, testimonials, experience, skills };

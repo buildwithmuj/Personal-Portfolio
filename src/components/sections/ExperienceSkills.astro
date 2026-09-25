@@ -1,0 +1,207 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatRoleDates } from '../../lib/dates.ts';
+import Shell from '../Shell.astro';
+
+interface Props {
+  roles: CollectionEntry<'experience'>['data'][];
+  skills: CollectionEntry<'skills'>['data'];
+  /** The headline figure for the Experience card, e.g. "10+". */
+  years: string;
+  heading: string;
+  intro: string;
+}
+
+const { roles, skills, years, heading, intro } = Astro.props;
+const firstYear = roles.map((role) => role.start.slice(0, 4)).toSorted()[0];
+---
+
+<Shell id="experience" heading={heading} intro={intro}>
+  <div class="pair">
+    <section class="card column" aria-labelledby="experience-roles">
+      <h3 id="experience-roles">Experience</h3>
+      <p class="sub">Consulting and automation delivery since {firstYear}.</p>
+      <p class="figure">
+        {years} <span>/ years</span>
+      </p>
+      <a class="btn btn-primary wide" href="/cv.pdf" download>
+        Download CV
+      </a>
+      <p class="sub list-label">Roles:</p>
+      <ol class="items" role="list">
+        {roles.map((role) => (
+          <li>
+            <svg
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <circle cx="12" cy="12" r="4"></circle>
+            </svg>
+            <div>
+              <p class="item">{role.role}</p>
+              <p class="sub">
+                {role.employer} · {formatRoleDates(role.start, role.end)}
+              </p>
+              <p class="sub summary">{role.summary}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+    <section class="card card-inverse column" aria-labelledby="experience-skills">
+      <h3 id="experience-skills">Skills &amp; certifications</h3>
+      <p class="sub">{skills.intro}</p>
+      <p class="figure">
+        {skills.certifications.length} <span>/ certifications</span>
+      </p>
+      <a class="btn btn-on-inverse wide" href="#contact">
+        Book a call
+      </a>
+      <p class="sub list-label">What I bring:</p>
+      <ul class="items" role="list">
+        {skills.skills.map((skill) => (
+          <li>
+            <svg
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="m5 12.5 4.5 4.5L19 7.5"></path>
+            </svg>
+            <p class="item">{skill}</p>
+          </li>
+        ))}
+      </ul>
+      <p class="sub list-label">Certifications:</p>
+      <ul class="items" role="list">
+        {skills.certifications.map((certification) => (
+          <li>
+            <svg
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="m5 12.5 4.5 4.5L19 7.5"></path>
+            </svg>
+            <p class="item">{certification}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </div>
+</Shell>
+
+<style>
+  /* Measured from the reference's pricing cards: one white, one dark, 10px apart. */
+  .pair {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--gap-pair);
+  }
+
+  .column {
+    display: flex;
+    flex-direction: column;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    line-height: 1.3;
+  }
+
+  .sub {
+    color: var(--color-text-muted);
+  }
+
+  h3 + .sub {
+    margin-block-start: 4px;
+  }
+
+  .card-inverse .sub {
+    color: var(--color-on-inverse-muted);
+  }
+
+  .figure {
+    margin-block: 24px 20px;
+    font-size: var(--text-2xl);
+    line-height: var(--leading-tight);
+  }
+
+  .figure span {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .card-inverse .figure span {
+    color: var(--color-on-inverse-muted);
+  }
+
+  .wide {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .list-label {
+    margin-block: 36px 20px;
+  }
+
+  .items + .list-label {
+    margin-block-start: 28px;
+  }
+
+  .items {
+    display: grid;
+    gap: 10px;
+    padding: 0;
+    list-style: none;
+  }
+
+  .items li {
+    display: flex;
+    gap: 13px;
+    align-items: flex-start;
+  }
+
+  .items svg {
+    flex-shrink: 0;
+    margin-block-start: 2px;
+  }
+
+  .item {
+    font-weight: var(--weight-medium);
+  }
+
+  ol.items {
+    gap: var(--space-4);
+  }
+
+  .summary {
+    margin-block-start: var(--space-1);
+  }
+
+  @media (width < 40rem) {
+    .pair {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
