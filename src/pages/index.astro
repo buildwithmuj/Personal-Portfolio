@@ -1,4 +1,5 @@
 ---
+import Contact from '../components/sections/Contact.astro';
 import Intro from '../components/sections/Intro.astro';
 import SelectedWork from '../components/sections/SelectedWork.astro';
 import Base from '../layouts/Base.astro';
@@ -21,4 +22,5 @@ const featured = featuredStudies(await getCaseStudies());
 <Base structuredData={structuredData}>
   <Intro name={profile.name} headline={profile.headline} intro={profile.intro} />
   {featured.length > 0 && <SelectedWork studies={featured} />}
+  <Contact profile={profile} />
 </Base>

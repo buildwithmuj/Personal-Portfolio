@@ -1,0 +1,62 @@
+---
+interface Props {
+  email: string;
+}
+
+const { email } = Astro.props;
+---
+
+<copy-email data-email={email}>
+  <button type="button" hidden>
+    Copy email address
+  </button>
+  <span role="status"></span>
+</copy-email>
+
+<script>
+  // Progressive enhancement: the button stays hidden unless the Clipboard API is available (spec §5).
+  class CopyEmail extends HTMLElement {
+    connectedCallback(): void {
+      const button = this.querySelector('button');
+      const status = this.querySelector('[role="status"]');
+      const email = this.dataset['email'];
+      if (!button || !status || !email || !navigator.clipboard) return;
+      button.hidden = false;
+      button.addEventListener('click', () => {
+        navigator.clipboard.writeText(email).then(
+          () => {
+            status.textContent = 'Copied';
+          },
+          () => {
+            status.textContent = 'Copy failed. Use the email link instead.';
+          },
+        );
+        window.setTimeout(() => {
+          status.textContent = '';
+        }, 2000);
+      });
+    }
+  }
+
+  customElements.define('copy-email', CopyEmail);
+</script>
+
+<style>
+  copy-email {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+    margin-inline-start: var(--space-2);
+  }
+
+  button {
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--text-sm);
+    cursor: pointer;
+  }
+</style>
