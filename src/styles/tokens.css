@@ -16,6 +16,7 @@
   --color-on-inverse: #fff;
   --color-on-inverse-muted: rgb(255 255 255 / 80%);
   --color-border: #e5e7eb;
+  --color-separator: #9ca3af;
   --color-nav: rgb(242 243 245 / 80%);
   --color-status-bg: #e2f9dd;
   --color-status-text: #137300;
@@ -125,6 +126,7 @@
     --color-on-inverse: #0a0a0a;
     --color-on-inverse-muted: rgb(10 10 10 / 80%);
     --color-border: #2e2e2e;
+    --color-separator: #5c5c5c;
     --color-nav: rgb(22 22 22 / 80%);
     --color-status-bg: #123d0b;
     --color-status-text: #8be07a;

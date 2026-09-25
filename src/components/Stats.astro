@@ -1,0 +1,84 @@
+---
+interface Props {
+  stats: { value: string; label: string }[];
+}
+
+const { stats } = Astro.props;
+---
+
+<dl class="stats">
+  {stats.map((stat) => (
+    <div>
+      <dt>{stat.label}</dt>
+      <dd data-count>{stat.value}</dd>
+    </div>
+  ))}
+</dl>
+
+<script>
+  // Counts each stat up from zero the first time it's seen; the HTML always holds the final value.
+  const counters = document.querySelectorAll<HTMLElement>('[data-count]');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function countUp(element: HTMLElement): void {
+    const match = /^(\d+)(.*)$/.exec(element.textContent ?? '');
+    if (!match) return;
+    const target = Number(match[1]);
+    const suffix = match[2] ?? '';
+    const start = performance.now();
+    const step = (now: number) => {
+      const progress = Math.min(1, (now - start) / 1200);
+      element.textContent = `${Math.round(target * (1 - (1 - progress) ** 3))}${suffix}`;
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  if (!reduced && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          observer.unobserve(entry.target);
+          countUp(entry.target as HTMLElement);
+        }
+      },
+      { threshold: 0.6 },
+    );
+    counters.forEach((counter) => observer.observe(counter));
+  }
+</script>
+
+<style>
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-6) var(--space-4);
+  }
+
+  .stats > div {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 6px;
+  }
+
+  dt {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  dd {
+    margin: 0;
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-tight);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (width < 40rem) {
+    .stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

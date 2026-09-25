@@ -1,0 +1,171 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Shell from '../Shell.astro';
+import Stats from '../Stats.astro';
+
+interface Props {
+  profile: CollectionEntry<'profile'>['data'];
+}
+
+const { profile } = Astro.props;
+---
+
+<Shell id="about" labelledBy="about-heading" inset>
+  <div class="card about">
+    <h2 id="about-heading" class="label">
+      About me
+    </h2>
+    <p class="statement">
+      <span>{profile.about}</span>
+    </p>
+    <ul class="contact-row" role="list">
+      <li>
+        <svg
+          viewBox="0 0 24 24"
+          width="18"
+          height="18"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+          <path d="m3.5 6.5 8.5 6 8.5-6"></path>
+        </svg>
+        <a href={`mailto:${profile.email}`}>{profile.email}</a>
+      </li>
+      <li>
+        <svg
+          viewBox="0 0 24 24"
+          width="18"
+          height="18"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"></path>
+        </svg>
+        <a href="/cv.pdf" download>
+          Download CV
+        </a>
+      </li>
+    </ul>
+    <Stats stats={profile.stats} />
+  </div>
+</Shell>
+
+<style>
+  /* Measured from the reference's "About my self." card at 1440px. */
+  .about {
+    display: grid;
+    padding: var(--shell-pad-top) 40px 46px;
+  }
+
+  .label {
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+  }
+
+  .statement {
+    max-width: 34rem;
+    margin-block: 15px 31px;
+    font-size: var(--text-lg);
+    font-weight: var(--weight-medium);
+    letter-spacing: -0.011em;
+    line-height: 26px;
+  }
+
+  .contact-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) 20px;
+    align-items: center;
+    margin-block-end: 60px;
+    padding: 0;
+    list-style: none;
+  }
+
+  .contact-row li {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+    font-size: var(--text-sm);
+    letter-spacing: -0.01em;
+    line-height: var(--leading-tight);
+  }
+
+  /* The reference separates the items with small grey dots. */
+  .contact-row li + li::before {
+    width: 4px;
+    height: 4px;
+    margin-inline-end: 12px;
+    border-radius: 50%;
+    background: var(--color-separator);
+    content: '';
+  }
+
+  .contact-row a {
+    color: var(--color-text);
+    overflow-wrap: anywhere;
+    text-decoration: none;
+  }
+
+  .contact-row a:hover {
+    text-decoration: underline;
+  }
+
+  /*
+   * The statement fills from muted to full colour in reading order as it scrolls into view. The
+   * gradient spans the whole inline text, so it runs line by line. Without scroll-driven animation
+   * support, or with reduced motion, the text is simply full colour.
+   */
+  @keyframes fill {
+    from {
+      background-size:
+        0% 100%,
+        100% 100%;
+    }
+
+    to {
+      background-size:
+        100% 100%,
+        100% 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .statement {
+        view-timeline-name: --statement;
+      }
+
+      .statement span {
+        background:
+          linear-gradient(var(--color-text), var(--color-text)) 0 0 / 0% 100% no-repeat,
+          linear-gradient(var(--color-text-muted), var(--color-text-muted));
+        background-clip: text;
+        color: transparent;
+        animation: fill linear both;
+        animation-timeline: --statement;
+        animation-range: cover 15% contain 35%;
+      }
+    }
+  }
+
+  @media (width < 40rem) {
+    .about {
+      padding: var(--card-pad);
+    }
+
+    .contact-row {
+      margin-block-end: var(--space-8);
+    }
+  }
+</style>

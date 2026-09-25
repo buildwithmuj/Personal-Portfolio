@@ -14,10 +14,8 @@ main:
     Nine years untangling complex processes for organisations across the public sector, healthcare,
     education, financial services and telecoms, and building my own products along the way.
   about: >-
-    I'm a Senior Intelligent Automation Analyst and a product-minded problem solver. I work with the
-    people closest to a process to understand how it really runs, design automation and data solutions,
-    and deliver change that sticks. Alongside consulting, I build my own products with low-code, no-code
-    and AI tools.
+    Hey, I'm Mujtaba Shah, a Senior Intelligent Automation Analyst who turns complex processes into
+    automation, data and AI products that save time, cut errors and scale.
   interests: 'Outside work: boxing at Legends MMA, four languages, and building side projects.'
   proof:
     label: Nine years across
@@ -31,13 +29,13 @@ main:
       - Telecoms
   stats:
     - value: '9+'
-      label: Years' experience
+      label: Years of experience
     - value: '5'
-      label: Sectors
+      label: Sectors served
     - value: '6'
       label: Case studies
     - value: '2'
-      label: Own products
+      label: Own products built
   sections:
     work:
       heading: Selected work

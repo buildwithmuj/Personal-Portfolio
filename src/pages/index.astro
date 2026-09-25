@@ -1,10 +1,8 @@
 ---
-import Contact from '../components/sections/Contact.astro';
+import About from '../components/sections/About.astro';
 import Hero from '../components/sections/Hero.astro';
-import SelectedWork from '../components/sections/SelectedWork.astro';
 import Base from '../layouts/Base.astro';
-import { featuredStudies } from '../lib/case-studies.ts';
-import { getCaseStudies, getProfile } from '../lib/content.ts';
+import { getProfile } from '../lib/content.ts';
 import { personJsonLd } from '../lib/structured-data.ts';
 
 const profile = await getProfile();
@@ -17,11 +15,9 @@ const structuredData = personJsonLd({
   email: profile.email,
   sameAs: profile.socials.map((social) => social.url),
 });
-const featured = featuredStudies(await getCaseStudies());
 ---
 
 <Base structuredData={structuredData}>
   <Hero profile={profile} />
-  {featured.length > 0 && <SelectedWork studies={featured} />}
-  <Contact profile={profile} />
+  <About profile={profile} />
 </Base>
