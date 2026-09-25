@@ -1,7 +1,9 @@
 ---
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
+import Shell from '../components/Shell.astro';
 import TagList from '../components/TagList.astro';
+import { caseStudyLabel } from '../lib/case-studies.ts';
 import Base from './Base.astro';
 
 interface Props {
@@ -21,77 +23,84 @@ const { title, summary, role, timeframe, employer, tags, links, cover, coverAlt 
   type="article"
   structuredData={structuredData}
 >
-  <article class="container case-study">
-    <header class="header">
-      <p>
-        <a href="/#work">All work</a>
-      </p>
-      <h1>{title}</h1>
-      <p class="summary">{summary}</p>
-      <dl class="facts">
-        <div>
-          <dt>Role</dt>
-          <dd>{role}</dd>
-        </div>
-        <div>
-          <dt>Timeframe</dt>
-          <dd>{timeframe}</dd>
-        </div>
-        {employer && (
+  <Shell id="case-study" labelledBy="case-study-title" reveal={false}>
+    <article class="case-study">
+      <header class="head">
+        <p class="label">{caseStudyLabel(study.data)}</p>
+        <h1 id="case-study-title">{title}</h1>
+        <p class="summary">{summary}</p>
+        <dl class="facts">
           <div>
-            <dt>Employer</dt>
-            <dd>{employer}</dd>
+            <dt>Role</dt>
+            <dd>{role}</dd>
           </div>
-        )}
-      </dl>
-      <TagList tags={tags} />
-    </header>
-    <Image
-      class="cover"
-      src={cover}
-      alt={coverAlt}
-      widths={[640, 1280, 1600]}
-      sizes="(min-width: 72rem) 72rem, 100vw"
-      loading="eager"
-      fetchpriority="high"
-    />
-    <div class="body">
-      <slot />
-    </div>
-    {links.length > 0 && (
-      <section aria-labelledby="links-heading">
-        <h2 id="links-heading">Links</h2>
-        <ul>
-          {links.map((link) => (
-            <li>
-              <a href={link.url}>{link.label}</a>
-            </li>
-          ))}
-        </ul>
-      </section>
-    )}
-  </article>
+          <div>
+            <dt>Timeframe</dt>
+            <dd>{timeframe}</dd>
+          </div>
+          {employer && (
+            <div>
+              <dt>Employer</dt>
+              <dd>{employer}</dd>
+            </div>
+          )}
+        </dl>
+        <TagList tags={tags} />
+      </header>
+      <Image
+        class="cover"
+        src={cover}
+        alt={coverAlt}
+        widths={[640, 1280]}
+        sizes="(min-width: 48rem) 696px, 100vw"
+        loading="eager"
+        fetchpriority="high"
+      />
+      <div class="card body">
+        <slot />
+      </div>
+      {links.length > 0 && (
+        <section class="links" aria-labelledby="links-heading">
+          <h2 id="links-heading">Links</h2>
+          <ul role="list">
+            {links.map((link) => (
+              <li>
+                <a href={link.url}>{link.label}</a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      <p>
+        <a class="btn btn-secondary" href="/work">
+          Back to all work
+        </a>
+      </p>
+    </article>
+  </Shell>
 </Base>
 
 <style>
   .case-study {
     display: grid;
     gap: var(--space-8);
-    padding-block: var(--space-12);
   }
 
-  .header {
+  .head {
     display: grid;
-    gap: var(--space-4);
+    gap: var(--space-3);
   }
 
   h1 {
-    font-size: var(--text-2xl);
+    font-size: var(--text-hero);
+    font-weight: var(--weight-regular);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
   }
 
   .summary {
     color: var(--color-text-muted);
-    font-size: var(--text-lg);
+    font-size: var(--text-base);
   }
 
   .facts {
@@ -102,19 +111,44 @@ const { title, summary, role, timeframe, employer, tags, links, cover, coverAlt 
 
   dt {
     color: var(--color-text-muted);
-    font-size: var(--text-sm);
   }
 
   dd {
     margin: 0;
+    font-weight: var(--weight-medium);
   }
 
   .cover {
-    border-radius: var(--radius-md);
+    width: 100%;
+    border-radius: var(--radius-image);
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
   }
 
   .body {
     display: grid;
     gap: var(--space-4);
+    font-size: var(--text-base);
+  }
+
+  .body :global(h2) {
+    font-size: var(--text-xl);
+  }
+
+  .body :global(p),
+  .body :global(li) {
+    color: var(--color-text-muted);
+  }
+
+  .links ul {
+    display: grid;
+    gap: var(--space-2);
+    padding: 0;
+    list-style: none;
+  }
+
+  .links h2 {
+    margin-block-end: var(--space-2);
+    font-size: var(--text-xl);
   }
 </style>

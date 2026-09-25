@@ -20,8 +20,16 @@ const { tags } = Astro.props;
     flex-wrap: wrap;
     gap: var(--space-2);
     padding: 0;
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
     list-style: none;
+  }
+
+  .tags :global(li) {
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-secondary);
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
   }
 </style>
