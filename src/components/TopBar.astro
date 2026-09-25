@@ -1,0 +1,145 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { socialLabels } from '../lib/social.ts';
+import LiveClock from './LiveClock.astro';
+import SocialIcon from './SocialIcon.astro';
+
+interface Props {
+  profile: CollectionEntry<'profile'>['data'];
+}
+
+const { profile } = Astro.props;
+const nav = [
+  { href: '/#about', label: 'About' },
+  { href: '/#work', label: 'Work' },
+  { href: '/#method', label: 'How I work' },
+  { href: '/#experience', label: 'Experience' },
+  { href: '/#contact', label: 'Contact' },
+];
+---
+
+<header class="top-bar">
+  <p class="where">
+    <LiveClock timeZone={profile.timeZone} />
+    <span class="city">{profile.locationLabel}</span>
+  </p>
+  <nav aria-label="Main">
+    <ul role="list">
+      {nav.map((item) => (
+        <li>
+          <a href={item.href}>{item.label}</a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+  <ul class="socials" role="list">
+    {profile.socials.map((social) => (
+      <li>
+        <a
+          class="icon-button"
+          href={social.url}
+          aria-label={`${profile.name} on ${socialLabels[social.platform]}`}
+        >
+          <SocialIcon platform={social.platform} />
+        </a>
+      </li>
+    ))}
+  </ul>
+</header>
+
+<style>
+  .top-bar {
+    position: sticky;
+    z-index: 10;
+    top: var(--bar-offset);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--space-3) var(--space-6);
+    align-items: center;
+    height: var(--bar-height);
+    margin-block-end: calc(-1 * var(--bar-height));
+    padding: var(--space-3) var(--space-4) var(--space-3) var(--button-pad-x);
+    border-radius: var(--radius-card);
+    background: var(--color-nav);
+    backdrop-filter: blur(12px);
+  }
+
+  .where {
+    display: flex;
+    gap: var(--space-2);
+    align-items: baseline;
+    font-size: var(--text-clock);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-clock);
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .city {
+    color: var(--color-text-muted);
+    font-weight: var(--weight-regular);
+    letter-spacing: normal;
+  }
+
+  nav ul,
+  .socials {
+    display: flex;
+    gap: var(--space-6);
+    padding: 0;
+    list-style: none;
+  }
+
+  nav ul {
+    justify-content: center;
+  }
+
+  nav a {
+    color: var(--color-text);
+    font-weight: var(--weight-medium);
+    text-decoration: none;
+  }
+
+  nav a:hover {
+    text-decoration: underline;
+  }
+
+  .socials {
+    gap: var(--space-2);
+  }
+
+  .icon-button {
+    display: grid;
+    place-items: center;
+    width: var(--icon-button);
+    height: var(--icon-button);
+    border-radius: var(--radius-icon);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-secondary);
+    color: var(--color-text);
+  }
+
+  /* Below 640px the navigation wraps to its own row inside the bar (content spec §5.1). */
+  @media (width < 40rem) {
+    .top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      align-items: center;
+      justify-content: space-between;
+      height: auto;
+      margin-block-end: var(--shell-gap);
+      padding: var(--space-3);
+    }
+
+    nav {
+      flex-basis: 100%;
+      order: 1;
+    }
+
+    nav ul {
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      gap: var(--space-1) var(--space-4);
+    }
+  }
+</style>

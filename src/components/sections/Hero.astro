@@ -1,0 +1,222 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import ProofStrip from '../ProofStrip.astro';
+import Shell from '../Shell.astro';
+
+interface Props {
+  profile: CollectionEntry<'profile'>['data'];
+}
+
+const { profile } = Astro.props;
+const [firstRole = '', secondRole = ''] = profile.roles;
+const monogram = profile.name
+  .split(/\s+/)
+  .map((part) => part[0] ?? '')
+  .join('')
+  .slice(0, 2);
+---
+
+<Shell id="top" labelledBy="hero-name" hero reveal={false}>
+  <div class="card hero">
+    {profile.availability && (
+      <p class="badge">
+        <span class="dot" aria-hidden="true"></span>
+        {profile.availability}
+      </p>
+    )}
+    <div class="identity">
+      {profile.avatar ? (
+        <img class="avatar" src={profile.avatar} alt="" width="90" height="90" />
+      ) : (
+        <span class="avatar monogram" aria-hidden="true">
+          {monogram}
+        </span>
+      )}
+      <div>
+        <h1 id="hero-name">{profile.name}</h1>
+        <p class="roles">
+          <span class="visually-hidden">
+            {firstRole} and {secondRole}
+          </span>
+          <span class="rotator" aria-hidden="true">
+            <span>{firstRole}</span>
+            <span>{secondRole}</span>
+          </span>
+        </p>
+      </div>
+    </div>
+    <p class="headline">{profile.headline}</p>
+    <p class="subline">{profile.subline}</p>
+    <p class="actions">
+      <a class="btn btn-primary" href="#work">
+        See my work
+      </a>
+      <a class="btn btn-secondary" href="#contact">
+        Book a call
+      </a>
+    </p>
+    <ProofStrip label={profile.proof.label} items={profile.proof.items} />
+  </div>
+</Shell>
+
+<style>
+  .hero {
+    position: relative;
+    display: grid;
+    gap: var(--space-6);
+    padding: var(--hero-card-pad);
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .hero::after {
+    position: absolute;
+    z-index: -1;
+    inset: 0 0 0 55%;
+    background-image:
+      linear-gradient(var(--color-grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-grid-line) 1px, transparent 1px);
+    background-size: 64px 64px;
+    content: '';
+    mask-image: radial-gradient(circle at 60% 35%, var(--color-text), transparent 70%);
+  }
+
+  .badge {
+    position: absolute;
+    inset-block-start: var(--space-4);
+    inset-inline-end: var(--space-4);
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+    padding: 6px 16px 6px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--color-status-bg);
+    color: var(--color-status-text);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-snug);
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentcolor;
+  }
+
+  .identity {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+    margin-block-start: var(--space-4);
+  }
+
+  .avatar {
+    width: var(--avatar);
+    height: var(--avatar);
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .monogram {
+    display: grid;
+    place-items: center;
+    background: var(--color-shell);
+    color: var(--color-text);
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-medium);
+  }
+
+  h1 {
+    font-size: var(--text-xl);
+  }
+
+  .roles {
+    height: 1.5em;
+    overflow: hidden;
+    color: var(--color-text-muted);
+  }
+
+  .rotator {
+    display: grid;
+  }
+
+  .rotator > span {
+    grid-area: 1 / 1;
+  }
+
+  .rotator > span:first-child {
+    animation: role-first var(--role-duration) var(--ease-standard) infinite;
+  }
+
+  .rotator > span:last-child {
+    animation: role-second var(--role-duration) var(--ease-standard) infinite;
+  }
+
+  /* The roles slide through the clipped .roles line; no opacity, so contrast never dips. */
+  @keyframes role-first {
+    0%,
+    45%,
+    100% {
+      transform: none;
+    }
+
+    50%,
+    95% {
+      transform: translateY(-110%);
+    }
+  }
+
+  @keyframes role-second {
+    0%,
+    45%,
+    100% {
+      transform: translateY(110%);
+    }
+
+    50%,
+    95% {
+      transform: none;
+    }
+  }
+
+  .headline {
+    max-width: 34rem;
+    font-size: var(--text-hero);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+  }
+
+  .subline {
+    max-width: 34rem;
+    color: var(--color-text-muted);
+    font-size: var(--text-base);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  @media (width < 40rem) {
+    .badge {
+      position: static;
+      justify-self: start;
+    }
+
+    .identity {
+      margin-block-start: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rotator > span {
+      animation: none;
+    }
+
+    .rotator > span:last-child {
+      display: none;
+    }
+  }
+</style>

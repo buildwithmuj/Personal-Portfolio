@@ -1,0 +1,42 @@
+---
+interface Props {
+  id: string;
+  heading?: string;
+  intro?: string;
+  labelledBy?: string;
+  join?: 'top' | 'bottom';
+  inset?: boolean;
+  hero?: boolean;
+  reveal?: boolean;
+}
+
+const {
+  id,
+  heading,
+  intro,
+  labelledBy,
+  join,
+  inset = false,
+  hero = false,
+  reveal = true,
+} = Astro.props;
+const headingId = `${id}-heading`;
+---
+
+<section
+  id={id}
+  class:list={[
+    'shell',
+    { 'shell-inset': inset, 'shell-hero': hero, reveal },
+    join && `shell-join-${join}`,
+  ]}
+  aria-labelledby={heading ? headingId : labelledBy}
+>
+  {heading && (
+    <header class="section-head">
+      <h2 id={headingId}>{heading}</h2>
+      {intro && <p>{intro}</p>}
+    </header>
+  )}
+  <slot />
+</section>

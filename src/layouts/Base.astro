@@ -1,9 +1,10 @@
 ---
 import '../styles/tokens.css';
 import '../styles/global.css';
+import { Font } from 'astro:assets';
 import Seo from '../components/Seo.astro';
 import SiteFooter from '../components/SiteFooter.astro';
-import SiteHeader from '../components/SiteHeader.astro';
+import TopBar from '../components/TopBar.astro';
 import { getProfile } from '../lib/content.ts';
 import { isProduction } from '../lib/mode.ts';
 
@@ -25,13 +26,14 @@ const profile = await getProfile();
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <Font cssVariable="--font-mona" preload />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <Seo
       {...(title ? { title } : {})}
       siteName={profile.name}
-      headline={profile.headline}
+      headline={profile.titleTagline}
       path={Astro.url.pathname}
       description={description ?? profile.seo.description}
       image={image ?? { url: profile.seo.image, alt: profile.seo.imageAlt }}
@@ -44,10 +46,18 @@ const profile = await getProfile();
     <a class="skip-link" href="#main">
       Skip to content
     </a>
-    <SiteHeader name={profile.name} />
-    <main id="main" tabindex="-1">
-      <slot />
-    </main>
+    <div class="container page">
+      <TopBar profile={profile} />
+      <main id="main" tabindex="-1" class="stack">
+        <slot />
+      </main>
+    </div>
     <SiteFooter name={profile.name} />
   </body>
 </html>
+
+<style>
+  .page {
+    padding-block-start: var(--bar-offset);
+  }
+</style>

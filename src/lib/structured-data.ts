@@ -6,7 +6,8 @@ export function jsonLd(data: Record<string, unknown>): string {
 
 export function personJsonLd(input: {
   name: string;
-  headline: string;
+  jobTitle: string;
+  worksFor?: string;
   url: string;
   email: string;
   sameAs: string[];
@@ -15,7 +16,8 @@ export function personJsonLd(input: {
     '@context': 'https://schema.org',
     '@type': 'Person',
     name: input.name,
-    jobTitle: input.headline,
+    jobTitle: input.jobTitle,
+    ...(input.worksFor ? { worksFor: { '@type': 'Organization', name: input.worksFor } } : {}),
     url: input.url,
     email: `mailto:${input.email}`,
     sameAs: input.sameAs,

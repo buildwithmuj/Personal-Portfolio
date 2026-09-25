@@ -1,6 +1,6 @@
 ---
 import Contact from '../components/sections/Contact.astro';
-import Intro from '../components/sections/Intro.astro';
+import Hero from '../components/sections/Hero.astro';
 import SelectedWork from '../components/sections/SelectedWork.astro';
 import Base from '../layouts/Base.astro';
 import { featuredStudies } from '../lib/case-studies.ts';
@@ -11,7 +11,8 @@ const profile = await getProfile();
 if (!Astro.site) throw new Error('`site` must be set in astro.config.ts');
 const structuredData = personJsonLd({
   name: profile.name,
-  headline: profile.headline,
+  jobTitle: profile.jobTitle,
+  worksFor: profile.worksFor,
   url: Astro.site.href,
   email: profile.email,
   sameAs: profile.socials.map((social) => social.url),
@@ -20,7 +21,7 @@ const featured = featuredStudies(await getCaseStudies());
 ---
 
 <Base structuredData={structuredData}>
-  <Intro name={profile.name} headline={profile.headline} intro={profile.intro} />
+  <Hero profile={profile} />
   {featured.length > 0 && <SelectedWork studies={featured} />}
   <Contact profile={profile} />
 </Base>

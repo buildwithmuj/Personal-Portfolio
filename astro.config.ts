@@ -1,6 +1,6 @@
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
-import { defineConfig, envField } from 'astro/config';
+import { defineConfig, envField, fontProviders } from 'astro/config';
 import { resolveSiteMode } from './src/lib/site-mode.ts';
 import { SITE_URL } from './site.config.ts';
 
@@ -17,6 +17,25 @@ const isProductionBuild =
 
 export default defineConfig({
   site: SITE_URL,
+  fonts: [
+    {
+      provider: fontProviders.local(),
+      name: 'Mona Sans',
+      cssVariable: '--font-mona',
+      fallbacks: ['system-ui', 'sans-serif'],
+      options: {
+        variants: [
+          {
+            weight: '200 900',
+            style: 'normal',
+            src: [
+              './node_modules/@fontsource-variable/mona-sans/files/mona-sans-latin-wght-normal.woff2',
+            ],
+          },
+        ],
+      },
+    },
+  ],
   env: {
     schema: {
       // Set by Cloudflare Workers Builds; decides production vs preview (spec §8).

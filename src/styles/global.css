@@ -1,4 +1,4 @@
-/* Reset and base styles (spec §5). Every value comes from tokens.css. */
+/* Reset, base styles and layout primitives (content spec §4). Every value comes from tokens.css. */
 *,
 *::before,
 *::after {
@@ -9,13 +9,17 @@
   margin: 0;
 }
 
+html {
+  scroll-padding-top: calc(var(--bar-offset) + var(--bar-height) + var(--space-4));
+}
+
 body {
   min-height: 100vh;
-  background: var(--color-bg);
+  background: var(--color-page);
   color: var(--color-text);
   font-family: var(--font-sans);
-  font-size: var(--text-base);
-  line-height: var(--leading-normal);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
 }
 
 img,
@@ -27,8 +31,10 @@ svg {
 
 h1,
 h2,
-h3 {
-  line-height: var(--leading-tight);
+h3,
+h4 {
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
   text-wrap: balance;
 }
 
@@ -67,18 +73,162 @@ a {
 
 .skip-link {
   position: absolute;
+  z-index: 20;
   inset-block-start: var(--space-4);
   inset-inline-start: var(--space-4);
   padding: var(--space-2) var(--space-4);
   border: 2px solid var(--color-focus);
   border-radius: var(--radius-sm);
-  background: var(--color-bg);
+  background: var(--color-page);
   color: var(--color-text);
   transform: translateY(-200%);
 }
 
 .skip-link:focus {
   transform: none;
+}
+
+/* The page's column of section shells */
+.stack {
+  display: grid;
+  gap: var(--shell-gap);
+}
+
+.stack > :first-child {
+  padding-block-start: calc(var(--bar-height) + var(--shell-pad));
+}
+
+.shell {
+  padding: var(--shell-pad-top) var(--shell-pad) var(--shell-pad);
+  border-radius: var(--radius-shell);
+  background: var(--color-shell);
+}
+
+.shell-inset {
+  padding: var(--inset);
+}
+
+.stack > .shell-hero:first-child {
+  padding: calc(var(--bar-height) + var(--inset)) var(--inset) var(--inset);
+}
+
+.shell-join-top {
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.shell-join-bottom {
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+}
+
+.stack > .shell-join-top + .shell-join-bottom {
+  margin-block-start: calc(-1 * var(--shell-gap));
+}
+
+/* Below 640px the top bar wraps to its own height and sits above the first shell. */
+@media (width < 40rem) {
+  .stack > :first-child {
+    padding-block-start: var(--shell-pad);
+  }
+
+  .stack > .shell-hero:first-child {
+    padding: var(--inset);
+  }
+}
+
+.section-head {
+  display: grid;
+  gap: var(--space-1);
+  margin-block-end: var(--space-8);
+}
+
+.section-head h2 {
+  font-size: var(--text-xl);
+}
+
+.section-head p {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.label {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+}
+
+.card {
+  padding: var(--card-pad);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.card-inverse {
+  background: var(--color-inverse);
+  color: var(--color-on-inverse);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--button-height);
+  padding: var(--space-2) var(--button-pad-x);
+  border: 0;
+  border-radius: var(--radius-button);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background: var(--color-inverse);
+  box-shadow: var(--shadow-primary);
+  color: var(--color-on-inverse);
+}
+
+.btn-secondary {
+  background: var(--color-surface);
+  box-shadow: var(--shadow-secondary);
+  color: var(--color-text);
+}
+
+.btn-on-inverse {
+  background: var(--color-on-inverse);
+  color: var(--color-inverse);
+}
+
+/*
+ * Section rise on scroll (content spec §8): progressive, and never on the hero. It moves without
+ * fading, because half-transparent text fails the axe and Lighthouse contrast checks.
+ */
+@keyframes rise {
+  from {
+    transform: translateY(16px);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

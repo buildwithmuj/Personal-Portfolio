@@ -1,28 +1,46 @@
 /*
- * Design tokens (spec §5). Placeholder values: neutral greys and system fonts that meet WCAG AA.
- * The content & design spec replaces these values. Components use only these variables.
+ * Design tokens (content spec §4), measured from the Portfolik reference at 1440px.
+ * Components use only these variables.
  */
 :root {
   color-scheme: light dark;
 
-  /* Colour roles */
-  --color-bg: #fff;
-  --color-surface: #f4f4f4;
-  --color-text: #1a1a1a;
-  --color-text-muted: #595959;
-  --color-accent: #1a1a1a;
-  --color-border: #d4d4d4;
-  --color-focus: #1a1a1a;
+  /* Colour */
+  --color-page: #fff;
+  --color-shell: #f3f4f6;
+  --color-surface: #fff;
+  --color-text: #0a0a0a;
+  --color-text-muted: #4a4f54;
+  --color-accent: #0a0a0a;
+  --color-inverse: #0a0a0a;
+  --color-on-inverse: #fff;
+  --color-on-inverse-muted: rgb(255 255 255 / 80%);
+  --color-border: #e5e7eb;
+  --color-nav: rgb(242 243 245 / 80%);
+  --color-status-bg: #e2f9dd;
+  --color-status-text: #137300;
+  --color-focus: #0a0a0a;
+  --color-grid-line: rgb(10 10 10 / 6%);
 
   /* Type */
-  --font-sans: system-ui, -apple-system, 'Segoe UI', roboto, 'Helvetica Neue', arial, sans-serif;
+  --font-sans: var(--font-mona);
+  --text-xs: 0.75rem;
+  --text-clock: 0.8125rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
-  --text-lg: 1.25rem;
-  --text-xl: clamp(1.5rem, 1.25rem + 1.25vw, 2rem);
-  --text-2xl: clamp(2rem, 1.5rem + 2.5vw, 3rem);
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-hero: 1.75rem;
   --leading-tight: 1.2;
+  --leading-snug: 1.4;
+  --leading-body: 1.5;
   --leading-normal: 1.6;
+  --tracking-tight: -0.02em;
+  --tracking-clock: -0.04em;
+  --weight-regular: 400;
+  --weight-medium: 500;
 
   /* Spacing */
   --space-1: 0.25rem;
@@ -34,29 +52,85 @@
   --space-12: 3rem;
   --space-16: 4rem;
 
+  /* Layout */
+  --page-max-width: 760px;
+  --gutter: 20px;
+  --measure: 65ch;
+  --bar-height: 64px;
+  --bar-offset: 18px;
+  --shell-gap: 10px;
+  --shell-pad-top: 50px;
+  --shell-pad: 32px;
+  --inset: 2px;
+  --card-pad: 32px;
+  --card-pad-sm: 28px;
+  --hero-card-pad: 44px;
+  --gap-cards: 6px;
+  --gap-work: 24px;
+  --gap-pair: 10px;
+  --avatar: 90px;
+  --icon-button: 32px;
+  --button-height: 40px;
+  --button-pad-x: 20px;
+
   /* Shape */
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
+  --radius-icon: 10px;
+  --radius-image: 12px;
+  --radius-button: 12px;
+  --radius-card: 20px;
+  --radius-shell: 22px;
+  --radius-pill: 999px;
+
+  /* Elevation */
+  --shadow-primary:
+    inset 0 1px 3px 0 rgb(255 255 255 / 30%), 0 0 0 1px #111827, 0 1.5px 3px 0 rgb(31 31 31 / 8%),
+    0 4px 4px 0 rgb(31 31 31 / 7%), 0 12px 6px 0 rgb(31 31 31 / 4%), 0 16px 8px 0 rgb(31 31 31 / 1%);
+  --shadow-secondary:
+    inset 0 2px 2px 0 #fff, 0 12px 12px -6px rgb(41 41 41 / 4%), 0 6px 6px -3px rgb(41 41 41 / 4%),
+    0 3px 3px -1.5px rgb(41 41 41 / 2%), 0 0 0 1px #e5e7eb;
 
   /* Motion */
   --duration-fast: 150ms;
-  --duration-base: 250ms;
+  --duration-base: 200ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --marquee-duration: 30s;
+  --role-duration: 6s;
+}
 
-  /* Layout */
-  --page-max-width: 72rem;
-  --measure: 65ch;
-  --gutter: clamp(1rem, 4vw, 2rem);
+@media (width < 40rem) {
+  :root {
+    --gutter: 16px;
+    --shell-pad: 20px;
+    --card-pad: 24px;
+    --card-pad-sm: 24px;
+    --hero-card-pad: 24px;
+
+    /* The top bar wraps to its content height below 640px; this only sets the scroll offset. */
+    --bar-height: 8rem;
+    --text-hero: 1.5rem;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-bg: #121212;
-    --color-surface: #1e1e1e;
-    --color-text: #ededed;
+    --color-page: #0a0a0a;
+    --color-shell: #161616;
+    --color-surface: #1f1f1f;
+    --color-text: #f5f5f5;
     --color-text-muted: #a3a3a3;
-    --color-accent: #ededed;
-    --color-border: #3a3a3a;
-    --color-focus: #ededed;
+    --color-accent: #f5f5f5;
+    --color-inverse: #f5f5f5;
+    --color-on-inverse: #0a0a0a;
+    --color-on-inverse-muted: rgb(10 10 10 / 80%);
+    --color-border: #2e2e2e;
+    --color-nav: rgb(22 22 22 / 80%);
+    --color-status-bg: #123d0b;
+    --color-status-text: #8be07a;
+    --color-focus: #f5f5f5;
+    --color-grid-line: rgb(245 245 245 / 6%);
+    --shadow-primary: 0 0 0 1px #f5f5f5;
+    --shadow-secondary: 0 0 0 1px #2e2e2e;
   }
 }

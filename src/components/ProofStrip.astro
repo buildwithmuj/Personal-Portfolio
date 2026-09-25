@@ -1,0 +1,123 @@
+---
+interface Props {
+  label: string;
+  items: string[];
+}
+
+const { label, items } = Astro.props;
+---
+
+<div class="proof">
+  <div class="proof-head">
+    <p class="proof-label">{label}</p>
+    <label class="pause">
+      <input type="checkbox" />
+      <span>Pause scrolling</span>
+    </label>
+  </div>
+  <div class="marquee">
+    <ul class="track" role="list">
+      {items.map((item) => (
+        <li>{item}</li>
+      ))}
+    </ul>
+    <ul class="track" role="list" aria-hidden="true">
+      {items.map((item) => (
+        <li>{item}</li>
+      ))}
+    </ul>
+  </div>
+</div>
+
+<style>
+  .proof {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .proof-head {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .proof-label {
+    font-weight: var(--weight-medium);
+  }
+
+  .pause {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    cursor: pointer;
+  }
+
+  .pause input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--color-inverse);
+  }
+
+  .marquee {
+    display: flex;
+    overflow: hidden;
+    mask-image: linear-gradient(
+      90deg,
+      transparent,
+      var(--color-text) 10%,
+      var(--color-text) 90%,
+      transparent
+    );
+  }
+
+  .track {
+    display: flex;
+    flex-shrink: 0;
+    gap: var(--space-8);
+    padding: 0 var(--space-8) 0 0;
+    list-style: none;
+    animation: marquee var(--marquee-duration) linear infinite;
+  }
+
+  .track li {
+    font-size: var(--text-lg);
+    font-weight: var(--weight-medium);
+    white-space: nowrap;
+  }
+
+  /* Hover and focus pause it (content spec §5.2); the checkbox is the lasting control WCAG 2.2.2 needs. */
+  .marquee:hover .track,
+  .proof:focus-within .track,
+  .proof:has(.pause input:checked) .track {
+    animation-play-state: paused;
+  }
+
+  @keyframes marquee {
+    to {
+      transform: translateX(-100%);
+    }
+  }
+
+  /* Under reduced motion the list wraps statically inside the card. */
+  @media (prefers-reduced-motion: reduce) {
+    .marquee {
+      display: block;
+      mask-image: none;
+    }
+
+    .track {
+      flex-wrap: wrap;
+      gap: var(--space-2) var(--space-6);
+      padding: 0;
+      animation: none;
+    }
+
+    .track[aria-hidden='true'],
+    .pause {
+      display: none;
+    }
+  }
+</style>

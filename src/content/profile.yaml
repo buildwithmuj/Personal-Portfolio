@@ -1,19 +1,74 @@
-# Placeholder profile. Replace every value with real content (spec §6).
+# Mujtaba Shah's profile, drafted from his CV and LinkedIn. Every sentence is for him to review.
+# Lines marked PLACEHOLDER must be replaced before launch.
 main:
-  name: Alex Placeholder
-  headline: Product designer and front-end developer
-  intro: >-
-    Placeholder introduction. This paragraph will be replaced with the owner's own words when the real
-    content arrives.
-  email: alex@example.com
-  bookingUrl: https://cal.com/
+  name: Mujtaba Shah
+  jobTitle: Senior Intelligent Automation Analyst
+  worksFor: DigiBlu
+  titleTagline: Intelligent Automation & AI Product Builder
+  roles:
+    - Intelligent Automation
+    - AI Product Builder
+  availability: Open to new opportunities
+  headline: I turn messy processes into automation and products people actually use.
+  subline: >-
+    Nine years untangling complex processes for organisations across the public sector, healthcare,
+    education, financial services and telecoms, and building my own products along the way.
+  about: >-
+    I'm a Senior Intelligent Automation Analyst and a product-minded problem solver. I work with the
+    people closest to a process to understand how it really runs, design automation and data solutions,
+    and deliver change that sticks. Alongside consulting, I build my own products with low-code, no-code
+    and AI tools.
+  interests: 'Outside work: boxing at Legends MMA, four languages, and building side projects.'
+  proof:
+    label: Nine years across
+    items:
+      - DigiBlu
+      - Infosys Consulting
+      - Public sector
+      - Healthcare
+      - Education
+      - Financial services
+      - Telecoms
+  stats:
+    - value: '9+'
+      label: Years' experience
+    - value: '5'
+      label: Sectors
+    - value: '6'
+      label: Case studies
+    - value: '2'
+      label: Own products
+  sections:
+    work:
+      heading: Selected work
+      intro: Client programmes and my own products, each turning a messy problem into something people use.
+    method:
+      heading: How I work
+      intro: The same five steps, whether it's a client programme or something I'm building myself.
+    testimonials:
+      heading: What people say
+      intro: From people I've worked with.
+    experience:
+      heading: Experience & skills
+      intro: Nine years in consulting and automation delivery, and the tools I use.
+    contact:
+      heading: Let's work together
+      intro: Hiring, or have a process that needs untangling? Book a call or send me an email.
+  email: hello@example.com # PLACEHOLDER: the address to publish
+  bookingUrl: https://cal.com/placeholder/30min # PLACEHOLDER: the Cal.com event link
+  timeZone: Europe/London
+  locationLabel: London
   socials:
-    - platform: github
-      url: https://github.com/
+    - platform: x
+      url: https://x.com/ # PLACEHOLDER: the X profile URL
     - platform: linkedin
-      url: https://www.linkedin.com/
-  cvUpdated: 2026-09-24
+      url: https://www.linkedin.com/in/mujtaba-shah-028b1a56 # PLACEHOLDER: confirm the profile URL
+    - platform: tiktok
+      url: https://www.tiktok.com/ # PLACEHOLDER: the TikTok profile URL
+    - platform: github
+      url: https://github.com/buildwithmuj
+  cvUpdated: 2026-09-25
   seo:
-    description: Placeholder portfolio of Alex Placeholder, a product designer and front-end developer.
+    description: Mujtaba Shah, Senior Intelligent Automation Analyst and AI product builder, turning messy processes into automation and products people use.
     image: /og-default.png
-    imageAlt: Placeholder social sharing image
+    imageAlt: Mujtaba Shah, Intelligent Automation & AI Product Builder

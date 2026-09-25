@@ -12,25 +12,29 @@ describe('jsonLd', () => {
 });
 
 describe('personJsonLd', () => {
+  const base = {
+    name: 'Mujtaba Shah',
+    jobTitle: 'Senior Intelligent Automation Analyst',
+    url: 'https://example.com/',
+    email: 'hello@example.com',
+    sameAs: ['https://github.com/buildwithmuj'],
+  };
+
   it('describes the owner as a schema.org Person', () => {
-    const data = JSON.parse(
-      personJsonLd({
-        name: 'Alex Placeholder',
-        headline: 'Product designer',
-        url: 'https://example.com/',
-        email: 'alex@example.com',
-        sameAs: ['https://github.com/'],
-      }),
-    );
-    assert.deepEqual(data, {
+    assert.deepEqual(JSON.parse(personJsonLd(base)), {
       '@context': 'https://schema.org',
       '@type': 'Person',
-      name: 'Alex Placeholder',
-      jobTitle: 'Product designer',
+      name: 'Mujtaba Shah',
+      jobTitle: 'Senior Intelligent Automation Analyst',
       url: 'https://example.com/',
-      email: 'mailto:alex@example.com',
-      sameAs: ['https://github.com/'],
+      email: 'mailto:hello@example.com',
+      sameAs: ['https://github.com/buildwithmuj'],
     });
+  });
+
+  it('adds the employer as worksFor when given', () => {
+    const data = JSON.parse(personJsonLd({ ...base, worksFor: 'DigiBlu' }));
+    assert.deepEqual(data.worksFor, { '@type': 'Organization', name: 'DigiBlu' });
   });
 });
 

@@ -1,0 +1,42 @@
+---
+interface Props {
+  timeZone: string;
+}
+
+const { timeZone } = Astro.props;
+// Without JavaScript the clock shows the build time, without seconds (content spec §5.1).
+const buildTime = new Intl.DateTimeFormat('en-US', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: true,
+  timeZone,
+}).format(new Date());
+---
+
+<live-clock data-time-zone={timeZone}>
+  <time>{buildTime}</time>
+</live-clock>
+
+<script>
+  class LiveClock extends HTMLElement {
+    connectedCallback(): void {
+      const time = this.querySelector('time');
+      const timeZone = this.dataset['timeZone'];
+      if (!time || !timeZone) return;
+      const format = new Intl.DateTimeFormat('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+        timeZone,
+      });
+      const tick = () => {
+        time.textContent = format.format(new Date());
+      };
+      tick();
+      window.setInterval(tick, 1000);
+    }
+  }
+
+  customElements.define('live-clock', LiveClock);
+</script>
