@@ -1,6 +1,8 @@
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig, envField, fontProviders } from 'astro/config';
+import { readFileSync } from 'node:fs';
+import { assertNoPlaceholders } from './src/lib/placeholders.ts';
 import { resolveSiteMode } from './src/lib/site-mode.ts';
 import { SITE_URL } from './site.config.ts';
 
@@ -14,6 +16,12 @@ if (process.env['WORKERS_CI'] === '1' && new URL(SITE_URL).hostname === 'example
 // Drafts never appear in the sitemap (spec §6), and the sitemap is production-only (spec §8).
 const isProductionBuild =
   resolveSiteMode({ dev: false, branch: process.env['WORKERS_CI_BRANCH'] }) === 'production';
+
+// A production deploy must not ship placeholder contact details (content spec §13).
+if (process.env['WORKERS_CI'] === '1' && isProductionBuild) {
+  const PROFILE = 'src/content/profile.yaml';
+  assertNoPlaceholders(PROFILE, readFileSync(PROFILE, 'utf8'));
+}
 
 export default defineConfig({
   site: SITE_URL,

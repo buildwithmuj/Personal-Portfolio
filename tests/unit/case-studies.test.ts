@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { featuredStudies, visibleStudies, type Orderable } from '../../src/lib/case-studies.ts';
+import {
+  caseStudyLabel,
+  featuredStudies,
+  visibleStudies,
+  type Orderable,
+} from '../../src/lib/case-studies.ts';
 
 function study(title: string, order: number, extra: Partial<Orderable['data']> = {}): Orderable {
   return { data: { title, order, featured: false, draft: false, ...extra } };
@@ -35,5 +40,30 @@ describe('featuredStudies', () => {
       study('Three', 3, { featured: true }),
     ];
     assert.deepEqual(titles(featuredStudies(entries)), ['One', 'Three']);
+  });
+});
+
+describe('caseStudyLabel (content spec §5.4)', () => {
+  it('labels client work with its sector', () => {
+    assert.equal(
+      caseStudyLabel({ kind: 'client', sector: 'Healthcare' }),
+      'Client work · Healthcare',
+    );
+  });
+
+  it('labels personal projects with their status', () => {
+    assert.equal(caseStudyLabel({ kind: 'product', status: 'live' }), 'Personal project · Live');
+    assert.equal(
+      caseStudyLabel({ kind: 'product', status: 'in-progress' }),
+      'Personal project · In progress',
+    );
+    assert.equal(
+      caseStudyLabel({ kind: 'product', status: 'retired' }),
+      'Personal project · Retired',
+    );
+  });
+
+  it('falls back to the kind alone', () => {
+    assert.equal(caseStudyLabel({ kind: 'client' }), 'Client work');
   });
 });

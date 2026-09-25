@@ -1,22 +1,23 @@
-# Testimonials (content spec §5.6). Entries with placeholder: true never reach the live site.
-# Replace them with real quotes that the person has agreed to publish, and set placeholder: false.
-placeholder-one:
-  name: Placeholder Name
-  role: Role, organisation
-  quote: Placeholder testimonial. A real, consented quote from someone Mujtaba has worked with goes here.
+# Testimonials (content spec §5.6). These four are MADE UP for design review: the people and quotes
+# are invented. Entries with placeholder: true never reach the live site. Replace them with real
+# quotes that the person has agreed to publish, and set placeholder: false.
+sarah-whitfield:
+  name: Sarah Whitfield
+  role: Head of Operations, a UK healthcare group
+  quote: Mujtaba mapped our back-office processes faster than anyone we had worked with, and the automation he delivered cut our turnaround times. He brought the whole team with him.
   placeholder: true
-placeholder-two:
-  name: Placeholder Name
-  role: Role, organisation
-  quote: Placeholder testimonial about how he untangles complex processes and gets people aligned.
+james-okafor:
+  name: James Okafor
+  role: Programme Director, a UK pensions administrator
+  quote: A rare mix of analytical depth and calm stakeholder management. For the first time, our operating model and SOPs were something the team actually used.
   placeholder: true
-placeholder-three:
-  name: Placeholder Name
-  role: Role, organisation
-  quote: Placeholder testimonial about delivery, from business case to adoption.
+priya-raman:
+  name: Priya Raman
+  role: Product Lead, a global satellite communications company
+  quote: As our Product Owner he kept a complex backlog focused on what mattered. The dashboards shipped on time, and people used them.
   placeholder: true
-placeholder-four:
-  name: Placeholder Name
-  role: Role, organisation
-  quote: Placeholder testimonial about working with him on a product.
+daniel-hughes:
+  name: Daniel Hughes
+  role: Service Manager, a UK public-sector organisation
+  quote: Clear business cases, careful delivery and real care for the people affected by the change. Mujtaba made automation feel safe.
   placeholder: true

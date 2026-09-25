@@ -154,7 +154,7 @@ a {
   gap: 6px;
 }
 
-.section-head h2 {
+.section-head :is(h1, h2) {
   font-size: var(--text-xl);
 }
 

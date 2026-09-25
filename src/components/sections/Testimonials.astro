@@ -71,10 +71,22 @@ const initials = (name: string) =>
     width: 42px;
     height: 42px;
     border-radius: 50%;
-    background: var(--color-accent-soft);
-    color: var(--color-accent);
+    background: var(--gradient-avatar-1);
+    color: var(--color-avatar-text);
     font-size: var(--text-xs);
     font-weight: var(--weight-medium);
+  }
+
+  .quote:nth-child(4n + 2) .avatar {
+    background: var(--gradient-avatar-2);
+  }
+
+  .quote:nth-child(4n + 3) .avatar {
+    background: var(--gradient-avatar-3);
+  }
+
+  .quote:nth-child(4n) .avatar {
+    background: var(--gradient-avatar-4);
   }
 
   .who {
