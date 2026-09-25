@@ -31,7 +31,7 @@ const profile = await getProfile();
       {...(title ? { title } : {})}
       siteName={profile.name}
       headline={profile.headline}
-      path={Astro.routePattern}
+      path={Astro.url.pathname}
       description={description ?? profile.seo.description}
       image={image ?? { url: profile.seo.image, alt: profile.seo.imageAlt }}
       noindex={!isProduction}

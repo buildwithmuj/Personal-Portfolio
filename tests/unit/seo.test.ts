@@ -28,6 +28,21 @@ describe('canonicalUrl', () => {
       'https://example.com/work/sample-project',
     );
   });
+
+  it('normalises the root build.format "file" output path', () => {
+    assert.equal(canonicalUrl('https://example.com/', '/index.html'), 'https://example.com/');
+  });
+
+  it('strips a trailing .html from build.format "file" output paths', () => {
+    assert.equal(canonicalUrl('https://example.com/', '/404.html'), 'https://example.com/404');
+  });
+
+  it('strips a trailing .html from nested build.format "file" output paths', () => {
+    assert.equal(
+      canonicalUrl('https://example.com/', '/work/sample-project.html'),
+      'https://example.com/work/sample-project',
+    );
+  });
 });
 
 describe('buildSeo', () => {

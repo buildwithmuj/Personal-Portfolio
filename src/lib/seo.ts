@@ -24,11 +24,21 @@ export interface SeoTags {
   meta: MetaTag[];
 }
 
-/** Absolute URL with no trailing slash (except the root), query or fragment (spec §5). */
+/**
+ * Absolute URL with no trailing slash (except the root), query or fragment (spec §5).
+ *
+ * `build.format: 'file'` means `Astro.url.pathname` is the built file path (`/index.html`,
+ * `/404.html`, `/work/sample-project.html`) rather than the route path, so a trailing `.html` is
+ * stripped first, then a trailing `/index` (leaving `/` for the root), before the existing
+ * trailing-slash rule runs.
+ */
 export function canonicalUrl(siteUrl: string, path: string): string {
   const url = new URL(path, siteUrl);
   url.search = '';
   url.hash = '';
+  if (url.pathname.endsWith('.html')) url.pathname = url.pathname.slice(0, -'.html'.length);
+  if (url.pathname.endsWith('/index'))
+    url.pathname = url.pathname.slice(0, -'/index'.length) || '/';
   if (url.pathname !== '/' && url.pathname.endsWith('/')) url.pathname = url.pathname.slice(0, -1);
   return url.href;
 }
