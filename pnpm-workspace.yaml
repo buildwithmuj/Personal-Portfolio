@@ -1,0 +1,8 @@
+# Supply-chain settings (spec §7). Don't relax them without the owner's approval.
+minimumReleaseAge: 10080 # minutes: a version must be 7 days old before it can be installed
+strictDepBuilds: true # fail the install when a dependency has an unreviewed build script
+engineStrict: true
+onlyBuiltDependencies: # reviewed packages allowed to run install scripts (native binaries)
+  - esbuild
+  - sharp
+  - workerd
