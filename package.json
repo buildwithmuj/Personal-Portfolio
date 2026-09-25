@@ -15,7 +15,8 @@
     "format:check": "prettier --check .",
     "test": "node --test \"tests/unit/**/*.test.ts\"",
     "serve": "wrangler dev --port 8787 --ip 127.0.0.1 --show-interactive-dev-session=false",
-    "test:e2e": "playwright test --project=chromium --project=webkit --project=firefox"
+    "test:e2e": "playwright test --project=chromium --project=webkit --project=firefox",
+    "test:perf": "playwright test --project=lighthouse"
   },
   "dependencies": {
     "@astrojs/mdx": "^8.0.1",
@@ -28,6 +29,8 @@
     "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.63.0",
     "@types/node": "^24.13.5",
+    "chrome-launcher": "^1.2.1",
+    "lighthouse": "^13.5.0",
     "postcss-html": "^2.0.0",
     "prettier": "^3.9.8",
     "prettier-plugin-astro": "^1.0.1",

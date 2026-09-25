@@ -21,5 +21,6 @@ export default defineConfig({
     { name: 'chromium', testDir: 'tests/e2e', use: { ...devices['Desktop Chrome'] } },
     { name: 'webkit', testDir: 'tests/e2e', use: { ...devices['Desktop Safari'] } },
     { name: 'firefox', testDir: 'tests/e2e', use: { ...devices['Desktop Firefox'] } },
+    { name: 'lighthouse', testDir: 'tests/perf', use: { ...devices['Desktop Chrome'] } },
   ],
 });
