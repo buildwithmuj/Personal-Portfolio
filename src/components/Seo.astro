@@ -1,0 +1,16 @@
+---
+import { buildSeo, type SeoInput } from '../lib/seo.ts';
+
+type Props = Omit<SeoInput, 'siteUrl'> & { structuredData?: string };
+
+const { structuredData, ...input } = Astro.props;
+if (!Astro.site) throw new Error('`site` must be set in astro.config.ts');
+const tags = buildSeo({ ...input, siteUrl: Astro.site.href });
+---
+
+<title>{tags.title}</title>
+<link rel="canonical" href={tags.canonical} />
+{tags.meta.map((tag) => (
+  <meta name={tag.name} property={tag.property} content={tag.content} />
+))}
+{structuredData && <script type="application/ld+json" set:html={structuredData}></script>}

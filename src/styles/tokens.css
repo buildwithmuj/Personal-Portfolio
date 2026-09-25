@@ -1,0 +1,62 @@
+/*
+ * Design tokens (spec §5). Placeholder values: neutral greys and system fonts that meet WCAG AA.
+ * The content & design spec replaces these values. Components use only these variables.
+ */
+:root {
+  color-scheme: light dark;
+
+  /* Colour roles */
+  --color-bg: #fff;
+  --color-surface: #f4f4f4;
+  --color-text: #1a1a1a;
+  --color-text-muted: #595959;
+  --color-accent: #1a1a1a;
+  --color-border: #d4d4d4;
+  --color-focus: #1a1a1a;
+
+  /* Type */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', roboto, 'Helvetica Neue', arial, sans-serif;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: clamp(1.5rem, 1.25rem + 1.25vw, 2rem);
+  --text-2xl: clamp(2rem, 1.5rem + 2.5vw, 3rem);
+  --leading-tight: 1.2;
+  --leading-normal: 1.6;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Shape */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Layout */
+  --page-max-width: 72rem;
+  --measure: 65ch;
+  --gutter: clamp(1rem, 4vw, 2rem);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #121212;
+    --color-surface: #1e1e1e;
+    --color-text: #ededed;
+    --color-text-muted: #a3a3a3;
+    --color-accent: #ededed;
+    --color-border: #3a3a3a;
+    --color-focus: #ededed;
+  }
+}

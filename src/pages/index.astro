@@ -1,15 +1,20 @@
 ---
+import Intro from '../components/sections/Intro.astro';
+import Base from '../layouts/Base.astro';
+import { getProfile } from '../lib/content.ts';
+import { personJsonLd } from '../lib/structured-data.ts';
+
+const profile = await getProfile();
+if (!Astro.site) throw new Error('`site` must be set in astro.config.ts');
+const structuredData = personJsonLd({
+  name: profile.name,
+  headline: profile.headline,
+  url: Astro.site.href,
+  email: profile.email,
+  sameAs: profile.socials.map((social) => social.url),
+});
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Portfolio</title>
-  </head>
-  <body>
-    <main>
-      <h1>Portfolio</h1>
-    </main>
-  </body>
-</html>
+<Base structuredData={structuredData}>
+  <Intro name={profile.name} headline={profile.headline} intro={profile.intro} />
+</Base>
