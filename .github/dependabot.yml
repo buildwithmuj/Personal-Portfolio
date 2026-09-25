@@ -9,6 +9,14 @@ updates:
     groups:
       dependencies:
         patterns: ['*']
+        update-types: [minor, patch]
+    ignore:
+      # TypeScript 7 is unsupported by @astrojs/check (spec §3/§15).
+      - dependency-name: typescript
+        versions: ['>=7']
+      # The runtime is Node 24.
+      - dependency-name: '@types/node'
+        versions: ['>=25']
   - package-ecosystem: github-actions
     directory: /
     schedule:
