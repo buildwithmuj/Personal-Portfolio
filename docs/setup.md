@@ -79,9 +79,10 @@ to run while it's still `https://example.com`.
 2. Wait for the `ci` check and the Cloudflare preview comment.
 3. Edit the `main` ruleset: turn on "Require status checks to pass", add **`ci`**, and tick "Require
    branches to be up to date before merging".
-4. On the preview address, check three things:
+4. On the preview address, check four things:
    - pages load
    - `/robots.txt` says `Disallow: /`
+   - `curl -s <preview-url> | grep 'name="robots"'` shows `noindex`
    - `curl -sI <preview-url>` shows the headers from `public/_headers`
 5. Squash-merge. Cloudflare deploys production within a minute or two.
 

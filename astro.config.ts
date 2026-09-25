@@ -1,6 +1,7 @@
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig, envField } from 'astro/config';
+import { resolveSiteMode } from './src/lib/site-mode.ts';
 import { SITE_URL } from './site.config.ts';
 
 // Cloudflare Workers Builds sets WORKERS_CI=1. Refuse to deploy with the placeholder URL.
@@ -9,6 +10,10 @@ if (process.env['WORKERS_CI'] === '1' && new URL(SITE_URL).hostname === 'example
     'SITE_URL in site.config.ts is still the placeholder. Set the production URL before deploying.',
   );
 }
+
+// Drafts never appear in the sitemap (spec §6), and the sitemap is production-only (spec §8).
+const isProductionBuild =
+  resolveSiteMode({ dev: false, branch: process.env['WORKERS_CI_BRANCH'] }) === 'production';
 
 export default defineConfig({
   site: SITE_URL,
@@ -21,7 +26,12 @@ export default defineConfig({
   trailingSlash: 'never',
   build: { format: 'file' },
   markdown: { syntaxHighlight: false },
-  integrations: [mdx(), sitemap({ filter: (page) => new URL(page).pathname !== '/404' })],
+  integrations: [
+    mdx(),
+    ...(isProductionBuild
+      ? [sitemap({ filter: (page) => new URL(page).pathname !== '/404' })]
+      : []),
+  ],
   security: {
     csp: {
       directives: [
