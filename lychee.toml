@@ -1,6 +1,7 @@
 # Link checking (spec §9). CI adds --offline to check internal links only; the weekly job checks
 # external links too.
-include_fragments = true
+# lychee 0.24 takes a fragment mode (none | anchor-only | text-only | full); the site only uses #anchors.
+include_fragments = "anchor-only"
 fallback_extensions = ["html"]
 index_files = ["index.html"]
 exclude = [
