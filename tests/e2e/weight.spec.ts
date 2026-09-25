@@ -21,7 +21,18 @@ for (const path of [...builtPagePaths(), '/does-not-exist']) {
           }),
       );
     });
-    await page.goto(path, { waitUntil: 'networkidle' });
+    await page.goto(path);
+    // Scroll to the bottom in viewport-height steps so lazy images below the fold load.
+    await page.evaluate(async () => {
+      const step = window.innerHeight;
+      let scrolled = 0;
+      while (scrolled < document.documentElement.scrollHeight) {
+        window.scrollBy(0, step);
+        scrolled += step;
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    });
+    await page.waitForLoadState('networkidle');
     await Promise.all(pending);
     const inline = await page.evaluate(() => {
       const byteLength = (text: string) => new TextEncoder().encode(text).length;
