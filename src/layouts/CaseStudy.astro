@@ -1,0 +1,135 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import Base from './Base.astro';
+
+interface Props {
+  study: CollectionEntry<'caseStudies'>;
+  ogImageUrl: string;
+  structuredData: string;
+}
+
+const { study, ogImageUrl, structuredData } = Astro.props;
+const { title, summary, role, timeframe, client, tags, links, cover, coverAlt } = study.data;
+---
+
+<Base
+  title={title}
+  description={summary}
+  image={{ url: ogImageUrl, alt: coverAlt }}
+  type="article"
+  structuredData={structuredData}
+>
+  <article class="container case-study">
+    <header class="header">
+      <p>
+        <a href="/#work">All work</a>
+      </p>
+      <h1>{title}</h1>
+      <p class="summary">{summary}</p>
+      <dl class="facts">
+        <div>
+          <dt>Role</dt>
+          <dd>{role}</dd>
+        </div>
+        <div>
+          <dt>Timeframe</dt>
+          <dd>{timeframe}</dd>
+        </div>
+        {client && (
+          <div>
+            <dt>Client</dt>
+            <dd>{client}</dd>
+          </div>
+        )}
+      </dl>
+      {tags.length > 0 && (
+        <ul class="tags" aria-label="Tags">
+          {tags.map((tag) => (
+            <li>{tag}</li>
+          ))}
+        </ul>
+      )}
+    </header>
+    <Image
+      class="cover"
+      src={cover}
+      alt={coverAlt}
+      widths={[640, 1280, 1600]}
+      sizes="(min-width: 72rem) 72rem, 100vw"
+      loading="eager"
+      fetchpriority="high"
+    />
+    <div class="body">
+      <slot />
+    </div>
+    {links.length > 0 && (
+      <section aria-labelledby="links-heading">
+        <h2 id="links-heading">Links</h2>
+        <ul>
+          {links.map((link) => (
+            <li>
+              <a href={link.url}>{link.label}</a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </article>
+</Base>
+
+<style>
+  .case-study {
+    display: grid;
+    gap: var(--space-8);
+    padding-block: var(--space-12);
+  }
+
+  .header {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+  }
+
+  .summary {
+    color: var(--color-text-muted);
+    font-size: var(--text-lg);
+  }
+
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6);
+  }
+
+  dt {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  dd {
+    margin: 0;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    list-style: none;
+  }
+
+  .cover {
+    border-radius: var(--radius-md);
+  }
+
+  .body {
+    display: grid;
+    gap: var(--space-4);
+  }
+</style>

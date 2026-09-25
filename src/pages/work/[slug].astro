@@ -1,0 +1,37 @@
+---
+import type { GetStaticPaths, InferGetStaticPropsType } from 'astro';
+import { getImage } from 'astro:assets';
+import { render } from 'astro:content';
+import { mdxComponents } from '../../components/mdx/index.ts';
+import CaseStudy from '../../layouts/CaseStudy.astro';
+import { getCaseStudies, getProfile } from '../../lib/content.ts';
+import { canonicalUrl } from '../../lib/seo.ts';
+import { creativeWorkJsonLd } from '../../lib/structured-data.ts';
+
+export const getStaticPaths = (async () => {
+  const studies = await getCaseStudies();
+  return studies.map((study) => ({ params: { slug: study.id }, props: { study } }));
+}) satisfies GetStaticPaths;
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { study } = Astro.props;
+const { Content } = await render(study);
+const profile = await getProfile();
+if (!Astro.site) throw new Error('`site` must be set in astro.config.ts');
+// Social platforms need a raster image: render the cover as a 1200px JPEG for og:image.
+const ogImage = await getImage({ src: study.data.cover, width: 1200, format: 'jpg' });
+const structuredData = creativeWorkJsonLd({
+  title: study.data.title,
+  description: study.data.summary,
+  url: canonicalUrl(Astro.site.href, Astro.url.pathname),
+  image: new URL(ogImage.src, Astro.site).href,
+  authorName: profile.name,
+  authorUrl: Astro.site.href,
+  keywords: study.data.tags,
+});
+---
+
+<CaseStudy study={study} ogImageUrl={ogImage.src} structuredData={structuredData}>
+  <Content components={mdxComponents} />
+</CaseStudy>

@@ -1,0 +1,48 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import CaseStudyCard from '../CaseStudyCard.astro';
+
+interface Props {
+  studies: CollectionEntry<'caseStudies'>[];
+}
+
+const { studies } = Astro.props;
+---
+
+<section id="work" class="container work" aria-labelledby="work-heading">
+  <h2 id="work-heading">Selected work</h2>
+  <ul class="grid">
+    {studies.map((study) => (
+      <li>
+        <CaseStudyCard
+          href={`/work/${study.id}`}
+          title={study.data.title}
+          summary={study.data.summary}
+          cover={study.data.cover}
+          coverAlt={study.data.coverAlt}
+          tags={study.data.tags}
+        />
+      </li>
+    ))}
+  </ul>
+</section>
+
+<style>
+  .work {
+    display: grid;
+    gap: var(--space-6);
+    padding-block: var(--space-12);
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+    gap: var(--space-8);
+    padding: 0;
+    list-style: none;
+  }
+</style>
