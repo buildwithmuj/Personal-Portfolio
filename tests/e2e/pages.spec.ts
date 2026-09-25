@@ -55,5 +55,27 @@ for (const path of builtPagePaths()) {
       );
       expect(overflow).toBeLessThanOrEqual(0);
     });
+
+    test('ships a strict Content Security Policy', async ({ page }) => {
+      await page.goto(path);
+      const meta = page.locator('meta[http-equiv="content-security-policy"]');
+      await expect(meta).toHaveCount(1);
+      const content = (await meta.getAttribute('content')) ?? '';
+      for (const directive of [
+        "default-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'none'",
+      ]) {
+        expect(content).toContain(directive);
+      }
+      expect(content).toMatch(/script-src[^;]*/);
+      expect(content).toMatch(/style-src[^;]*/);
+      expect(content).toContain("style-src 'self' 'sha256-");
+      // Every built page's script-src also carries a hash (checked against dist/*.html).
+      expect(content).toContain("script-src 'self' 'sha256-");
+      expect(content).not.toContain('unsafe-inline');
+      expect(content).not.toContain('unsafe-eval');
+    });
   });
 }
