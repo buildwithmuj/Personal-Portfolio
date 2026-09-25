@@ -1,3 +1,4 @@
+import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig, envField } from 'astro/config';
 import { SITE_URL } from './site.config.ts';
@@ -20,7 +21,7 @@ export default defineConfig({
   trailingSlash: 'never',
   build: { format: 'file' },
   markdown: { syntaxHighlight: false },
-  integrations: [sitemap({ filter: (page) => new URL(page).pathname !== '/404' })],
+  integrations: [mdx(), sitemap({ filter: (page) => new URL(page).pathname !== '/404' })],
   security: {
     csp: {
       directives: [

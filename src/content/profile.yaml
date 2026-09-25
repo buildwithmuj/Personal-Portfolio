@@ -1,0 +1,19 @@
+# Placeholder profile. Replace every value with real content (spec §6).
+main:
+  name: Alex Placeholder
+  headline: Product designer and front-end developer
+  intro: >-
+    Placeholder introduction. This paragraph will be replaced with the owner's own words when the real
+    content arrives.
+  email: alex@example.com
+  bookingUrl: https://cal.com/
+  socials:
+    - platform: github
+      url: https://github.com/
+    - platform: linkedin
+      url: https://www.linkedin.com/
+  cvUpdated: 2026-09-24
+  seo:
+    description: Placeholder portfolio of Alex Placeholder, a product designer and front-end developer.
+    image: /og-default.png
+    imageAlt: Placeholder social sharing image
