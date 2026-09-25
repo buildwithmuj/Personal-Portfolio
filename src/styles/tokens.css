@@ -12,7 +12,11 @@
   --color-text: #0a0a0a;
   --color-text-muted: #4a4f54;
   --color-text-subtle: #8a9097;
-  --color-accent: #0a0a0a;
+  --color-accent: #4f46e5;
+  --color-accent-hover: #4338ca;
+  --color-on-accent: #fff;
+  --color-accent-soft: #eef0ff;
+  --color-accent-glow: rgb(79 70 229 / 14%);
   --color-inverse: #0a0a0a;
   --color-on-inverse: #fff;
   --color-on-inverse-muted: rgb(255 255 255 / 80%);
@@ -21,8 +25,8 @@
   --color-nav: rgb(242 243 245 / 80%);
   --color-status-bg: #e2f9dd;
   --color-status-text: #137300;
-  --color-focus: #0a0a0a;
-  --color-grid-line: rgb(10 10 10 / 6%);
+  --color-focus: #4f46e5;
+  --color-grid-line: rgb(79 70 229 / 9%);
 
   /* Type */
   --font-sans: var(--font-mona);
@@ -87,7 +91,7 @@
 
   /* Elevation */
   --shadow-primary:
-    inset 0 1px 3px 0 rgb(255 255 255 / 30%), 0 0 0 1px #111827, 0 1.5px 3px 0 rgb(31 31 31 / 8%),
+    inset 0 1px 3px 0 rgb(255 255 255 / 30%), 0 0 0 1px #3730a3, 0 1.5px 3px 0 rgb(55 48 163 / 14%),
     0 4px 4px 0 rgb(31 31 31 / 7%), 0 12px 6px 0 rgb(31 31 31 / 4%), 0 16px 8px 0 rgb(31 31 31 / 1%);
   --shadow-secondary:
     inset 0 2px 2px 0 #fff, 0 12px 12px -6px rgb(41 41 41 / 4%), 0 6px 6px -3px rgb(41 41 41 / 4%),
@@ -122,7 +126,11 @@
     --color-text: #f5f5f5;
     --color-text-muted: #a3a3a3;
     --color-text-subtle: #707070;
-    --color-accent: #f5f5f5;
+    --color-accent: #a5b4fc;
+    --color-accent-hover: #c7d2fe;
+    --color-on-accent: #0a0a0a;
+    --color-accent-soft: #1e1b4b;
+    --color-accent-glow: rgb(129 140 248 / 16%);
     --color-inverse: #f5f5f5;
     --color-on-inverse: #0a0a0a;
     --color-on-inverse-muted: rgb(10 10 10 / 80%);
@@ -131,9 +139,9 @@
     --color-nav: rgb(22 22 22 / 80%);
     --color-status-bg: #123d0b;
     --color-status-text: #8be07a;
-    --color-focus: #f5f5f5;
-    --color-grid-line: rgb(245 245 245 / 6%);
-    --shadow-primary: 0 0 0 1px #f5f5f5;
+    --color-focus: #a5b4fc;
+    --color-grid-line: rgb(165 180 252 / 8%);
+    --shadow-primary: 0 0 0 1px #a5b4fc;
     --shadow-secondary: 0 0 0 1px #2e2e2e;
   }
 }

@@ -203,9 +203,13 @@ a {
 }
 
 .btn-primary {
-  background: var(--color-inverse);
+  background: var(--color-accent);
   box-shadow: var(--shadow-primary);
-  color: var(--color-on-inverse);
+  color: var(--color-on-accent);
+}
+
+.btn-primary:hover {
+  background: var(--color-accent-hover);
 }
 
 .btn-secondary {

@@ -68,6 +68,7 @@ const { href, title, label, cover, coverAlt } = Astro.props;
   h3 a {
     color: var(--color-text);
     text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-standard);
   }
 
   /* The whole card is clickable; the link's name stays the title. */
@@ -84,5 +85,9 @@ const { href, title, label, cover, coverAlt } = Astro.props;
   .case-card:has(a:focus-visible) {
     outline: 3px solid var(--color-focus);
     outline-offset: 4px;
+  }
+
+  .case-card:hover h3 a {
+    color: var(--color-accent);
   }
 </style>
