@@ -1,0 +1,79 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Shell from '../Shell.astro';
+
+interface Props {
+  steps: CollectionEntry<'method'>['data'][];
+  heading: string;
+  intro: string;
+}
+
+const { steps, heading, intro } = Astro.props;
+---
+
+<Shell id="method" heading={heading} intro={intro}>
+  <ol class="steps" role="list">
+    {steps.map((step, index) => (
+      <li class="card step">
+        <span class="number" aria-hidden="true">
+          {String(index + 1).padStart(2, '0')}
+        </span>
+        <div>
+          <h3>{step.title}</h3>
+          <p>{step.description}</p>
+        </div>
+      </li>
+    ))}
+  </ol>
+</Shell>
+
+<style>
+  /* Measured from the reference's "Services I provide" cards. */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--inset);
+    padding: 0;
+    list-style: none;
+  }
+
+  .steps > li:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    justify-content: space-between;
+    min-height: 240px;
+  }
+
+  .number {
+    color: var(--color-text-subtle);
+    font-size: var(--text-2xl);
+    letter-spacing: -0.01em;
+    line-height: var(--leading-tight);
+  }
+
+  h3 {
+    margin-block-end: var(--space-4);
+    font-size: var(--text-xl);
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-snug);
+  }
+
+  p {
+    color: var(--color-text-muted);
+  }
+
+  @media (width < 40rem) {
+    .steps {
+      grid-template-columns: 1fr;
+    }
+
+    .step {
+      min-height: 200px;
+    }
+  }
+</style>

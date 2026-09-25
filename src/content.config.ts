@@ -97,4 +97,14 @@ const caseStudies = defineCollection({
       }),
 });
 
-export const collections = { profile, caseStudies };
+const method = defineCollection({
+  loader: file('src/content/method.yaml'),
+  schema: z.object({
+    order: z.number().int(),
+    title: z.string().min(1),
+    description: z.string().min(1),
+    tags: z.array(z.string().min(1)).min(1),
+  }),
+});
+
+export const collections = { profile, caseStudies, method };
