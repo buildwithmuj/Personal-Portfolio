@@ -183,6 +183,7 @@ The hero is a white inner card in the hero shell. It contains, in order:
     public sector, healthcare, education, financial services and telecoms
   - CSS animation with the list duplicated for a seamless loop (the duplicate is `aria-hidden`)
   - it pauses on hover and focus, and wraps statically under reduced motion
+  - a small "Pause scrolling" checkbox gives keyboard and touch users a lasting pause (WCAG 2.2.2)
   - text only, no logos
 
 ### 5.3 About (`#about`) and stats
@@ -274,12 +275,15 @@ This reuses the reference's pricing layout: two cards side by side, one white an
 - **Heading:** `h2` "Let's work together", and a short paragraph (`profile.sections.contact.intro`).
 - **Booking, loaded only on request:** a native `<details>` element.
   - Its summary is styled as the primary button "Book a 30-minute call".
-  - Its content is an `<iframe>` of `profile.bookingUrl` with `?embed=true` appended. It has the
-    attributes `title="Book a call with Mujtaba Shah on Cal.com"`, `loading="lazy"`,
+  - When it opens, a small script (≈300 bytes, on the `toggle` event) creates an `<iframe>` of
+    `profile.bookingUrl` with `?embed=true` appended. The frame has the attributes
+    `title="Book a call with Mujtaba Shah on Cal.com"`,
     `referrerpolicy="strict-origin-when-cross-origin"` and
     `sandbox="allow-scripts allow-same-origin allow-forms allow-popups"`.
-  - A closed `<details>` doesn't render its content, so **no request goes to Cal.com until the visitor
-    opens it.** No JavaScript is involved.
+  - The frame is never in the HTML before that, so **no request goes to Cal.com until the visitor
+    opens the panel.** Browsers load hidden frames eagerly, which is why the frame can't simply sit inside
+    the closed `<details>`.
+  - Without JavaScript, opening the panel shows only the fallback link.
   - Under the frame, a fallback link: "Trouble loading? Open the booking page in a new tab".
 - **Email:** the address as a `mailto:` link, with the existing copy button.
 - **Also:** "Download CV", and the social links as labelled text links.
@@ -310,6 +314,9 @@ The existing SEO, JSON-LD and og:image behaviour stays.
 ## 7. Content model changes
 
 **`profile` (`profile.yaml`) gains:**
+- `titleTagline`: the text after the name in the home page title ("Intelligent Automation & AI Product
+  Builder", §9)
+- `jobTitle` and `worksFor`: for JSON-LD `Person` (§9)
 - `roles`: 2 strings
 - `availability`: optional string
 - `headline`, `subline`
@@ -323,6 +330,8 @@ The existing SEO, JSON-LD and og:image behaviour stays.
 - `timeZone`: an IANA name, default `Europe/London`
 - `locationLabel`
 - `bookingUrl` must now be an `https://cal.com/…` event URL
+
+`profile.intro` is removed; `about` and `subline` replace it.
 
 `socialPlatforms` gains `tiktok`.
 
@@ -354,13 +363,14 @@ for the owner's review.
 |---|---|---|---|
 | Rotating role | Hero | CSS keyframes | first role, static |
 | Proof strip scroll | Hero | CSS keyframes on a duplicated list | static, wrapped |
-| Section fade and rise on entering view | All shells | CSS `animation-timeline: view()` (no support means no animation) | none |
+| Section rise on entering view (movement only, no fade: half-transparent text fails the axe and Lighthouse contrast checks) | All shells except the hero | CSS `animation-timeline: view()` (no support means no animation) | none |
 | Word-by-word fill | About statement | CSS scroll-driven animation on per-word spans | full colour |
 | Count-up | Stats | Small script (IntersectionObserver) | final value, no animation |
 | Live clock | Top bar | Small script (1s interval, `Intl.DateTimeFormat` with `profile.timeZone`) | ticks (it's information, not motion) |
 | Button and card hover | Everywhere | CSS transitions ≤ 200ms | none |
 
-Client JavaScript totals: copy-email, clock and count-up. The whole page stays within the 5 KB floor.
+Client JavaScript totals: copy-email, clock, count-up and the booking-panel loader. The whole page stays
+within the 5 KB floor.
 
 ## 9. SEO
 
