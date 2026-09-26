@@ -61,3 +61,12 @@ test('no source code leaks into the rendered page', async ({ page }) => {
     await expect(page.locator('body')).not.toContainText(/\bimport\s+\S+\s+from\s+['"]/);
   }
 });
+
+// Open-Meteo's CC BY 4.0 licence asks for a credit wherever its weather data appears.
+test('the footer credits Open-Meteo for the weather data', async ({ page }) => {
+  for (const path of ['/', '/cv']) {
+    await page.goto(path);
+    const credit = page.locator('.site-footer').getByRole('link', { name: /Open-Meteo/ });
+    await expect(credit).toHaveAttribute('href', 'https://open-meteo.com/');
+  }
+});
