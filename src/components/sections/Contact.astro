@@ -24,7 +24,7 @@ const cvDate = new Intl.DateTimeFormat('en-GB', {
   intro={profile.sections.contact.intro}
 >
   <div class="fields">
-    <p class="field">
+    <p class="field" data-reveal="rise">
       <svg
         viewBox="0 0 24 24"
         width="18"
@@ -45,7 +45,7 @@ const cvDate = new Intl.DateTimeFormat('en-GB', {
       </a>
       <CopyEmail email={profile.email} />
     </p>
-    <p class="field">
+    <p class="field" data-reveal="rise">
       <svg
         viewBox="0 0 24 24"
         width="18"
@@ -65,7 +65,7 @@ const cvDate = new Intl.DateTimeFormat('en-GB', {
       </a>
       <span class="muted end">PDF, {cvDate}</span>
     </p>
-    <div class="field wide">
+    <div class="field wide" data-reveal="rise">
       <span class="muted">Elsewhere</span>
       <ul class="socials" role="list">
         {profile.socials.map((social) => (
@@ -75,7 +75,7 @@ const cvDate = new Intl.DateTimeFormat('en-GB', {
         ))}
       </ul>
     </div>
-    <div class="wide booking">
+    <div class="wide booking" data-reveal="rise">
       <BookingPanel url={profile.bookingUrl} name={profile.name} />
     </div>
   </div>

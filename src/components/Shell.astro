@@ -9,7 +9,6 @@ interface Props {
   join?: 'top' | 'bottom';
   inset?: boolean;
   hero?: boolean;
-  reveal?: boolean;
 }
 
 const {
@@ -21,25 +20,30 @@ const {
   join,
   inset = false,
   hero = false,
-  reveal = true,
 } = Astro.props;
 const headingId = `${id}-heading`;
 const Heading = headingLevel === 1 ? 'h1' : 'h2';
+const words = heading?.split(/\s+/) ?? [];
 ---
 
 <section
   id={id}
-  class:list={[
-    'shell',
-    { 'shell-inset': inset, 'shell-hero': hero, reveal },
-    join && `shell-join-${join}`,
-  ]}
+  class:list={['shell', { 'shell-inset': inset, 'shell-hero': hero }, join && `shell-join-${join}`]}
   aria-labelledby={heading ? headingId : labelledBy}
 >
   {heading && (
-    <header class="section-head">
+    <header class="section-head" data-reveal="heading">
       <div class="section-title">
-        <Heading id={headingId}>{heading}</Heading>
+        <Heading id={headingId}>
+          {words.map((word, index) => (
+            <>
+              {index > 0 && ' '}
+              <span class="w">
+                <span>{word}</span>
+              </span>
+            </>
+          ))}
+        </Heading>
         {intro && <p>{intro}</p>}
       </div>
       <slot name="actions" />

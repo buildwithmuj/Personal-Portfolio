@@ -12,7 +12,7 @@ interface Props {
 const { profile } = Astro.props;
 ---
 
-<Shell id="about" labelledBy="about-heading" inset join="top" reveal={false}>
+<Shell id="about" labelledBy="about-heading" inset join="top">
   <div class="card about">
     <h2 id="about-heading" class="label">
       About me
@@ -168,7 +168,12 @@ const { profile } = Astro.props;
 
   @media (width < 40rem) {
     .about {
-      padding: var(--card-pad);
+      padding: 40px 24px 36px;
+    }
+
+    /* On phones the items wrap onto their own lines, so the separators go. */
+    .contact-row > :global(li + li)::before {
+      display: none;
     }
 
     .contact-row {

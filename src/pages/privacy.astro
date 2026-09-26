@@ -9,7 +9,7 @@ const { Content } = await render(page);
 ---
 
 <Base title={page.data.title} description={page.data.description}>
-  <Shell id="privacy" labelledBy="privacy-heading" reveal={false}>
+  <Shell id="privacy" labelledBy="privacy-heading">
     <article class="card prose">
       <h1 id="privacy-heading">{page.data.title}</h1>
       <Content />

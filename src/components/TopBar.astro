@@ -23,8 +23,10 @@ const nav = [
     <LiveClock timeZone={profile.timeZone} />
     <span class="city">{profile.locationLabel}</span>
   </p>
-  <nav aria-label="Main">
-    <ul role="list">
+
+  <!-- Desktop: the links and social icons sit in the bar. -->
+  <nav class="wide-only" aria-label="Main">
+    <ul class="links" role="list">
       {nav.map((item) => (
         <li>
           <a href={item.href}>{item.label}</a>
@@ -32,7 +34,7 @@ const nav = [
       ))}
     </ul>
   </nav>
-  <ul class="socials" role="list">
+  <ul class="socials wide-only" role="list">
     {profile.socials.map((social) => (
       <li>
         <a
@@ -45,7 +47,75 @@ const nav = [
       </li>
     ))}
   </ul>
+
+  <!-- Phones: a menu button opens the same links in a panel, as in the reference. -->
+  <details class="menu">
+    <summary aria-label="Menu">
+      <svg
+        class="open-icon"
+        viewBox="0 0 24 24"
+        width="24"
+        height="24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path d="M4 7h16M4 12h16M4 17h16"></path>
+      </svg>
+      <svg
+        class="close-icon"
+        viewBox="0 0 24 24"
+        width="24"
+        height="24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path d="m6 6 12 12M18 6 6 18"></path>
+      </svg>
+    </summary>
+    <div class="panel">
+      <nav aria-label="Main">
+        <ul class="panel-links" role="list">
+          {nav.map((item) => (
+            <li>
+              <a href={item.href}>{item.label}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <ul class="socials" role="list">
+        {profile.socials.map((social) => (
+          <li>
+            <a
+              class="icon-button"
+              href={social.url}
+              aria-label={`${profile.name} on ${socialLabels[social.platform]}`}
+            >
+              <SocialIcon platform={social.platform} />
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </details>
 </header>
+
+<script>
+  // Close the phone menu when one of its links is followed, so the section isn't hidden behind it.
+  for (const link of document.querySelectorAll<HTMLAnchorElement>('.top-bar .panel a')) {
+    link.addEventListener('click', () => {
+      const menu = link.closest('details');
+      if (menu) menu.open = false;
+    });
+  }
+</script>
 
 <style>
   .top-bar {
@@ -81,7 +151,7 @@ const nav = [
     letter-spacing: normal;
   }
 
-  nav ul,
+  .links,
   .socials {
     display: flex;
     gap: var(--space-6);
@@ -89,7 +159,7 @@ const nav = [
     list-style: none;
   }
 
-  nav ul {
+  .links {
     justify-content: center;
   }
 
@@ -97,6 +167,7 @@ const nav = [
     color: var(--color-text);
     font-weight: var(--weight-medium);
     text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-standard);
   }
 
   nav a:hover {
@@ -118,28 +189,81 @@ const nav = [
     color: var(--color-text);
   }
 
-  /* Below 640px the navigation wraps to its own row inside the bar (content spec §5.1). */
+  .menu {
+    display: none;
+  }
+
+  summary {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-button);
+    color: var(--color-text);
+    list-style: none;
+    cursor: pointer;
+  }
+
+  /* Safari still draws the disclosure marker without this. */
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .close-icon,
+  .menu[open] .open-icon {
+    display: none;
+  }
+
+  .menu[open] .close-icon {
+    display: block;
+  }
+
   @media (width < 40rem) {
     .top-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-3);
-      align-items: center;
-      justify-content: space-between;
-      height: auto;
-      margin-block-end: var(--shell-gap);
-      padding: var(--space-3);
+      grid-template-columns: 1fr auto;
+      padding-inline-end: var(--space-3);
     }
 
-    nav {
-      flex-basis: 100%;
-      order: 1;
+    .top-bar:has(.menu[open]) {
+      border-end-start-radius: 0;
+      border-end-end-radius: 0;
+      background: var(--color-shell);
     }
 
-    nav ul {
-      flex-wrap: wrap;
-      justify-content: flex-start;
-      gap: var(--space-1) var(--space-4);
+    .wide-only {
+      display: none;
+    }
+
+    .menu {
+      display: block;
+    }
+
+    /* The panel continues the frosted bar downwards. */
+    .panel {
+      position: absolute;
+      inset-inline: 0;
+      inset-block-start: 100%;
+      display: grid;
+      gap: 40px;
+      justify-items: center;
+      padding: var(--space-6) var(--space-4) var(--space-8);
+      border-end-start-radius: var(--radius-card);
+      border-end-end-radius: var(--radius-card);
+      background: var(--color-shell);
+      box-shadow: 0 24px 40px -24px var(--color-grid-line);
+    }
+
+    .panel-links {
+      display: grid;
+      gap: var(--space-4);
+      justify-items: center;
+      padding: 0;
+      list-style: none;
+    }
+
+    .panel-links a {
+      font-size: var(--text-lg);
+      font-weight: var(--weight-regular);
     }
   }
 </style>

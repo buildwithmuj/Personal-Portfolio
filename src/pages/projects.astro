@@ -10,13 +10,7 @@ const profile = await getProfile();
 ---
 
 <Base title="All work" description={`Every case study and personal project by ${profile.name}.`}>
-  <Shell
-    id="all-work"
-    heading="All work"
-    headingLevel={1}
-    intro={profile.sections.work.intro}
-    reveal={false}
-  >
+  <Shell id="all-work" heading="All work" headingLevel={1} intro={profile.sections.work.intro}>
     <Switch
       slot="actions"
       name="work-filter"

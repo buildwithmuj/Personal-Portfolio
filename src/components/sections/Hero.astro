@@ -18,7 +18,7 @@ const monogram = profile.name
   .slice(0, 2);
 ---
 
-<Shell id="top" labelledBy="hero-name" hero reveal={false}>
+<Shell id="top" labelledBy="hero-name" hero>
   <div class="card hero">
     {profile.availability && (
       <p class="badge">
@@ -48,7 +48,16 @@ const monogram = profile.name
         </p>
       </div>
     </div>
-    <p class="headline">{profile.headline}</p>
+    <p class="headline">
+      {profile.headline.split(/\s+/).map((word, index) => (
+        <>
+          {index > 0 && ' '}
+          <span class="w">
+            <span>{word}</span>
+          </span>
+        </>
+      ))}
+    </p>
     <p class="subline">{profile.subline}</p>
     <p class="actions">
       <a class="btn btn-primary" href="#work">
@@ -184,6 +193,48 @@ const monogram = profile.name
     display: block;
   }
 
+  /* On load, the card's pieces rise in turn and the headline's words slide up (transform only). */
+  @keyframes hero-in {
+    from {
+      transform: translateY(24px);
+    }
+  }
+
+  @keyframes word-up {
+    from {
+      transform: translateY(110%);
+    }
+  }
+
+  .hero > * {
+    animation: hero-in 900ms var(--ease-out) both;
+  }
+
+  .hero > :nth-child(2) {
+    animation-delay: 80ms;
+  }
+
+  .hero > :nth-child(3) {
+    animation-delay: 160ms;
+  }
+
+  .hero > :nth-child(4) {
+    animation-delay: 240ms;
+  }
+
+  .hero > :nth-child(5) {
+    animation-delay: 320ms;
+  }
+
+  .hero > :nth-child(6) {
+    animation-delay: 400ms;
+  }
+
+  .headline .w > span {
+    animation: word-up 900ms var(--ease-out) both;
+    animation-delay: calc(200ms + var(--i, 0) * 45ms);
+  }
+
   .headline {
     max-width: 34rem;
     font-size: var(--text-hero);
@@ -204,13 +255,17 @@ const monogram = profile.name
   }
 
   @media (width < 40rem) {
-    .badge {
-      position: static;
-      justify-self: start;
+    .identity {
+      margin-block-start: var(--space-8);
     }
 
-    .identity {
-      margin-block-start: 0;
+    .actions {
+      flex-direction: column;
+    }
+
+    .actions .btn {
+      width: 100%;
+      min-height: 44px;
     }
   }
 </style>

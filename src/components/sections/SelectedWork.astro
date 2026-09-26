@@ -14,7 +14,7 @@ interface Props {
 const { studies, heading, intro } = Astro.props;
 ---
 
-<Shell id="work" heading={heading} intro={intro} join="bottom" reveal={false}>
+<Shell id="work" heading={heading} intro={intro} join="bottom">
   <Switch
     slot="actions"
     name="work-filter"

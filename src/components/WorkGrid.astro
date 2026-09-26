@@ -22,7 +22,7 @@ const groups = (['client', 'product'] as const).map((kind) => {
 {groups.map((group) => (
   <ul class="grid" role="list" data-kind={group.kind}>
     {group.studies.map((study) => (
-      <li>
+      <li data-reveal="rise">
         <CaseStudyCard
           href={withBase(`/work/${study.id}`)}
           title={study.data.title}

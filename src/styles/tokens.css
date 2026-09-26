@@ -3,7 +3,7 @@
  * Components use only these variables.
  */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
   /* Colour */
   --color-page: #fff;
@@ -104,48 +104,15 @@
   --duration-fast: 150ms;
   --duration-base: 200ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --marquee-duration: 30s;
 }
 
 @media (width < 40rem) {
   :root {
-    --gutter: 16px;
     --shell-pad: 20px;
     --card-pad: 24px;
     --card-pad-sm: 24px;
     --hero-card-pad: 24px;
-
-    /* The top bar wraps to its content height below 640px; this only sets the scroll offset. */
-    --bar-height: 8rem;
-    --text-hero: 1.5rem;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-page: #0a0a0a;
-    --color-shell: #161616;
-    --color-surface: #1f1f1f;
-    --color-text: #f5f5f5;
-    --color-text-muted: #a3a3a3;
-    --color-accent: #a5b4fc;
-    --color-accent-hover: #c7d2fe;
-    --color-on-accent: #0a0a0a;
-    --color-accent-glow: rgb(129 140 248 / 16%);
-    --color-blob-1: rgb(99 102 241 / 45%);
-    --color-blob-2: rgb(139 92 246 / 40%);
-    --color-blob-3: rgb(56 189 248 / 25%);
-    --color-inverse: #f5f5f5;
-    --color-on-inverse: #0a0a0a;
-    --color-on-inverse-muted: rgb(10 10 10 / 80%);
-    --color-border: #2e2e2e;
-    --color-separator: #5c5c5c;
-    --color-nav: rgb(22 22 22 / 80%);
-    --color-status-bg: #123d0b;
-    --color-status-text: #8be07a;
-    --color-focus: #a5b4fc;
-    --color-grid-line: rgb(165 180 252 / 8%);
-    --shadow-primary: 0 0 0 1px #a5b4fc;
-    --shadow-secondary: 0 0 0 1px #2e2e2e;
   }
 }

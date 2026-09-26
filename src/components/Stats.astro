@@ -8,7 +8,7 @@ const { stats } = Astro.props;
 
 <dl class="stats">
   {stats.map((stat) => (
-    <div>
+    <div data-reveal="rise">
       <dt>{stat.label}</dt>
       <dd data-count>{stat.value}</dd>
     </div>

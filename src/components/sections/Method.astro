@@ -29,7 +29,7 @@ const tracks = (['process', 'product'] as const).map((track) => ({
   {tracks.map((group) => (
     <ol class="steps" role="list" data-track={group.track}>
       {group.steps.map((step, index) => (
-        <li class="card step">
+        <li class="card step" data-reveal="rise">
           <span class="number" aria-hidden="true">
             {String(index + 1).padStart(2, '0')}
           </span>
