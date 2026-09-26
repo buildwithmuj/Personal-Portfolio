@@ -84,7 +84,7 @@ const initials = (name: string) =>
 </Shell>
 
 <script>
-  // Moves to the next person every five seconds, in order, looping. It waits while the pointer or
+  // Moves to the next person every three seconds, in order, looping. It waits while the pointer or
   // keyboard focus is inside, and the button pauses it; picking someone pauses it too (WCAG 2.2.2).
   // Never under reduced motion.
   const spotlight = document.querySelector<HTMLElement>('.spotlight');
@@ -101,9 +101,10 @@ const initials = (name: string) =>
     spotlight.addEventListener('change', () => pause(true));
     window.setInterval(() => {
       if (button.hasAttribute('data-paused') || spotlight.matches(':hover, :focus-within')) return;
+      if (document.documentElement.classList.contains('motion-paused')) return;
       const next = radios[(radios.findIndex((radio) => radio.checked) + 1) % radios.length];
       if (next) next.checked = true;
-    }, 5000);
+    }, 3000);
   }
 </script>
 

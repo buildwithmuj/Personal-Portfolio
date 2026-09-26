@@ -19,6 +19,7 @@ const nav = [
   { href: withBase('/#page-top'), label: 'Home' },
   { href: withBase('/#about'), label: 'About' },
   { href: withBase('/#work'), label: 'Work' },
+  { href: withBase('/#skills'), label: 'Skills' },
   { href: withBase('/#contact'), label: 'Contact' },
 ];
 ---
@@ -70,10 +71,12 @@ const nav = [
         stroke="currentColor"
         stroke-width="1.6"
         stroke-linecap="round"
+        stroke-linejoin="round"
         aria-hidden="true"
         focusable="false"
       >
-        <path d="M4 7h16M4 12h16M4 17h16"></path>
+        <!-- A 2 × 2 app grid, like a watch's app screen. -->
+        <path d="M5 5h5v5H5zM14 5h5v5h-5zM5 14h5v5H5zM14 14h5v5h-5z"></path>
       </svg>
       <svg
         class="close-icon"
@@ -246,7 +249,15 @@ const nav = [
     display: block;
   }
 
-  @media (width < 40rem) {
+  /* The weather's description needs room; below this the temperature shows alone. */
+  @media (width < 60rem) {
+    .condition {
+      display: none;
+    }
+  }
+
+  /* Five links, the weather and four icons need the full column; narrower, the bar uses the menu. */
+  @media (width < 48rem) {
     .top-bar {
       grid-template-columns: 1fr auto;
       padding-inline-end: var(--space-3);
@@ -258,7 +269,6 @@ const nav = [
       background: var(--color-shell);
     }
 
-    .condition,
     .wide-only {
       display: none;
     }

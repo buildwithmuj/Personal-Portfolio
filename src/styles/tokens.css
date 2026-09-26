@@ -26,7 +26,6 @@
   --gradient-stat: linear-gradient(135deg, #4f46e5, #8b5cf6);
   --color-inverse: #0a0a0a;
   --color-on-inverse: #fff;
-  --color-on-inverse-muted: rgb(255 255 255 / 80%);
   --color-hairline: #e3e4ea;
   --color-nav: rgb(242 243 245 / 80%);
   --color-focus: #4f46e5;
@@ -40,6 +39,10 @@
   --color-glow: rgb(79 70 229 / 12%);
   --color-particle: rgb(79 70 229 / 35%);
   --color-rain: rgb(79 70 229 / 30%);
+  --color-sun: rgb(79 70 229 / 22%);
+  --color-cloud: rgb(79 70 229 / 11%);
+  --color-fog: rgb(99 102 241 / 16%);
+  --color-flash: rgb(79 70 229 / 10%);
 
   /* Type */
   --font-sans: var(--font-mona);
@@ -82,7 +85,6 @@
   --card-pad: 32px;
   --hero-card-pad: 44px;
   --gap-work: 24px;
-  --gap-pair: 10px;
   --avatar: 90px;
   --icon-button: 32px;
   --button-height: 40px;

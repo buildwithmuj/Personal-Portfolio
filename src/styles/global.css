@@ -65,6 +65,13 @@ a {
   margin-inline: auto;
 }
 
+/* The hero's "Pause animations" button stops every animation on the page (WCAG 2.2.2). */
+.motion-paused *,
+.motion-paused *::before,
+.motion-paused *::after {
+  animation-play-state: paused !important;
+}
+
 /* Elements marked hidden (for example, controls that need JavaScript) always stay hidden. */
 [hidden] {
   display: none !important;

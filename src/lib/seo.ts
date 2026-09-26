@@ -1,5 +1,7 @@
 export interface SeoInput {
   siteUrl: string;
+  /** The site's base path, e.g. `/Personal-Portfolio/` on GitHub Pages; `/` at a domain's root. */
+  base?: string;
   siteName: string;
   headline: string;
   path: string;
@@ -32,14 +34,17 @@ export interface SeoTags {
  * stripped first, then a trailing `/index` (leaving `/` for the root), before the existing
  * trailing-slash rule runs.
  */
-export function canonicalUrl(siteUrl: string, path: string): string {
+export function canonicalUrl(siteUrl: string, path: string, base = '/'): string {
+  const root = base.endsWith('/') ? base : `${base}/`;
   const url = new URL(path, siteUrl);
   url.search = '';
   url.hash = '';
   if (url.pathname.endsWith('.html')) url.pathname = url.pathname.slice(0, -'.html'.length);
   if (url.pathname.endsWith('/index'))
     url.pathname = url.pathname.slice(0, -'/index'.length) || '/';
-  if (url.pathname !== '/' && url.pathname.endsWith('/')) url.pathname = url.pathname.slice(0, -1);
+  // The home page under a base path keeps its slash: without it, GitHub Pages answers with a redirect.
+  if (`${url.pathname}/` === root) url.pathname = root;
+  if (url.pathname !== root && url.pathname.endsWith('/')) url.pathname = url.pathname.slice(0, -1);
   return url.href;
 }
 
@@ -47,7 +52,7 @@ export function buildSeo(input: SeoInput): SeoTags {
   const title = input.title
     ? `${input.title} — ${input.siteName}`
     : `${input.siteName} — ${input.headline}`;
-  const canonical = canonicalUrl(input.siteUrl, input.path);
+  const canonical = canonicalUrl(input.siteUrl, input.path, input.base);
   const image = new URL(input.image.url, input.siteUrl).href;
   const meta: MetaTag[] = [
     { name: 'description', content: input.description },

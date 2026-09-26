@@ -54,3 +54,28 @@ describe('Branch model (spec §8): work on dev, release on main', () => {
     assert.equal(targets, ecosystems);
   });
 });
+
+describe('Production on GitHub Pages (spec §15, 2026-09-26)', () => {
+  const pages = workflows.find((w) => w.name === 'pages.yml')?.text ?? '';
+
+  it('deploys main only, after ci passes, plus hourly and manual rebuilds', () => {
+    assert.ok(
+      pages.includes(
+        '  workflow_run:\n    workflows: [ci]\n    types: [completed]\n    branches: [main]\n',
+      ),
+    );
+    assert.ok(pages.includes("github.event.workflow_run.conclusion == 'success'"));
+    assert.ok(
+      pages.includes('github.event.workflow_run.head_repository.full_name == github.repository'),
+    );
+    assert.doesNotMatch(pages, /^ {2}push:/m);
+    assert.ok(pages.includes("ref: ${{ github.event.workflow_run.head_sha || 'main' }}"));
+  });
+
+  it('builds in production mode under the Pages base path', () => {
+    // Setting WORKERS_CI_BRANCH to anything but main would make the live site a noindex preview.
+    assert.doesNotMatch(pages, /^\s*WORKERS_CI_BRANCH:/m);
+    assert.ok(pages.includes('PAGES_SITE: https://buildwithmuj.github.io'));
+    assert.ok(pages.includes('PAGES_BASE: /Personal-Portfolio'));
+  });
+});

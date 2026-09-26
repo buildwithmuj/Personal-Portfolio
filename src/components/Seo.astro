@@ -5,7 +5,7 @@ type Props = Omit<SeoInput, 'siteUrl'> & { structuredData?: string };
 
 const { structuredData, ...input } = Astro.props;
 if (!Astro.site) throw new Error('`site` must be set in astro.config.ts');
-const tags = buildSeo({ ...input, siteUrl: Astro.site.href });
+const tags = buildSeo({ ...input, siteUrl: Astro.site.href, base: import.meta.env.BASE_URL });
 ---
 
 <title>{tags.title}</title>

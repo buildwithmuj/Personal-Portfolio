@@ -10,7 +10,7 @@ interface Props {
 }
 
 const { profile } = Astro.props;
-// The ambient layer follows London's weather: drifting specks of light, or rain when it rains there.
+// The ambient layer plays a scene for London's weather when the site last built.
 const weather =
   profile.coordinates &&
   (await currentWeather(profile.coordinates.latitude, profile.coordinates.longitude));
@@ -19,7 +19,7 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
 ---
 
 <Shell id="top" labelledBy="hero-name" hero>
-  <div class="card hero" data-weather={weather?.wet ? 'rain' : 'dry'}>
+  <div class="card hero" data-weather={weather?.scene ?? 'none'}>
     <div class="identity">
       {profile.avatar && (
         <img class="avatar" src={withBase(profile.avatar)} alt="" width="90" height="90" />
@@ -58,6 +58,24 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
       </a>
     </p>
     <ProofStrip label={profile.proof.label} items={profile.proof.items} />
+    <button class="motion-toggle" type="button" aria-pressed="false" hidden>
+      <svg
+        viewBox="0 0 24 24"
+        width="14"
+        height="14"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path class="when-moving" d="M9 6v12M15 6v12"></path>
+        <path class="when-still" d="M8 5.5v13l10-6.5z"></path>
+      </svg>
+      <span class="visually-hidden">Pause animations</span>
+    </button>
   </div>
 </Shell>
 
@@ -77,6 +95,7 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
         fill: 'forwards' as const,
       };
       window.setInterval(async () => {
+        if (document.documentElement.classList.contains('motion-paused')) return;
         await line.animate([{ transform: 'none' }, { transform: 'translateY(-110%)' }], timing)
           .finished;
         index = (index + 1) % roles.length;
@@ -87,6 +106,25 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
   }
 
   customElements.define('role-rotator', RoleRotator);
+
+  // Pause animations (WCAG 2.2.2): stops every animation on the page and the rotating lines, and is
+  // remembered on this device (Base.astro reapplies it on every page). Under reduced motion nothing
+  // moves, so the button stays hidden.
+  const motion = document.querySelector<HTMLButtonElement>('.motion-toggle');
+  if (motion && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const root = document.documentElement;
+    motion.setAttribute('aria-pressed', String(root.classList.contains('motion-paused')));
+    motion.hidden = false;
+    motion.addEventListener('click', () => {
+      const paused = root.classList.toggle('motion-paused');
+      motion.setAttribute('aria-pressed', String(paused));
+      try {
+        localStorage.setItem('motion', paused ? 'paused' : 'on');
+      } catch {
+        // Storage can be blocked; the pause still holds for this page.
+      }
+    });
+  }
 </script>
 
 <style>
@@ -108,9 +146,15 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
   }
 
   /*
-   * An ambient layer behind the card's content. Dry in London: a few specks of indigo light drift
-   * slowly upwards. Raining in London (as of the last build): soft rain falls instead. Each pattern
-   * repeats every tile, so moving the layer by one tile loops seamlessly. Still under reduced motion.
+   * An ambient layer behind the card's content that follows London's weather when the site last
+   * built (src/lib/weather.ts). Each pattern repeats every tile, so moving the layer by one tile
+   * loops seamlessly. Everything holds still under reduced motion.
+   *   clear:   specks of light drift up under a brighter, slowly breathing glow
+   *   cloud:   soft clouds drift across
+   *   fog:     a low haze slides slowly back and forth
+   *   drizzle: light, sparse rain; rain: rain; storm: rain with a faint flash now and then
+   *   snow:    flakes fall slowly
+   * Without weather (the fetch failed), the specks drift on their own.
    */
   .hero::after {
     position: absolute;
@@ -125,7 +169,30 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     pointer-events: none;
   }
 
-  .hero[data-weather='rain']::after {
+  .hero[data-weather='clear']::before {
+    background: radial-gradient(70% 80% at 85% 10%, var(--color-sun), transparent 70%);
+    transform-origin: 85% 10%;
+  }
+
+  .hero[data-weather='cloud']::after {
+    inset: 0 -640px 0 0;
+    background-image:
+      radial-gradient(160px 60px at 25% 30%, var(--color-cloud), transparent),
+      radial-gradient(220px 80px at 70% 55%, var(--color-cloud), transparent),
+      radial-gradient(140px 50px at 45% 85%, var(--color-cloud), transparent);
+    background-size: 640px 100%;
+  }
+
+  .hero[data-weather='fog']::after {
+    inset: 0 -15%;
+    background-image:
+      radial-gradient(50% 22% at 30% 75%, var(--color-fog), transparent),
+      radial-gradient(45% 18% at 70% 55%, var(--color-fog), transparent),
+      radial-gradient(60% 20% at 50% 95%, var(--color-fog), transparent);
+    background-size: auto;
+  }
+
+  .hero:is([data-weather='drizzle'], [data-weather='rain'], [data-weather='storm'])::after {
     inset: -120px -10% 0;
     background-image:
       radial-gradient(1px 14px at 30% 20%, var(--color-rain), transparent),
@@ -135,9 +202,35 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     rotate: 8deg;
   }
 
+  .hero[data-weather='drizzle']::after {
+    background-size: 160px 120px;
+  }
+
+  .hero[data-weather='snow']::after {
+    inset: -200px 0 0;
+    background-image:
+      radial-gradient(3px 3px at 20% 30%, var(--color-particle), transparent),
+      radial-gradient(2px 2px at 65% 55%, var(--color-particle), transparent),
+      radial-gradient(2.5px 2.5px at 40% 80%, var(--color-particle), transparent),
+      radial-gradient(2px 2px at 85% 15%, var(--color-particle), transparent);
+    background-size: 200px 200px;
+  }
+
   @keyframes hero-drift {
     to {
       translate: 0 -240px;
+    }
+  }
+
+  @keyframes hero-clouds {
+    to {
+      translate: -640px 0;
+    }
+  }
+
+  @keyframes hero-haze {
+    to {
+      translate: 12% 0;
     }
   }
 
@@ -147,14 +240,91 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     }
   }
 
+  @keyframes hero-snow {
+    to {
+      translate: 0 200px;
+    }
+  }
+
+  @keyframes hero-sun {
+    to {
+      scale: 1.1;
+    }
+  }
+
+  @keyframes hero-flash {
+    0%,
+    90%,
+    94%,
+    100% {
+      background-color: transparent;
+    }
+
+    91%,
+    93% {
+      background-color: var(--color-flash);
+    }
+  }
+
   @media (prefers-reduced-motion: no-preference) {
     .hero::after {
       animation: hero-drift 40s linear infinite;
     }
 
-    .hero[data-weather='rain']::after {
+    .hero[data-weather='clear']::before {
+      animation: hero-sun 6s ease-in-out infinite alternate;
+    }
+
+    .hero[data-weather='storm']::before {
+      animation: hero-flash 9s linear infinite;
+    }
+
+    .hero[data-weather='cloud']::after {
+      animation: hero-clouds 80s linear infinite;
+    }
+
+    .hero[data-weather='fog']::after {
+      animation: hero-haze 18s ease-in-out infinite alternate;
+    }
+
+    .hero:is([data-weather='rain'], [data-weather='storm'])::after {
       animation: hero-rain 700ms linear infinite;
     }
+
+    .hero[data-weather='drizzle']::after {
+      animation: hero-rain 1.4s linear infinite;
+    }
+
+    .hero[data-weather='snow']::after {
+      animation: hero-snow 14s linear infinite;
+    }
+  }
+
+  /* Pause animations, top right of the card. */
+  .motion-toggle {
+    position: absolute;
+    inset-block-start: var(--space-4);
+    inset-inline-end: var(--space-4);
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-secondary);
+    color: var(--color-text);
+    cursor: pointer;
+  }
+
+  .motion-toggle:hover {
+    color: var(--color-accent);
+  }
+
+  .motion-toggle[aria-pressed='true'] .when-moving,
+  .motion-toggle[aria-pressed='false'] .when-still {
+    display: none;
   }
 
   .identity {

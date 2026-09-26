@@ -12,7 +12,8 @@ message to reply.
 30-minute call". When you book, Cal.com handles your details under
 [its privacy policy](https://cal.com/privacy).
 
-**Hosting.** The site is hosted on Cloudflare, which processes standard request data, such as IP
-addresses, to serve and protect it.
+**Hosting.** The site is hosted on GitHub Pages, which processes standard request data, such as IP
+addresses, to serve and protect it, under
+[GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement).
 
 **Questions or removal requests.** Email me at the address on the home page.

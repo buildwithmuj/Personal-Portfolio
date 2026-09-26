@@ -43,6 +43,19 @@ describe('canonicalUrl', () => {
       'https://example.com/work/sample-project',
     );
   });
+
+  it('keeps the slash on the home page under a base path, and drops it elsewhere', () => {
+    const site = 'https://buildwithmuj.github.io/';
+    const base = '/Personal-Portfolio/';
+    assert.equal(
+      canonicalUrl(site, '/Personal-Portfolio/index.html', base),
+      'https://buildwithmuj.github.io/Personal-Portfolio/',
+    );
+    assert.equal(
+      canonicalUrl(site, '/Personal-Portfolio/cv.html', base),
+      'https://buildwithmuj.github.io/Personal-Portfolio/cv',
+    );
+  });
 });
 
 describe('buildSeo', () => {

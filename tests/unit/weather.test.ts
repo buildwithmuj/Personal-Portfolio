@@ -3,16 +3,16 @@ import { describe, it } from 'node:test';
 import { describeWeather } from '../../src/lib/weather.ts';
 
 describe('describeWeather (WMO codes from Open-Meteo)', () => {
-  it('describes dry weather without rain in the hero', () => {
-    assert.deepEqual(describeWeather(0), { condition: 'Clear', wet: false });
-    assert.deepEqual(describeWeather(3), { condition: 'Overcast', wet: false });
-    assert.deepEqual(describeWeather(45), { condition: 'Fog', wet: false });
-    assert.deepEqual(describeWeather(73), { condition: 'Snow', wet: false });
-  });
-
-  it('marks drizzle, rain, showers and thunder as wet', () => {
-    for (const code of [51, 61, 63, 65, 80, 82, 95]) assert.equal(describeWeather(code)?.wet, true);
-    assert.equal(describeWeather(61)?.condition, 'Light rain');
+  it('gives each kind of weather its hero scene', () => {
+    assert.deepEqual(describeWeather(0), { condition: 'Clear', scene: 'clear' });
+    assert.deepEqual(describeWeather(2), { condition: 'Partly cloudy', scene: 'cloud' });
+    assert.deepEqual(describeWeather(3), { condition: 'Overcast', scene: 'cloud' });
+    assert.deepEqual(describeWeather(45), { condition: 'Fog', scene: 'fog' });
+    assert.deepEqual(describeWeather(53), { condition: 'Drizzle', scene: 'drizzle' });
+    assert.deepEqual(describeWeather(61), { condition: 'Light rain', scene: 'rain' });
+    assert.deepEqual(describeWeather(81), { condition: 'Showers', scene: 'rain' });
+    assert.deepEqual(describeWeather(95), { condition: 'Thunderstorms', scene: 'storm' });
+    assert.deepEqual(describeWeather(73), { condition: 'Snow', scene: 'snow' });
   });
 
   it('gives no description for a code it does not know', () => {

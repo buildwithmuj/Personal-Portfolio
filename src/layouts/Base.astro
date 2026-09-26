@@ -28,6 +28,19 @@ const profile = await getProfile();
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- GitHub Pages can't send headers; this one works from markup (spec §15, 2026-09-26). -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <script>
+      // A visitor who paused animations (the hero's button) keeps them paused on every page. It runs
+      // in the head, before any component script reads the state, and before anything moves.
+      try {
+        if (localStorage.getItem('motion') === 'paused') {
+          document.documentElement.classList.add('motion-paused');
+        }
+      } catch {
+        // Storage can be blocked; animations then run as normal.
+      }
+    </script>
     <Font cssVariable="--font-mona" preload />
     <link rel="icon" href={withBase('/favicon.ico')} sizes="32x32" />
     <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />

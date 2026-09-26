@@ -15,6 +15,7 @@ import {
   getSkills,
   getTestimonials,
 } from '../lib/content.ts';
+import { withBase } from '../lib/paths.ts';
 import { personJsonLd } from '../lib/structured-data.ts';
 
 const profile = await getProfile();
@@ -23,7 +24,7 @@ const structuredData = personJsonLd({
   name: profile.name,
   jobTitle: profile.jobTitle,
   worksFor: profile.worksFor,
-  url: Astro.site.href,
+  url: new URL(withBase('/'), Astro.site).href,
   email: profile.email,
   sameAs: profile.socials.map((social) => social.url),
 });

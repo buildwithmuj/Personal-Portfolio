@@ -121,8 +121,13 @@ const { src } = Astro.props;
           audio.addEventListener('pause', () => show(false));
           audio.addEventListener('ended', () => show(false));
         }
-        if (audio.paused) void audio.play();
-        else audio.pause();
+        // A file that fails to load or decode says so, instead of failing silently.
+        if (audio.paused) {
+          audio.play().catch(() => {
+            show(false);
+            label.textContent = 'Intro unavailable';
+          });
+        } else audio.pause();
       });
       this.closest('li')?.removeAttribute('hidden');
     }

@@ -8,27 +8,31 @@ export interface Weather {
   temperature: number;
   /** A short description, e.g. "Light rain". */
   condition: string;
-  /** Drizzle, rain, showers or thunder: the hero shows rain. */
-  wet: boolean;
+  /** Which scene the hero's ambient layer plays. */
+  scene: WeatherScene;
 }
 
+export type WeatherScene = 'clear' | 'cloud' | 'fog' | 'drizzle' | 'rain' | 'storm' | 'snow';
+
 /** WMO weather codes, as Open-Meteo reports them, grouped into short descriptions. */
-const CONDITIONS: readonly [codes: readonly number[], condition: string, wet: boolean][] = [
-  [[0], 'Clear', false],
-  [[1, 2], 'Partly cloudy', false],
-  [[3], 'Overcast', false],
-  [[45, 48], 'Fog', false],
-  [[51, 53, 55, 56, 57], 'Drizzle', true],
-  [[61, 66], 'Light rain', true],
-  [[63, 65, 67], 'Rain', true],
-  [[71, 73, 75, 77, 85, 86], 'Snow', false],
-  [[80, 81, 82], 'Showers', true],
-  [[95, 96, 99], 'Thunderstorms', true],
+const CONDITIONS: readonly [codes: readonly number[], condition: string, scene: WeatherScene][] = [
+  [[0], 'Clear', 'clear'],
+  [[1, 2], 'Partly cloudy', 'cloud'],
+  [[3], 'Overcast', 'cloud'],
+  [[45, 48], 'Fog', 'fog'],
+  [[51, 53, 55, 56, 57], 'Drizzle', 'drizzle'],
+  [[61, 66], 'Light rain', 'rain'],
+  [[63, 65, 67], 'Rain', 'rain'],
+  [[71, 73, 75, 77, 85, 86], 'Snow', 'snow'],
+  [[80, 81, 82], 'Showers', 'rain'],
+  [[95, 96, 99], 'Thunderstorms', 'storm'],
 ];
 
-export function describeWeather(code: number): { condition: string; wet: boolean } | undefined {
+export function describeWeather(
+  code: number,
+): { condition: string; scene: WeatherScene } | undefined {
   const match = CONDITIONS.find(([codes]) => codes.includes(code));
-  return match && { condition: match[1], wet: match[2] };
+  return match && { condition: match[1], scene: match[2] };
 }
 
 let cached: Promise<Weather | undefined> | undefined;

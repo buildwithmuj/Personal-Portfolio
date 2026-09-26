@@ -5,6 +5,7 @@ import { render } from 'astro:content';
 import { mdxComponents } from '../../components/mdx/index.ts';
 import CaseStudy from '../../layouts/CaseStudy.astro';
 import { getCaseStudies, getProfile } from '../../lib/content.ts';
+import { withBase } from '../../lib/paths.ts';
 import { canonicalUrl } from '../../lib/seo.ts';
 import { creativeWorkJsonLd } from '../../lib/structured-data.ts';
 
@@ -24,10 +25,10 @@ const ogImage = await getImage({ src: study.data.cover, width: 1200, format: 'jp
 const structuredData = creativeWorkJsonLd({
   title: study.data.title,
   description: study.data.summary,
-  url: canonicalUrl(Astro.site.href, Astro.url.pathname),
+  url: canonicalUrl(Astro.site.href, Astro.url.pathname, import.meta.env.BASE_URL),
   image: new URL(ogImage.src, Astro.site).href,
   authorName: profile.name,
-  authorUrl: Astro.site.href,
+  authorUrl: new URL(withBase('/'), Astro.site).href,
   keywords: study.data.tags,
 });
 ---

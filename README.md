@@ -1,7 +1,7 @@
 # Portfolio
 
-Personal portfolio site: a static [Astro](https://astro.build) 7 site served by Cloudflare Workers
-static assets. It has no server code, no database and no secrets.
+Personal portfolio site: a static [Astro](https://astro.build) 7 site, live on GitHub Pages at
+<https://buildwithmuj.github.io/Personal-Portfolio/>. It has no server code, no database and no secrets.
 
 The design and engineering decisions live in the
 [foundation spec](docs/superpowers/specs/2026-09-24-portfolio-foundation-design.md). Read it before
@@ -12,8 +12,10 @@ changing how the site is built.
 - Astro 7 (static output), TypeScript 6 (strictest settings), MDX, plain CSS with design tokens
 - pnpm 10 and Node 24
 - Tests: `node --test` (unit), Playwright (end to end, accessibility with axe, page weight), Lighthouse 13
-- Hosting: Cloudflare Workers static assets, deployed by Cloudflare Workers Builds from GitHub
-- CI: GitHub Actions (checks only; it deploys nothing)
+- Hosting: GitHub Pages, deployed by `.github/workflows/pages.yml` once CI passes on `main`. The
+  Cloudflare setup (`wrangler.jsonc`, `public/_headers`, [docs/setup.md](docs/setup.md)) is kept for
+  a later move to the site's own domain.
+- CI: GitHub Actions (`ci.yml` runs every check; `pages.yml` deploys)
 
 ## Getting started
 
@@ -104,23 +106,26 @@ There are two long-lived branches:
 - **`main`** is for releases. Production deploys from it.
 
 1. **Work on `dev`.** Commit to it directly, or use a short-lived branch and a pull request into `dev`
-   for bigger pieces. Every push to `dev` runs the checks. Cloudflare also builds a preview of `dev`,
-   which is the staging site: drafts are shown and search engines are told not to index it.
-2. **Release.** Open a pull request from `dev` into `main`. `main` only accepts pull requests with
-   passing checks. Merge with a **merge commit**, not a squash or rebase, so `dev` and `main` keep a
-   shared history.
-3. Cloudflare builds `main` and deploys it to production.
+   for bigger pieces. Every push to `dev` runs the checks. To see work in progress, run
+   `pnpm dev` (drafts and placeholder testimonials show there). GitHub Pages hosts one site, the live
+   one, so there is no online preview of `dev`.
+2. **Release.** Merge `dev` into `main` with a **merge commit**, not a squash or rebase, so `dev` and
+   `main` keep a shared history.
+3. **Go live.** CI runs on `main`; when it passes, `pages.yml` builds `main` in production mode and
+   deploys it to GitHub Pages. It also rebuilds every hour so London's weather, fetched at build time,
+   stays current. GitHub pauses that schedule after 60 days without activity; re-enable it in the
+   Actions tab if the weather stops changing.
 
-To roll back, pick an earlier deployment in the Cloudflare dashboard (Workers & Pages → the Worker →
-Deployments), or revert the release's merge commit on `main` (`git revert -m 1 <merge-sha>`) through a
-pull request. First-time account and repository setup is in
-[docs/setup.md](docs/setup.md).
+To roll back, revert the release's merge commit on `main` (`git revert -m 1 <merge-sha>`) and push;
+the reverted site goes live once CI passes. Recommended: add a ruleset on `main` (Settings → Rules)
+that blocks force pushes and requires the `ci` check.
 
 ## Security
 
 - **CSP:** Astro generates a Content Security Policy `<meta>` tag with hashes of its own scripts and
-  styles. `public/_headers` adds `frame-ancestors` and the other security headers. Tests fail on any
-  CSP violation and check every header.
+  styles, and a `<meta name="referrer">` sets the referrer policy. GitHub Pages can't send custom
+  headers, so `public/_headers` (`frame-ancestors` and the other security headers) only takes effect
+  after a move to Cloudflare; see the foundation spec §15, 2026-09-26. Tests fail on any CSP violation.
 - **Nothing third-party:** no requests to other sites, no cookies, no analytics, no forms.
 - **Dependencies:**
   - pnpm won't install a version younger than 7 days (`minimumReleaseAge`).

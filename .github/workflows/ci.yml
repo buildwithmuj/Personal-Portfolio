@@ -35,6 +35,18 @@ jobs:
       - run: pnpm lint
       - run: pnpm check
       - run: pnpm test
+      # The live site is served under /Personal-Portfolio (spec §15, 2026-09-26). Build it the way
+      # pages.yml does and fail if any internal URL skips the base path; the tests below build at /.
+      - name: Check the GitHub Pages build keeps the base path
+        env:
+          PAGES_SITE: https://buildwithmuj.github.io
+          PAGES_BASE: /Personal-Portfolio
+        run: |
+          pnpm build
+          if grep -rPo '(?:href|src|srcset|action|content)="/(?!Personal-Portfolio/|/)[^"]*"' dist --include='*.html'; then
+            echo 'The URLs above skip the /Personal-Portfolio base path. Wrap them in withBase().'
+            exit 1
+          fi
       - run: pnpm build
       - name: Check internal links
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0

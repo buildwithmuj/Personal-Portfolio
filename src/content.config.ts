@@ -126,7 +126,8 @@ const testimonials = defineCollection({
     name: z.string().min(1),
     role: z.string().min(1),
     quote: z.string().min(1).max(320),
-    placeholder: z.boolean().default(false),
+    // Required, so no quote can reach the live site without stating whether it is real.
+    placeholder: z.boolean(),
   }),
 });
 

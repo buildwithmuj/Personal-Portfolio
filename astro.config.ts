@@ -23,9 +23,13 @@ if (process.env['WORKERS_CI'] === '1' && isProductionBuild) {
   assertNoPlaceholders(PROFILE, readFileSync(PROFILE, 'utf8'));
 }
 
-// The GitHub Pages preview lives at https://buildwithmuj.github.io/Personal-Portfolio/ (pages.yml sets
-// these). The real site, Cloudflare and the tests build at the root.
+// The live site is GitHub Pages at https://buildwithmuj.github.io/Personal-Portfolio/ (pages.yml sets
+// these). The tests, and Cloudflare if the site later moves to its own domain, build at the root.
 const pagesBase = process.env['PAGES_BASE'];
+// A Pages build without its address would ship example.com canonicals, OG URLs and sitemap entries.
+if (pagesBase && !process.env['PAGES_SITE']) {
+  throw new Error('PAGES_BASE is set without PAGES_SITE. Set both for a GitHub Pages build.');
+}
 
 export default defineConfig({
   site: process.env['PAGES_SITE'] ?? SITE_URL,

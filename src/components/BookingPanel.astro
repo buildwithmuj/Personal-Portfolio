@@ -26,15 +26,23 @@ embedUrl.searchParams.set('embed', 'true');
 <script>
   // The frame is created only when the visitor opens the panel, so nothing reaches Cal.com
   // before that (content spec §5.8). Browsers load hidden frames eagerly, hence no frame in the HTML.
+  // Find-in-page can open a closed panel on its own, so only a click on the summary (Enter and
+  // Space fire one too) counts as asking for the calendar.
   class BookingPanel extends HTMLElement {
     connectedCallback(): void {
       const details = this.querySelector('details');
+      if (!details) return;
       const slot = this.querySelector('[data-frame]');
       const src = this.dataset['src'];
       const title = this.dataset['title'];
-      if (!details || !slot || !src || !title) return;
+      const summary = details.querySelector('summary');
+      if (!summary || !slot || !src || !title) return;
+      let asked = false;
+      summary.addEventListener('click', () => {
+        asked = true;
+      });
       details.addEventListener('toggle', () => {
-        if (!details.open || slot.querySelector('iframe')) return;
+        if (!details.open || !asked || slot.querySelector('iframe')) return;
         const frame = document.createElement('iframe');
         frame.src = src;
         frame.title = title;
