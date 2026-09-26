@@ -1,0 +1,390 @@
+/* Reset, base styles and layout primitives (content spec §4). Every value comes from tokens.css. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+html {
+  scroll-padding-top: calc(var(--bar-offset) + var(--bar-height) + var(--space-4));
+}
+
+body {
+  min-height: 100vh;
+  background: var(--color-page);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+  text-wrap: balance;
+}
+
+p {
+  max-width: var(--measure);
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.2em;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.container {
+  width: min(100% - 2 * var(--gutter), var(--page-max-width));
+  margin-inline: auto;
+}
+
+/* The hero's "Pause animations" button stops every animation on the page (WCAG 2.2.2). */
+.motion-paused *,
+.motion-paused *::before,
+.motion-paused *::after {
+  animation-play-state: paused !important;
+}
+
+/* Elements marked hidden (for example, controls that need JavaScript) always stay hidden. */
+[hidden] {
+  display: none !important;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  z-index: 20;
+  inset-block-start: var(--space-4);
+  inset-inline-start: var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  border: 2px solid var(--color-focus);
+  border-radius: var(--radius-sm);
+  background: var(--color-page);
+  color: var(--color-text);
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+/* The page's column of section shells */
+.stack {
+  display: grid;
+  gap: var(--shell-gap);
+}
+
+.stack > :first-child {
+  padding-block-start: calc(var(--bar-height) + var(--shell-pad));
+}
+
+.shell {
+  padding: var(--shell-pad-top) var(--shell-pad) var(--shell-pad);
+  border-radius: var(--radius-shell);
+  background: var(--color-shell);
+}
+
+/* Under a mouse, a soft indigo light follows the pointer across the frame (Base.astro sets x, y). */
+@media (hover: hover) and (pointer: fine) {
+  .shell:hover {
+    background:
+      radial-gradient(
+        420px circle at var(--glow-x, 50%) var(--glow-y, 0),
+        var(--color-glow),
+        transparent 70%
+      ),
+      var(--color-shell);
+  }
+}
+
+.shell-inset {
+  padding: var(--inset);
+}
+
+.stack > .shell-hero:first-child {
+  padding: calc(var(--bar-height) + var(--inset)) var(--inset) var(--inset);
+}
+
+.section-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-4) var(--space-6);
+  align-items: end;
+  margin-block-end: 40px;
+}
+
+.section-title {
+  display: grid;
+  gap: 6px;
+}
+
+/*
+ * Collapsible sections: a small round toggle sits top right, level with the title, with the
+ * section's switch (if any) beneath it. The title is clickable too.
+ */
+.section-head:has(> .collapse) {
+  grid-template-columns: 1fr auto;
+}
+
+.section-head:has(> .collapse) > .section-title {
+  grid-row: span 2;
+  align-self: start;
+  cursor: pointer;
+}
+
+/* A collapsed section keeps only its title and toggle. */
+.section-head:has(+ [hidden]) {
+  margin-block-end: 0;
+}
+
+.section-head:has(+ [hidden]) > :not(.section-title, .collapse) {
+  display: none;
+}
+
+.collapse {
+  display: grid;
+  grid-area: 1 / 2;
+  place-items: center;
+  place-self: start end;
+  width: 32px;
+  margin-block-start: -4px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-secondary);
+  color: var(--color-accent);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.collapse:hover {
+  transform: scale(1.08);
+}
+
+.collapse[aria-expanded='true'] .when-closed,
+.collapse[aria-expanded='false'] .when-open {
+  display: none;
+}
+
+/* On phones the switch drops below the heading, and the toggle stays beside the title. */
+@media (width < 40rem) {
+  .section-head {
+    grid-template-columns: 1fr;
+  }
+
+  .section-head:has(> .collapse) {
+    grid-template-columns: 1fr auto;
+  }
+
+  .section-head:has(> .collapse) > .section-title {
+    grid-row: auto;
+  }
+
+  .section-head > :not(.section-title, .collapse) {
+    grid-column: 1 / -1;
+  }
+}
+
+.section-head :is(h1, h2) {
+  font-size: var(--text-xl);
+}
+
+.section-head p {
+  max-width: 25rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.label {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+}
+
+.card {
+  padding: var(--card-pad);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+/* A digital watch face (the clock, the About stats): black glass with a sheen, in a metal bezel. */
+.watch-face {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(165deg, var(--watch-glare), transparent 45%) padding-box,
+    linear-gradient(var(--color-inverse), var(--color-inverse)) padding-box,
+    linear-gradient(
+        150deg,
+        var(--watch-metal-light),
+        var(--watch-metal-dark) 50%,
+        var(--watch-metal-light)
+      )
+      border-box;
+  box-shadow: 0 3px 8px -2px var(--watch-shadow);
+  color: var(--color-on-inverse);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--button-height);
+  padding: var(--space-2) var(--button-pad-x);
+  border: 0;
+  border-radius: var(--radius-button);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background: var(--color-accent);
+  box-shadow: var(--shadow-primary);
+  color: var(--color-on-accent);
+}
+
+.btn-primary:hover {
+  background: var(--color-accent-hover);
+}
+
+.btn-secondary {
+  background: var(--color-surface);
+  box-shadow: var(--shadow-secondary);
+  color: var(--color-text);
+}
+
+/*
+ * Scroll reveals. Base.astro adds .reveal-ready to <html> (never under reduced motion) and .in to
+ * each [data-reveal] element as it enters the viewport. Transform only, so text never loses contrast.
+ */
+.w {
+  display: inline-block;
+  margin-block-end: -0.12em;
+  padding-block-end: 0.12em;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+.w > span {
+  display: inline-block;
+}
+
+.reveal-ready [data-reveal='rise'] {
+  transform: translateY(40px);
+}
+
+.reveal-ready [data-reveal='heading'] .w > span {
+  transform: translateY(110%);
+}
+
+.reveal-ready [data-reveal='heading'] p {
+  transform: translateY(16px);
+}
+
+.reveal-ready [data-reveal='rise'] .media img {
+  transform: scale(1.12);
+}
+
+.reveal-ready [data-reveal].in,
+.reveal-ready [data-reveal].in .w > span,
+.reveal-ready [data-reveal].in p,
+.reveal-ready [data-reveal].in .media img {
+  transform: none;
+  transition: transform 900ms var(--ease-out) calc(var(--i, 0) * 70ms);
+}
+
+.reveal-ready [data-reveal].in .media img {
+  transition-duration: 1400ms;
+}
+
+/* Stagger: words in a heading, and items in a list, start one after another. */
+:is(.w, [data-reveal]):nth-child(2) {
+  --i: 1;
+}
+
+:is(.w, [data-reveal]):nth-child(3) {
+  --i: 2;
+}
+
+:is(.w, [data-reveal]):nth-child(4) {
+  --i: 3;
+}
+
+:is(.w, [data-reveal]):nth-child(5) {
+  --i: 4;
+}
+
+:is(.w, [data-reveal]):nth-child(6) {
+  --i: 5;
+}
+
+:is(.w, [data-reveal]):nth-child(7) {
+  --i: 6;
+}
+
+:is(.w, [data-reveal]):nth-child(8) {
+  --i: 7;
+}
+
+:is(.w, [data-reveal]):nth-child(n + 9) {
+  --i: 8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

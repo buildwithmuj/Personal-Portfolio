@@ -1,0 +1,95 @@
+---
+interface Props {
+  timeZone: string;
+}
+
+const { timeZone } = Astro.props;
+// The build-time local time; with JavaScript it keeps ticking (content spec §5.1).
+const parts = new Intl.DateTimeFormat('en-GB', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+  timeZone,
+}).formatToParts(new Date());
+const hour = parts.find((part) => part.type === 'hour')?.value ?? '00';
+const minute = parts.find((part) => part.type === 'minute')?.value ?? '00';
+---
+
+<live-clock class="watch watch-face" data-time-zone={timeZone}>
+  <time>
+    <span data-hour>{hour}</span>
+    <span class="colon">:</span>
+    <span data-minute>{minute}</span>
+  </time>
+</live-clock>
+
+<script>
+  // A small digital watch face: hours and minutes in the owner's time zone.
+  class LiveClock extends HTMLElement {
+    connectedCallback(): void {
+      const hour = this.querySelector('[data-hour]');
+      const minute = this.querySelector('[data-minute]');
+      const timeZone = this.dataset['timeZone'];
+      if (!hour || !minute || !timeZone) return;
+      const format = new Intl.DateTimeFormat('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone,
+      });
+      const tick = () => {
+        const parts = format.formatToParts(new Date());
+        hour.textContent = parts.find((part) => part.type === 'hour')?.value ?? '';
+        minute.textContent = parts.find((part) => part.type === 'minute')?.value ?? '';
+      };
+      tick();
+      window.setInterval(tick, 1000);
+    }
+  }
+
+  customElements.define('live-clock', LiveClock);
+</script>
+
+<style>
+  /* A tiny Apple Watch-style face (the shared .watch-face), with a crown on the right. */
+  .watch {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    min-width: 60px;
+    height: 32px;
+    padding-inline: 10px;
+    border-radius: 12px;
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--weight-medium);
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+
+  /* The ridged digital crown, with the side button beneath it. */
+  .watch::after {
+    position: absolute;
+    inset-block-start: 4px;
+    inset-inline-end: -5px;
+    width: 3px;
+    height: 8px;
+    border-radius: 0 2px 2px 0;
+    background: repeating-linear-gradient(
+      var(--watch-metal-light) 0 1px,
+      var(--watch-metal-dark) 1px 2px
+    );
+    box-shadow: 0 12px 0 var(--watch-metal-dark);
+    content: '';
+  }
+
+  /* Flex drops the whitespace between the digits and the colon. */
+  time {
+    display: inline-flex;
+  }
+
+  .colon {
+    padding-inline: 1px;
+    color: var(--color-accent-light);
+  }
+</style>

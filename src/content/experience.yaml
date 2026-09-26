@@ -1,0 +1,18 @@
+# Roles for "Experience & skills" (content spec §5.7). Clients are described by industry, never named.
+digiblu:
+  employer: DigiBlu
+  role: Senior Intelligent Automation Analyst
+  start: '2021-12'
+  summary: Design and deliver intelligent automation, from APIs and Power Apps to RPA, for healthcare, education and financial-services organisations.
+infosys-management-consultant:
+  employer: Infosys Consulting
+  role: Management Consultant
+  start: '2018-04'
+  end: '2021-11'
+  summary: Led RPA, digital-experience and data-product work for UK public-sector and global telecoms clients, from business case to rollout.
+infosys-consulting-analyst:
+  employer: Infosys Consulting
+  role: Consulting Analyst
+  start: '2016-09'
+  end: '2018-03'
+  summary: Requirements, process assessments and user acceptance testing on transformation programmes for large banking, pharmaceutical and public-sector clients.

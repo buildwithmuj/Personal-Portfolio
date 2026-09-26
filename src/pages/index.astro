@@ -1,0 +1,65 @@
+---
+import About from '../components/sections/About.astro';
+import Contact from '../components/sections/Contact.astro';
+import Hero from '../components/sections/Hero.astro';
+import Method from '../components/sections/Method.astro';
+import SelectedWork from '../components/sections/SelectedWork.astro';
+import Skills from '../components/sections/Skills.astro';
+import Testimonials from '../components/sections/Testimonials.astro';
+import Base from '../layouts/Base.astro';
+import { featuredStudies } from '../lib/case-studies.ts';
+import {
+  getCaseStudies,
+  getMethod,
+  getProfile,
+  getSkills,
+  getTestimonials,
+} from '../lib/content.ts';
+import { withBase } from '../lib/paths.ts';
+import { personJsonLd } from '../lib/structured-data.ts';
+
+const profile = await getProfile();
+if (!Astro.site) throw new Error('`site` must be set in astro.config.ts');
+const structuredData = personJsonLd({
+  name: profile.name,
+  jobTitle: profile.jobTitle,
+  worksFor: profile.worksFor,
+  url: new URL(withBase('/'), Astro.site).href,
+  email: profile.email,
+  sameAs: profile.socials.map((social) => social.url),
+});
+const featured = featuredStudies(await getCaseStudies());
+const skills = await getSkills();
+const method = await getMethod();
+const testimonials = await getTestimonials();
+---
+
+<Base structuredData={structuredData}>
+  <Hero profile={profile} />
+  <About profile={profile} />
+  {featured.length > 0 && (
+    <SelectedWork
+      studies={featured}
+      heading={profile.sections.work.heading}
+      intro={profile.sections.work.intro}
+    />
+  )}
+  <Skills
+    skills={skills}
+    heading={profile.sections.skills.heading}
+    intro={profile.sections.skills.intro}
+  />
+  <Method
+    steps={method}
+    heading={profile.sections.method.heading}
+    intro={profile.sections.method.intro}
+  />
+  {testimonials.length > 0 && (
+    <Testimonials
+      testimonials={testimonials}
+      heading={profile.sections.testimonials.heading}
+      intro={profile.sections.testimonials.intro}
+    />
+  )}
+  <Contact profile={profile} />
+</Base>

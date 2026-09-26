@@ -1,0 +1,437 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { withBase } from '../../lib/paths.ts';
+import { currentWeather } from '../../lib/weather.ts';
+import ProofStrip from '../ProofStrip.astro';
+import Shell from '../Shell.astro';
+
+interface Props {
+  profile: CollectionEntry<'profile'>['data'];
+}
+
+const { profile } = Astro.props;
+// The ambient layer plays a scene for London's weather when the site last built.
+const weather =
+  profile.coordinates &&
+  (await currentWeather(profile.coordinates.latitude, profile.coordinates.longitude));
+// Screen readers get every role once, as a sentence; the visible line cycles through them.
+const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).format(profile.roles);
+---
+
+<Shell id="top" labelledBy="hero-name" hero>
+  <div class="card hero" data-weather={weather?.scene ?? 'none'}>
+    <div class="identity">
+      {profile.avatar && (
+        <img class="avatar" src={withBase(profile.avatar)} alt="" width="90" height="90" />
+      )}
+      <div>
+        <h1 id="hero-name">{profile.name}</h1>
+        <p class="roles">
+          <span class="visually-hidden">{rolesSentence}</span>
+          <role-rotator
+            class="rotator"
+            aria-hidden="true"
+            data-roles={JSON.stringify(profile.roles)}
+          >
+            <span>{profile.roles[0]}</span>
+          </role-rotator>
+        </p>
+      </div>
+    </div>
+    <p class="headline">
+      {profile.headline.split(/\s+/).map((word, index) => (
+        <>
+          {index > 0 && ' '}
+          <span class="w">
+            <span>{word}</span>
+          </span>
+        </>
+      ))}
+    </p>
+    <p class="subline">{profile.subline}</p>
+    <p class="actions">
+      <a class="btn btn-primary" href="#work">
+        See my work
+      </a>
+      <a class="btn btn-secondary" href="#contact">
+        Book a call
+      </a>
+    </p>
+    <ProofStrip label={profile.proof.label} items={profile.proof.items} />
+    <button class="motion-toggle" type="button" aria-pressed="false" hidden>
+      <svg
+        viewBox="0 0 24 24"
+        width="14"
+        height="14"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path class="when-moving" d="M9 6v12M15 6v12"></path>
+        <path class="when-still" d="M8 5.5v13l10-6.5z"></path>
+      </svg>
+      <span class="visually-hidden">Pause animations</span>
+    </button>
+  </div>
+</Shell>
+
+<script>
+  // Cycles the visible role every few seconds by sliding it through the clipped line. Without
+  // JavaScript, or with reduced motion, the first role stays put.
+  class RoleRotator extends HTMLElement {
+    connectedCallback(): void {
+      const line = this.querySelector('span');
+      const roles = JSON.parse(this.dataset['roles'] ?? '[]') as string[];
+      if (!line || roles.length < 2) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      let index = 0;
+      const timing = {
+        duration: 250,
+        easing: 'cubic-bezier(0.2, 0, 0, 1)',
+        fill: 'forwards' as const,
+      };
+      window.setInterval(async () => {
+        if (document.documentElement.classList.contains('motion-paused')) return;
+        await line.animate([{ transform: 'none' }, { transform: 'translateY(-110%)' }], timing)
+          .finished;
+        index = (index + 1) % roles.length;
+        line.textContent = roles[index] ?? '';
+        line.animate([{ transform: 'translateY(110%)' }, { transform: 'none' }], timing);
+      }, 2600);
+    }
+  }
+
+  customElements.define('role-rotator', RoleRotator);
+
+  // Pause animations (WCAG 2.2.2): stops every animation on the page and the rotating lines, and is
+  // remembered on this device (Base.astro reapplies it on every page). Under reduced motion nothing
+  // moves, so the button stays hidden.
+  const motion = document.querySelector<HTMLButtonElement>('.motion-toggle');
+  if (motion && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const root = document.documentElement;
+    motion.setAttribute('aria-pressed', String(root.classList.contains('motion-paused')));
+    motion.hidden = false;
+    motion.addEventListener('click', () => {
+      const paused = root.classList.toggle('motion-paused');
+      motion.setAttribute('aria-pressed', String(paused));
+      try {
+        localStorage.setItem('motion', paused ? 'paused' : 'on');
+      } catch {
+        // Storage can be blocked; the pause still holds for this page.
+      }
+    });
+  }
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    display: grid;
+    gap: var(--space-6);
+    padding: var(--hero-card-pad);
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .hero::before {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: radial-gradient(60% 70% at 85% 10%, var(--color-accent-glow), transparent 70%);
+    content: '';
+  }
+
+  /*
+   * An ambient layer behind the card's content that follows London's weather when the site last
+   * built (src/lib/weather.ts). Each pattern repeats every tile, so moving the layer by one tile
+   * loops seamlessly. Everything holds still under reduced motion.
+   *   clear:   specks of light drift up under a brighter, slowly breathing glow
+   *   cloud:   soft clouds drift across
+   *   fog:     a low haze slides slowly back and forth
+   *   drizzle: light, sparse rain; rain: rain; storm: rain with a faint flash now and then
+   *   snow:    flakes fall slowly
+   * Without weather (the fetch failed), the specks drift on their own.
+   */
+  .hero::after {
+    position: absolute;
+    z-index: -1;
+    inset: 0 0 -240px;
+    background-image:
+      radial-gradient(2px 2px at 20% 30%, var(--color-particle), transparent),
+      radial-gradient(1.5px 1.5px at 70% 60%, var(--color-particle), transparent),
+      radial-gradient(2.5px 2.5px at 45% 85%, var(--color-particle), transparent);
+    background-size: 240px 240px;
+    content: '';
+    pointer-events: none;
+  }
+
+  .hero[data-weather='clear']::before {
+    background: radial-gradient(70% 80% at 85% 10%, var(--color-sun), transparent 70%);
+    transform-origin: 85% 10%;
+  }
+
+  .hero[data-weather='cloud']::after {
+    inset: 0 -640px 0 0;
+    background-image:
+      radial-gradient(160px 60px at 25% 30%, var(--color-cloud), transparent),
+      radial-gradient(220px 80px at 70% 55%, var(--color-cloud), transparent),
+      radial-gradient(140px 50px at 45% 85%, var(--color-cloud), transparent);
+    background-size: 640px 100%;
+  }
+
+  .hero[data-weather='fog']::after {
+    inset: 0 -15%;
+    background-image:
+      radial-gradient(50% 22% at 30% 75%, var(--color-fog), transparent),
+      radial-gradient(45% 18% at 70% 55%, var(--color-fog), transparent),
+      radial-gradient(60% 20% at 50% 95%, var(--color-fog), transparent);
+    background-size: auto;
+  }
+
+  .hero:is([data-weather='drizzle'], [data-weather='rain'], [data-weather='storm'])::after {
+    inset: -120px -10% 0;
+    background-image:
+      radial-gradient(1px 14px at 30% 20%, var(--color-rain), transparent),
+      radial-gradient(1px 10px at 75% 60%, var(--color-rain), transparent),
+      radial-gradient(1px 12px at 55% 90%, var(--color-rain), transparent);
+    background-size: 90px 120px;
+    rotate: 8deg;
+  }
+
+  .hero[data-weather='drizzle']::after {
+    background-size: 160px 120px;
+  }
+
+  .hero[data-weather='snow']::after {
+    inset: -200px 0 0;
+    background-image:
+      radial-gradient(3px 3px at 20% 30%, var(--color-particle), transparent),
+      radial-gradient(2px 2px at 65% 55%, var(--color-particle), transparent),
+      radial-gradient(2.5px 2.5px at 40% 80%, var(--color-particle), transparent),
+      radial-gradient(2px 2px at 85% 15%, var(--color-particle), transparent);
+    background-size: 200px 200px;
+  }
+
+  @keyframes hero-drift {
+    to {
+      translate: 0 -240px;
+    }
+  }
+
+  @keyframes hero-clouds {
+    to {
+      translate: -640px 0;
+    }
+  }
+
+  @keyframes hero-haze {
+    to {
+      translate: 12% 0;
+    }
+  }
+
+  @keyframes hero-rain {
+    to {
+      translate: 0 120px;
+    }
+  }
+
+  @keyframes hero-snow {
+    to {
+      translate: 0 200px;
+    }
+  }
+
+  @keyframes hero-sun {
+    to {
+      scale: 1.1;
+    }
+  }
+
+  @keyframes hero-flash {
+    0%,
+    90%,
+    94%,
+    100% {
+      background-color: transparent;
+    }
+
+    91%,
+    93% {
+      background-color: var(--color-flash);
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero::after {
+      animation: hero-drift 40s linear infinite;
+    }
+
+    .hero[data-weather='clear']::before {
+      animation: hero-sun 6s ease-in-out infinite alternate;
+    }
+
+    .hero[data-weather='storm']::before {
+      animation: hero-flash 9s linear infinite;
+    }
+
+    .hero[data-weather='cloud']::after {
+      animation: hero-clouds 80s linear infinite;
+    }
+
+    .hero[data-weather='fog']::after {
+      animation: hero-haze 18s ease-in-out infinite alternate;
+    }
+
+    .hero:is([data-weather='rain'], [data-weather='storm'])::after {
+      animation: hero-rain 700ms linear infinite;
+    }
+
+    .hero[data-weather='drizzle']::after {
+      animation: hero-rain 1.4s linear infinite;
+    }
+
+    .hero[data-weather='snow']::after {
+      animation: hero-snow 14s linear infinite;
+    }
+  }
+
+  /* Pause animations, top right of the card. */
+  .motion-toggle {
+    position: absolute;
+    inset-block-start: var(--space-4);
+    inset-inline-end: var(--space-4);
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-secondary);
+    color: var(--color-text);
+    cursor: pointer;
+  }
+
+  .motion-toggle:hover {
+    color: var(--color-accent);
+  }
+
+  .motion-toggle[aria-pressed='true'] .when-moving,
+  .motion-toggle[aria-pressed='false'] .when-still {
+    display: none;
+  }
+
+  .identity {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+    margin-block-start: var(--space-4);
+  }
+
+  .avatar {
+    width: var(--avatar);
+    height: var(--avatar);
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  h1 {
+    font-size: var(--text-xl);
+  }
+
+  .roles {
+    height: 1.5em;
+    overflow: hidden;
+    color: var(--color-text-muted);
+  }
+
+  .rotator {
+    display: block;
+  }
+
+  .rotator > span {
+    display: block;
+  }
+
+  /* On load, the card's pieces rise in turn and the headline's words slide up (transform only). */
+  @keyframes hero-in {
+    from {
+      transform: translateY(24px);
+    }
+  }
+
+  @keyframes word-up {
+    from {
+      transform: translateY(110%);
+    }
+  }
+
+  .hero > * {
+    animation: hero-in 900ms var(--ease-out) both;
+  }
+
+  .hero > :nth-child(2) {
+    animation-delay: 80ms;
+  }
+
+  .hero > :nth-child(3) {
+    animation-delay: 160ms;
+  }
+
+  .hero > :nth-child(4) {
+    animation-delay: 240ms;
+  }
+
+  .hero > :nth-child(5) {
+    animation-delay: 320ms;
+  }
+
+  .hero > :nth-child(6) {
+    animation-delay: 400ms;
+  }
+
+  .headline .w > span {
+    animation: word-up 900ms var(--ease-out) both;
+    animation-delay: calc(200ms + var(--i, 0) * 45ms);
+  }
+
+  .headline {
+    max-width: 34rem;
+    font-size: var(--text-hero);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+  }
+
+  .subline {
+    max-width: 34rem;
+    color: var(--color-text-muted);
+    font-size: var(--text-base);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  @media (width < 40rem) {
+    .identity {
+      margin-block-start: var(--space-8);
+    }
+
+    .actions {
+      flex-direction: column;
+    }
+
+    .actions .btn {
+      width: 100%;
+      min-height: 44px;
+    }
+  }
+</style>

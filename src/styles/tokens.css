@@ -1,0 +1,125 @@
+/*
+ * Design tokens (content spec §4), measured from the Portfolik reference at 1440px.
+ * Components use only these variables.
+ */
+:root {
+  color-scheme: light;
+
+  /* Colour */
+  --color-page: #fff;
+  --color-shell: #f3f4f6;
+  --color-surface: #fff;
+  --color-text: #0a0a0a;
+  --color-text-muted: #4a4f54;
+  --color-accent: #4f46e5;
+  --color-accent-hover: #4338ca;
+  --color-accent-light: #a5b4fc;
+  --color-on-accent: #fff;
+  --color-accent-glow: rgb(79 70 229 / 14%);
+  --color-avatar-text: #fff;
+  --color-blob-1: rgb(79 70 229 / 75%);
+  --color-blob-2: rgb(139 92 246 / 65%);
+  --gradient-avatar-1: linear-gradient(135deg, #4f46e5, #7c3aed);
+  --gradient-avatar-2: linear-gradient(135deg, #1d4ed8, #4f46e5);
+  --gradient-avatar-3: linear-gradient(135deg, #7c3aed, #be185d);
+  --gradient-avatar-4: linear-gradient(135deg, #0369a1, #4338ca);
+  --gradient-stat: linear-gradient(135deg, #4f46e5, #8b5cf6);
+  --color-inverse: #0a0a0a;
+  --color-on-inverse: #fff;
+  --color-hairline: #e3e4ea;
+  --color-nav: rgb(242 243 245 / 80%);
+  --color-focus: #4f46e5;
+  --color-grid-line: rgb(79 70 229 / 9%);
+  --watch-metal-light: #d4d6de;
+  --watch-metal-dark: #45474f;
+  --watch-glare: rgb(255 255 255 / 16%);
+  --watch-shadow: rgb(15 23 42 / 28%);
+  --color-on-accent-track: rgb(255 255 255 / 30%);
+  --color-key-edge: #d3d6df;
+  --color-glow: rgb(79 70 229 / 12%);
+  --color-particle: rgb(79 70 229 / 35%);
+  --color-rain: rgb(79 70 229 / 30%);
+  --color-sun: rgb(79 70 229 / 22%);
+  --color-cloud: rgb(79 70 229 / 11%);
+  --color-fog: rgb(99 102 241 / 16%);
+  --color-flash: rgb(79 70 229 / 10%);
+
+  /* Type */
+  --font-sans: var(--font-mona);
+  --text-xs: 0.75rem;
+  --text-clock: 0.8125rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.75rem;
+  --text-hero: 1.75rem;
+  --leading-tight: 1.2;
+  --leading-snug: 1.4;
+  --leading-body: 1.5;
+  --leading-normal: 1.6;
+  --tracking-tight: -0.02em;
+  --tracking-clock: -0.04em;
+  --weight-regular: 400;
+  --weight-medium: 500;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-16: 4rem;
+
+  /* Layout */
+  --page-max-width: 760px;
+  --gutter: 20px;
+  --measure: 65ch;
+  --bar-height: 64px;
+  --bar-offset: 18px;
+  --shell-gap: 10px;
+  --shell-pad-top: 50px;
+  --shell-pad: 32px;
+  --inset: 2px;
+  --card-pad: 32px;
+  --hero-card-pad: 44px;
+  --gap-work: 24px;
+  --avatar: 90px;
+  --icon-button: 32px;
+  --button-height: 40px;
+  --button-pad-x: 20px;
+
+  /* Shape */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-icon: 10px;
+  --radius-image: 12px;
+  --radius-button: 12px;
+  --radius-card: 20px;
+  --radius-shell: 22px;
+  --radius-pill: 999px;
+
+  /* Elevation */
+  --shadow-primary:
+    inset 0 1px 3px 0 rgb(255 255 255 / 30%), 0 0 0 1px #3730a3, 0 1.5px 3px 0 rgb(55 48 163 / 14%),
+    0 4px 4px 0 rgb(31 31 31 / 7%), 0 12px 6px 0 rgb(31 31 31 / 4%), 0 16px 8px 0 rgb(31 31 31 / 1%);
+  --shadow-secondary:
+    inset 0 2px 2px 0 #fff, 0 12px 12px -6px rgb(41 41 41 / 4%), 0 6px 6px -3px rgb(41 41 41 / 4%),
+    0 3px 3px -1.5px rgb(41 41 41 / 2%), 0 0 0 1px #e5e7eb;
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --marquee-duration: 30s;
+}
+
+@media (width < 40rem) {
+  :root {
+    --shell-pad: 20px;
+    --card-pad: 24px;
+    --hero-card-pad: 24px;
+  }
+}

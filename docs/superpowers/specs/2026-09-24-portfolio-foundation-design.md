@@ -68,7 +68,7 @@ this section is amended in writing, never quietly.
 | # | Floor | Enforced by |
 |---|---|---|
 | 1 | Lighthouse (mobile) on every page: Performance ≥ 95; Accessibility, Best Practices and SEO = 100 | Lighthouse, every PR |
-| 2 | Per page: JS ≤ 5 KB, CSS ≤ 20 KB, fonts ≤ 2 files and ≤ 100 KB, total ≤ 500 KB (CV excluded) | Playwright page-weight check |
+| 2 | Per page, brotli-compressed as visitors download them: JS ≤ 6 KB, CSS ≤ 9 KB (measured uncompressed until 2026-09-26, §15), fonts ≤ 2 files and ≤ 100 KB, total ≤ 500 KB (CV excluded) | Playwright page-weight check |
 | 3 | No requests to any third-party origin | CSP + Playwright page-weight check |
 | 4 | Lab metrics: LCP ≤ 2.5 s, CLS ≤ 0.1, TBT ≤ 100 ms | Lighthouse |
 | 5 | WCAG 2.2 AA: zero axe violations in light and dark schemes, plus a manual keyboard-only and screen-reader pass (VoiceOver or NVDA) on the home page and one case study before launch | Playwright + axe; release checklist |
@@ -273,6 +273,8 @@ for little spam protection.
 
 - **MFA:** GitHub, Cloudflare and, later, the registrar use a passkey or authenticator app, never SMS.
   Recovery codes are stored offline.
+- **Branches:** `dev` is where work happens and is the repository's default branch. `main` is the
+  release branch; production deploys from it.
 - **Branch ruleset on `main`:**
   - require a pull request
   - require the `ci` status checks to pass
@@ -280,7 +282,12 @@ for little spam protection.
   - block force pushes and deletion
   - nobody on the bypass list
   - zero required approvals, because GitHub doesn't let an owner approve their own PR
-- **Merges:** squash merge only, linear history.
+- **Branch ruleset on `dev`:** block force pushes and deletion. Direct pushes are allowed; CI runs on
+  every push.
+- **Merges:** a release is a pull request from `dev` into `main`, merged with a merge commit. Don't
+  squash or rebase a release: that rewrites commits that `dev` keeps, so the two branches drift apart
+  and every later release pull request shows old changes again. Short-lived branches merged into
+  `dev` may be squashed.
 - **Cloudflare:** its GitHub app is installed on this repository only, and no Cloudflare API tokens are
   created. Cloudflare's deployment history is the audit trail and the rollback mechanism.
 - **GitHub security features:** secret scanning with push protection, Dependabot alerts, and CodeQL
@@ -299,7 +306,7 @@ for little spam protection.
   - `minimumReleaseAge: 10080`, so a version must be seven days old before it can be installed
   - an explicit allow-list for dependencies that need build scripts
 - CI installs with `--frozen-lockfile` and fails on `pnpm audit --audit-level=high`.
-- Dependabot runs weekly for npm and GitHub Actions, groups its updates and uses `cooldown` with
+- Dependabot runs weekly for npm and GitHub Actions against `dev`, groups its updates and uses `cooldown` with
   `default-days: 7`.
 - Dependencies are limited to the list in §10.
 
@@ -310,6 +317,8 @@ for little spam protection.
 - A CAA record limits issuance to the certificate authorities Cloudflare uses.
 - No dangling DNS records.
 - `*.workers.dev` is redirected to the domain or disabled.
+- Cloudflare zone features that rewrite HTML stay off: Email Address Obfuscation, Rocket Loader and
+  automatic Web Analytics injection. Each injects a script the CSP would block.
 - Only then consider HSTS `preload`.
 
 ### Disclosure and privacy
@@ -323,11 +332,14 @@ for little spam protection.
 ## 8. Build and deployment
 
 ```
-branch ─► pull request ─┬─► GitHub Actions: ci.yml (§9)
-                        └─► Cloudflare: preview build; preview URL posted as a PR comment
-         squash-merge (checks green, branch up to date)
+work ─► dev ─┬─► GitHub Actions: ci.yml (§9) on every push
+             └─► Cloudflare: preview build of dev (staging)
+release: pull request dev → main ─► ci.yml must pass (branch up to date) ─► merge commit
 main ─► Cloudflare Workers Builds ─► production on *.workers.dev
 ```
+
+Work lands on `dev` directly, or through a short-lived branch and pull request into `dev` for bigger
+pieces. Cloudflare's preview build of `dev` is the staging site.
 
 **Environment modes**
 
@@ -414,7 +426,7 @@ regression tests (until the design settles), load testing (the CDN absorbs load)
 
 | Kind | Allowed |
 |---|---|
-| Runtime / build | `astro`, `@astrojs/mdx`, `@astrojs/sitemap` (Astro brings `sharp`) |
+| Runtime / build | `astro`, `@astrojs/mdx`, `@astrojs/sitemap`, `sharp` (Astro's image service; pnpm doesn't hoist it, so it's a direct dependency) |
 | Dev | `typescript`, `@astrojs/check`, `@types/node`, `wrangler`, `prettier`, `prettier-plugin-astro`, `stylelint`, `stylelint-config-standard`, `postcss-html`, `@playwright/test`, `@axe-core/playwright`, `lighthouse`, `chrome-launcher` |
 | CI actions (SHA-pinned) | `actions/checkout`, `pnpm/action-setup`, `actions/setup-node`, `lycheeverse/lychee-action` (CodeQL runs as GitHub's default setup, not a workflow) |
 
@@ -455,7 +467,8 @@ Each of these is out of v1. If one is added, it follows these rules.
 1. Read this spec. Don't re-decide §3.
 2. Write an implementation plan and get the owner's approval before building.
 3. Write tests first for `lib/` helpers and for each end-to-end flow.
-4. Every change goes branch → PR → CI green → preview checked → squash-merge.
+4. Work lands on `dev` (directly or through a short-lived branch), CI goes green and the `dev` preview is
+   checked. A release is a pull request from `dev` into `main`, merged with a merge commit once CI passes.
 5. Stop and ask the owner before:
    - adding a dependency not in §10
    - adding any third-party request
@@ -512,3 +525,24 @@ several assumptions were out of date:
 | Vitest → **`node --test`** | Node 24 runs TypeScript natively, so unit tests need no dependency at all. |
 | **`@types/node`** added | Needed to type-check the Node-based tests and config files. |
 | `security.txt` is a **static file** | It's less fragile than generating it from a dot-directory route. Tests enforce the same guarantees: the expiry window and a `Contact` that matches the site's email. The optional `Canonical` field is dropped. |
+
+**2026-09-25, owner decision.** The repository uses two long-lived branches: `dev`, where work happens
+and the default branch, and `main`, for releases. It replaces "branch → PR → squash-merge into `main`":
+
+| Change | Reason |
+|---|---|
+| `dev` + `main` branch model | The owner wants a working branch separate from the release branch. `dev` gets a Cloudflare preview (staging). `main` stays production and the build-mode logic is unchanged. |
+| CI also runs on pushes to `dev`; Dependabot targets `dev` | Checks run where work happens, and updates reach `main` only through a release. |
+| Releases merge with a **merge commit**; squash-only is dropped | Squashing or rebasing `dev` into `main` rewrites commits `dev` keeps, so the branches drift apart and later release pull requests re-show old changes. |
+
+**2026-09-25, CSS budget.** Floor 2's CSS budget rises from 20 KB to 28 KB per page (uncompressed; about 7 KB compressed). The owner approved the change when the designed home page reached 21.3 KB, so the rise-on-scroll, hero effects and animated cards could stay. `tests/support/page-weight.ts` enforces the new value.
+
+**2026-09-26, CSS budget.** Floor 2's CSS budget rises again, from 28 KB to 32 KB per page (uncompressed; about 6 KB brotli-compressed). The owner approved it when the watch-face clock and the Show / Hide section toggles took the home page to 29.8 KB, after dead CSS and unused tokens had already been removed. The Lighthouse floors still guard real-world speed.
+
+**2026-09-26, CSS measured compressed.** Floor 2's CSS budget now measures what visitors download: each page's stylesheets and inline styles, brotli-compressed file by file, at most 8 KB. The owner chose this when the Skills section and the About pills took the home page to 34.8 KB uncompressed (6.7 KB compressed), so the budget tracks the real cost instead of needing a new raise with every feature. Later the same day JavaScript moved to the same measure, at most 6 KB compressed (about 2.3 KB then, against 5,069 of the old 5,120 decoded bytes), when the owner asked for the testimonial rotation and the engagement features without further budget rounds. Fonts keep their decoded-size budget. `tests/support/page-weight.ts` enforces both. At the v1 launch the CSS limit rose to 9 KB compressed: the weather scenes and the pause-animations control took the home page to 8.3 KB, of which about 0.9 KB is the testimonials section's styling, shipped even while every quote is a placeholder and the section is hidden.
+
+**2026-09-25, GitHub Pages preview.** At the owner's request, `.github/workflows/pages.yml` deploys the `dev` branch to GitHub Pages as a preview (noindex, placeholders visible) at `https://buildwithmuj.github.io/Personal-Portfolio/`. Its deploy job is the only place any workflow has write access, and only `pages: write` and `id-token: write`, which GitHub Pages requires; `tests/unit/workflows.test.ts` enforces that. The build sets `PAGES_SITE` and `PAGES_BASE`; every internal link goes through `withBase()` (`src/lib/paths.ts`), and the All work page moved to `/projects` so it cannot clash with the `/work/<slug>` folder on Pages. Cloudflare remains the production host.
+
+**2026-09-26, v1 launches on GitHub Pages.** The owner launched v1 before buying a domain, so GitHub Pages becomes the live site until the move to Cloudflare. `pages.yml` now builds `main` in production mode (indexable; placeholder testimonials and draft case studies hidden) on every push to `main`, and rebuilds hourly so London's weather, fetched at build time from Open-Meteo, stays current. Pages hosts one site per repository, so the `dev` preview ends. `pages.yml` runs from `workflow_run` after `ci` succeeds for a push to `main` in this repository, so changes go live only once CI passes, and it checks out the commit CI tested (hourly and manual builds take `main`). `tests/unit/workflows.test.ts` pins all of this, and CI builds the site under the `/Personal-Portfolio` base and fails on any internal URL that skips it. The owner chose to ship three known placeholders: the voice intro audio, the CV PDF, and the drafted case-study stories with stock images. The `# PLACEHOLDER` guard in `astro.config.ts` still runs only for Cloudflare builds.
+
+Accepted for the GitHub Pages period (floor 7, threat 4): Pages serves only its own headers, so `public/_headers` has no effect. Missing: `Content-Security-Policy: frame-ancestors`, `X-Frame-Options`, `X-Content-Type-Options`, `Permissions-Policy`, and COOP and CORP; the MDN Observatory A+ is not reachable. The CSP itself still applies through its `<meta>` tag, and `<meta name="referrer">` restores the referrer policy. The residual risk is low: the site is static, with no sign-in, no forms and nothing a framed page could trick a visitor into changing; the booking frame loads Cal.com in its own origin. `security.txt` is published under the base path, not at the host root RFC 9116 expects. The header tests still run against the Cloudflare emulator and guard the later move. Recommended but outside the code: a `main` ruleset that blocks force pushes and requires the `ci` check. The repository's default branch is `main`, not the `dev` that §7 describes.

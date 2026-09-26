@@ -1,0 +1,169 @@
+import { defineCollection } from 'astro:content';
+import { file, glob } from 'astro/loaders';
+import { z } from 'astro/zod';
+import { caseStudyStatuses } from './lib/case-studies.ts';
+import { socialPlatforms } from './lib/social.ts';
+
+const httpsUrl = z
+  .url()
+  .refine((value) => value.startsWith('https://'), { message: 'Must be an https:// URL' });
+
+const publicImage = z
+  .string()
+  .regex(/^\/[\w./-]+\.(?:png|jpg)$/, 'A root-relative path to a PNG or JPEG in public/');
+
+const sectionCopy = z.object({ heading: z.string().min(1), intro: z.string().min(1) });
+
+const profile = defineCollection({
+  loader: file('src/content/profile.yaml'),
+  schema: z.object({
+    name: z.string().min(1),
+    jobTitle: z.string().min(1),
+    worksFor: z.string().min(1),
+    titleTagline: z.string().min(1),
+    roles: z.array(z.string().min(1)).min(1).max(6),
+    headline: z.string().min(1),
+    subline: z.string().min(1),
+    about: z.string().min(1),
+    interests: z.string().min(1),
+    proof: z.object({ label: z.string().min(1), items: z.array(z.string().min(1)).min(1) }),
+    stats: z
+      .array(
+        z.object({
+          value: z.string().regex(/^\d+/, 'Start with a number, e.g. "9+"'),
+          label: z.string().min(1),
+        }),
+      )
+      .min(1)
+      .max(4),
+    // Short personality words for the About card's pills.
+    traits: z.array(z.string().min(1).max(24)).max(12).default([]),
+    sections: z.object({
+      work: sectionCopy,
+      skills: sectionCopy,
+      method: sectionCopy,
+      testimonials: sectionCopy,
+      experience: sectionCopy,
+      contact: sectionCopy,
+    }),
+    email: z.email(),
+    bookingUrl: httpsUrl.refine((value) => value.startsWith('https://cal.com/'), {
+      message: 'Must be a Cal.com event URL (https://cal.com/…)',
+    }),
+    avatar: publicImage.optional(),
+    voiceIntro: z
+      .string()
+      .regex(
+        /^\/[\w./-]+\.(?:mp3|m4a|ogg|wav)$/,
+        'A root-relative path to an audio file in public/',
+      )
+      .optional(),
+    timeZone: z.string().min(1).default('Europe/London'),
+    locationLabel: z.string().min(1),
+    coordinates: z
+      .object({ latitude: z.number().min(-90).max(90), longitude: z.number().min(-180).max(180) })
+      .optional(),
+    socials: z.array(z.object({ platform: z.enum(socialPlatforms), url: httpsUrl })),
+    cvUpdated: z.coerce.date(),
+    seo: z.object({
+      description: z.string().min(1).max(160),
+      image: publicImage,
+      imageAlt: z.string().min(1),
+    }),
+  }),
+});
+
+const caseStudies = defineCollection({
+  loader: glob({
+    pattern: '*/index.mdx',
+    base: './src/content/case-studies',
+    // The folder name is the slug (foundation spec §6).
+    generateId: ({ entry }) => entry.split('/')[0] ?? entry,
+  }),
+  schema: ({ image }) =>
+    z
+      .object({
+        title: z.string().min(1),
+        role: z.string().min(1),
+        timeframe: z.string().min(1),
+        summary: z.string().min(1).max(160),
+        cover: image(),
+        coverAlt: z.string().min(1),
+        kind: z.enum(['client', 'product']),
+        sector: z.string().min(1).optional(),
+        status: z.enum(caseStudyStatuses).optional(),
+        employer: z.string().min(1).optional(),
+        tags: z.array(z.string().min(1)).default([]),
+        links: z.array(z.object({ label: z.string().min(1), url: httpsUrl })).default([]),
+        featured: z.boolean().default(false),
+        order: z.number().int().default(100),
+        draft: z.boolean().default(false),
+      })
+      .superRefine((data, ctx) => {
+        if (data.kind === 'client' && !data.sector) {
+          ctx.addIssue({ code: 'custom', path: ['sector'], message: 'Client work needs a sector' });
+        }
+        if (data.kind === 'product' && !data.status) {
+          ctx.addIssue({ code: 'custom', path: ['status'], message: 'Own products need a status' });
+        }
+      }),
+});
+
+const method = defineCollection({
+  loader: file('src/content/method.yaml'),
+  schema: z.object({
+    track: z.enum(['process', 'product']),
+    order: z.number().int(),
+    title: z.string().min(1),
+    description: z.string().min(1),
+    tags: z.array(z.string().min(1)).min(1),
+  }),
+});
+
+const testimonials = defineCollection({
+  loader: file('src/content/testimonials.yaml'),
+  schema: z.object({
+    name: z.string().min(1),
+    role: z.string().min(1),
+    quote: z.string().min(1).max(320),
+    // Required, so no quote can reach the live site without stating whether it is real.
+    placeholder: z.boolean(),
+  }),
+});
+
+const yearMonth = z.string().regex(/^\d{4}-\d{2}$/, 'Use YYYY-MM');
+
+const experience = defineCollection({
+  loader: file('src/content/experience.yaml'),
+  schema: z.object({
+    employer: z.string().min(1),
+    role: z.string().min(1),
+    start: yearMonth,
+    end: yearMonth.optional(),
+    summary: z.string().min(1),
+  }),
+});
+
+const skills = defineCollection({
+  loader: file('src/content/skills.yaml'),
+  schema: z.object({
+    intro: z.string().min(1),
+    skills: z.array(z.string().min(1)).min(1),
+    certifications: z.array(z.string().min(1)),
+  }),
+});
+
+const pages = defineCollection({
+  loader: glob({ pattern: '*.md', base: './src/content/pages' }),
+  schema: z.object({ title: z.string().min(1), description: z.string().min(1).max(160) }),
+});
+
+export const collections = {
+  profile,
+  caseStudies,
+  method,
+  testimonials,
+  experience,
+  skills,
+  pages,
+};

@@ -1,0 +1,117 @@
+---
+import '../styles/tokens.css';
+import '../styles/global.css';
+import { Font } from 'astro:assets';
+import Seo from '../components/Seo.astro';
+import Footer from '../components/Footer.astro';
+import ScrollTop from '../components/ScrollTop.astro';
+import TopBar from '../components/TopBar.astro';
+import { getProfile } from '../lib/content.ts';
+import { isProduction } from '../lib/mode.ts';
+import { withBase } from '../lib/paths.ts';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: { url: string; alt: string };
+  type?: 'website' | 'article';
+  structuredData?: string;
+  noindex?: boolean;
+}
+
+const { title, description, image, type = 'website', structuredData, noindex } = Astro.props;
+const profile = await getProfile();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- GitHub Pages can't send headers; this one works from markup (spec §15, 2026-09-26). -->
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <script>
+      // A visitor who paused animations (the hero's button) keeps them paused on every page. It runs
+      // in the head, before any component script reads the state, and before anything moves.
+      try {
+        if (localStorage.getItem('motion') === 'paused') {
+          document.documentElement.classList.add('motion-paused');
+        }
+      } catch {
+        // Storage can be blocked; animations then run as normal.
+      }
+    </script>
+    <Font cssVariable="--font-mona" preload />
+    <link rel="icon" href={withBase('/favicon.ico')} sizes="32x32" />
+    <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={withBase('/apple-touch-icon.png')} />
+    <Seo
+      {...(title ? { title } : {})}
+      siteName={profile.name}
+      headline={profile.titleTagline}
+      path={Astro.url.pathname}
+      description={description ?? profile.seo.description}
+      image={image ?? { url: withBase(profile.seo.image), alt: profile.seo.imageAlt }}
+      noindex={noindex === true || !isProduction}
+      type={type}
+      {...(structuredData ? { structuredData } : {})}
+    />
+  </head>
+  <body id="page-top">
+    <a class="skip-link" href="#main">
+      Skip to content
+    </a>
+    <div class="container page">
+      <TopBar profile={profile} />
+      <main id="main" tabindex="-1" class="stack">
+        <slot />
+      </main>
+      <Footer name={profile.name} />
+    </div>
+    <ScrollTop />
+    <script>
+      // Scroll reveals (global.css). Anything already on screen stays put; the rest rises in on entry.
+      if (
+        !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+        'IntersectionObserver' in window
+      ) {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (!entry.isIntersecting) continue;
+              entry.target.classList.add('in');
+              observer.unobserve(entry.target);
+            }
+          },
+          { rootMargin: '0px 0px -8% 0px' },
+        );
+        for (const element of document.querySelectorAll('[data-reveal]')) {
+          if (element.getBoundingClientRect().top < window.innerHeight) element.classList.add('in');
+          else observer.observe(element);
+        }
+        document.documentElement.classList.add('reveal-ready');
+      }
+
+      // A soft indigo light follows the pointer across the grey section frames (global.css).
+      if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        document.addEventListener(
+          'pointermove',
+          (event) => {
+            const shell = (event.target as Element).closest<HTMLElement>('.shell');
+            if (!shell) return;
+            const box = shell.getBoundingClientRect();
+            shell.style.setProperty('--glow-x', `${event.clientX - box.left}px`);
+            shell.style.setProperty('--glow-y', `${event.clientY - box.top}px`);
+          },
+          { passive: true },
+        );
+      }
+    </script>
+  </body>
+</html>
+
+<style>
+  .page {
+    padding-block-start: var(--bar-offset);
+  }
+</style>

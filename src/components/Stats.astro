@@ -1,0 +1,110 @@
+---
+interface Props {
+  stats: { value: string; label: string }[];
+}
+
+const { stats } = Astro.props;
+---
+
+<dl class="stats">
+  {stats.map((stat) => (
+    <div data-reveal="rise">
+      <dt>{stat.label}</dt>
+      <dd data-count>{stat.value}</dd>
+    </div>
+  ))}
+</dl>
+
+<script>
+  // Counts each stat up from zero the first time it's seen; the HTML always holds the final value.
+  const counters = document.querySelectorAll<HTMLElement>('[data-count]');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function countUp(element: HTMLElement): void {
+    const match = /^(\d+)(.*)$/.exec(element.textContent ?? '');
+    if (!match) return;
+    const target = Number(match[1]);
+    const suffix = match[2] ?? '';
+    const start = performance.now();
+    const step = (now: number) => {
+      const progress = Math.min(1, (now - start) / 1200);
+      element.textContent = `${Math.round(target * (1 - (1 - progress) ** 3))}${suffix}`;
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  if (!reduced && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          observer.unobserve(entry.target);
+          countUp(entry.target as HTMLElement);
+        }
+      },
+      { threshold: 0.6 },
+    );
+    counters.forEach((counter) => observer.observe(counter));
+  }
+</script>
+
+<style>
+  /* Large numbers in an indigo-to-violet blend, with hairlines between the columns. */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-6) 0;
+  }
+
+  /* Reversed so the number shows above its label; flex-end keeps every number on the top line. */
+  .stats > div {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: var(--space-2);
+    justify-content: flex-end;
+    padding-inline: var(--space-4);
+    border-inline-start: 1px solid var(--color-hairline);
+  }
+
+  .stats > div:first-child {
+    padding-inline-start: 0;
+    border: 0;
+  }
+
+  dt {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  dd {
+    align-self: flex-start;
+    margin: 0;
+    background: var(--gradient-stat);
+    background-clip: text;
+    color: transparent;
+    font-size: clamp(2rem, 1.5rem + 1.6vw, 2.5rem);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-tight);
+    line-height: 1;
+  }
+
+  @media (width < 40rem) {
+    .stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stats > div {
+      padding-inline: var(--space-3);
+    }
+
+    .stats > div:nth-child(odd) {
+      padding-inline-start: 0;
+      border: 0;
+    }
+
+    dt {
+      font-size: var(--text-xs);
+    }
+  }
+</style>
