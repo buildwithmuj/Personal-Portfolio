@@ -52,3 +52,10 @@ test('Tab reaches every link and button on the home page', async ({ page, browse
   expect(reached.has(-1)).toBe(false);
   expect(reached.size).toBe(count);
 });
+
+test('no source code leaks into the rendered page', async ({ page }) => {
+  for (const path of ['/', '/projects', '/privacy', '/work/this-site']) {
+    await page.goto(path);
+    await expect(page.locator('body')).not.toContainText(/\bimport\s+\S+\s+from\s+['"]/);
+  }
+});

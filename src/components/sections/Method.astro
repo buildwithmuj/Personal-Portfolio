@@ -47,14 +47,18 @@ const tracks = (['process', 'product'] as const).map((track) => ({
   /* Measured from the reference's "Services I provide" cards. */
   .steps {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--inset);
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--space-4);
     padding: 0;
     list-style: none;
   }
 
-  .steps > li:last-child:nth-child(odd) {
-    grid-column: 1 / -1;
+  .steps > li {
+    grid-column: span 2;
+  }
+
+  .steps > li:nth-child(n + 4) {
+    grid-column: span 3;
   }
 
   /* The Process optimisation | Building products switch picks which track shows. */
@@ -142,6 +146,21 @@ const tracks = (['process', 'product'] as const).map((track) => ({
   @media (prefers-reduced-motion: reduce) {
     .step::before {
       animation: none;
+    }
+  }
+
+  @media (width < 56rem) {
+    .steps {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .steps > li,
+    .steps > li:nth-child(n + 4) {
+      grid-column: auto;
+    }
+
+    .steps > li:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
     }
   }
 

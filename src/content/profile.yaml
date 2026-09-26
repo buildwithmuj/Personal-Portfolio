@@ -56,7 +56,7 @@ main:
       intro: Hiring, or have a process that needs untangling? Book a call or send me an email.
   email: hello@example.com # PLACEHOLDER: the address to publish
   bookingUrl: https://cal.com/mujtaba.shah/30min
-  avatar: /avatar.jpg
+  avatar: /portrait.jpg
   voiceIntro: /audio/intro.wav # PLACEHOLDER: record the real voice intro
   timeZone: Europe/London
   locationLabel: London

@@ -6,34 +6,25 @@ interface Props {
   headingLevel?: 1 | 2;
   intro?: string;
   labelledBy?: string;
-  join?: 'top' | 'bottom';
-  inset?: boolean;
-  hero?: boolean;
+  /** Tinted bands alternate with white ones down the page. */
+  tint?: boolean;
 }
 
-const {
-  id,
-  heading,
-  headingLevel = 2,
-  intro,
-  labelledBy,
-  join,
-  inset = false,
-  hero = false,
-} = Astro.props;
+const { id, heading, headingLevel = 2, intro, labelledBy, tint = false } = Astro.props;
 const headingId = `${id}-heading`;
 const Heading = headingLevel === 1 ? 'h1' : 'h2';
 const words = heading?.split(/\s+/) ?? [];
+const hasAside = Boolean(intro) || Astro.slots.has('actions');
 ---
 
 <section
   id={id}
-  class:list={['shell', { 'shell-inset': inset, 'shell-hero': hero }, join && `shell-join-${join}`]}
+  class:list={['band', { 'band-tint': tint }]}
   aria-labelledby={heading ? headingId : labelledBy}
 >
-  {heading && (
-    <header class="section-head" data-reveal="heading">
-      <div class="section-title">
+  <div class="container">
+    {heading && (
+      <header class="section-head" data-reveal="heading">
         <Heading id={headingId}>
           {words.map((word, index) => (
             <>
@@ -44,10 +35,14 @@ const words = heading?.split(/\s+/) ?? [];
             </>
           ))}
         </Heading>
-        {intro && <p>{intro}</p>}
-      </div>
-      <slot name="actions" />
-    </header>
-  )}
-  <slot />
+        {hasAside && (
+          <div class="section-aside">
+            {intro && <p>{intro}</p>}
+            <slot name="actions" />
+          </div>
+        )}
+      </header>
+    )}
+    <slot />
+  </div>
 </section>

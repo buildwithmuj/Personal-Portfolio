@@ -8,6 +8,8 @@
   /* Colour */
   --color-page: #fff;
   --color-shell: #f3f4f6;
+  --color-tint: #f7f7fd;
+  --color-hairline: #e6e6f0;
   --color-surface: #fff;
   --color-text: #0a0a0a;
   --color-text-muted: #4a4f54;
@@ -28,7 +30,7 @@
   --color-on-inverse-muted: rgb(255 255 255 / 80%);
   --color-border: #e5e7eb;
   --color-separator: #9ca3af;
-  --color-nav: rgb(242 243 245 / 80%);
+  --color-nav: rgb(255 255 255 / 82%);
   --color-status-bg: #e2f9dd;
   --color-status-text: #137300;
   --color-focus: #4f46e5;
@@ -44,6 +46,8 @@
   --text-xl: 1.25rem;
   --text-2xl: 1.75rem;
   --text-hero: 1.75rem;
+  --text-h2: clamp(1.75rem, 1.2rem + 1.8vw, 2.75rem);
+  --text-display: clamp(2.25rem, 1.1rem + 3.8vw, 4.25rem);
   --leading-tight: 1.2;
   --leading-snug: 1.4;
   --leading-body: 1.5;
@@ -63,8 +67,9 @@
   --space-16: 4rem;
 
   /* Layout */
-  --page-max-width: 760px;
-  --gutter: 20px;
+  --page-max-width: 1120px;
+  --gutter: 32px;
+  --section-pad: 112px;
   --measure: 65ch;
   --bar-height: 64px;
   --bar-offset: 18px;
@@ -110,6 +115,8 @@
 
 @media (width < 40rem) {
   :root {
+    --gutter: 20px;
+    --section-pad: 64px;
     --shell-pad: 20px;
     --card-pad: 24px;
     --card-pad-sm: 24px;
