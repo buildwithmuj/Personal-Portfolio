@@ -30,6 +30,10 @@
   --color-nav: rgb(242 243 245 / 80%);
   --color-focus: #4f46e5;
   --color-grid-line: rgb(79 70 229 / 9%);
+  --watch-metal-light: #d4d6de;
+  --watch-metal-dark: #45474f;
+  --watch-glare: rgb(255 255 255 / 16%);
+  --watch-shadow: rgb(15 23 42 / 28%);
 
   /* Type */
   --font-sans: var(--font-mona);

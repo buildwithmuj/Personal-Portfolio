@@ -36,7 +36,9 @@ test('the skip link comes first and moves focus to main', async ({ page, browser
 test('Tab reaches every link and button on the home page', async ({ page, browserName }) => {
   test.skip(browserName === 'webkit', 'WebKit does not move focus to links with Tab by default');
   await page.goto('/');
-  const focusable = 'a[href]:visible, button:visible, summary:visible, input[type="radio"]:checked';
+  // Radios count once per group (the checked one); a collapsed section's controls are skipped.
+  const focusable =
+    'a[href]:visible, button:visible, summary:visible, input[type="radio"]:checked:visible';
   const count = await page.locator(focusable).count();
   const reached = new Set<number>();
   for (let i = 0; i < count; i++) {

@@ -51,38 +51,67 @@ const minute = parts.find((part) => part.type === 'minute')?.value ?? '00';
 </script>
 
 <style>
-  /* A tiny Apple Watch-style digital face, with a crown on the right. */
+  /* A tiny Apple Watch-style face: a brushed-metal bezel around a black glass screen. */
   .watch {
     position: relative;
     display: inline-grid;
     place-items: center;
-    min-width: 54px;
-    height: 30px;
-    padding-inline: 9px;
-    border-radius: 10px;
-    background: var(--color-inverse);
-    box-shadow: 0 1px 3px var(--color-grid-line);
-    color: var(--color-accent-light);
-    font-size: var(--text-clock);
+    min-width: 60px;
+    height: 32px;
+    padding-inline: 10px;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    background:
+      linear-gradient(var(--color-inverse), var(--color-inverse)) padding-box,
+      linear-gradient(
+          150deg,
+          var(--watch-metal-light),
+          var(--watch-metal-dark) 50%,
+          var(--watch-metal-light)
+        )
+        border-box;
+    box-shadow: 0 3px 8px -2px var(--watch-shadow);
+    color: var(--color-on-inverse);
+    font-size: var(--text-sm);
     font-variant-numeric: tabular-nums;
-    font-weight: 600;
-    letter-spacing: 0.03em;
+    font-weight: var(--weight-medium);
+    letter-spacing: 0.02em;
     line-height: 1;
   }
 
-  .watch::after {
+  /* The glass catches a soft light across its top. */
+  .watch::before {
     position: absolute;
-    inset-block-start: 9px;
-    inset-inline-end: -3px;
-    width: 3px;
-    height: 10px;
-    border-radius: 0 2px 2px 0;
-    background: var(--color-inverse);
+    inset: 0;
+    border-radius: 10px;
+    background: linear-gradient(165deg, var(--watch-glare), transparent 45%);
     content: '';
   }
 
-  /* Flex drops the whitespace between the digits and the colon. */
+  /* The ridged digital crown, with the side button beneath it. */
+  .watch::after {
+    position: absolute;
+    inset-block-start: 4px;
+    inset-inline-end: -5px;
+    width: 3px;
+    height: 8px;
+    border-radius: 0 2px 2px 0;
+    background: repeating-linear-gradient(
+      var(--watch-metal-light) 0 1px,
+      var(--watch-metal-dark) 1px 2px
+    );
+    box-shadow: 0 12px 0 var(--watch-metal-dark);
+    content: '';
+  }
+
+  /* Flex drops the whitespace between the digits and the colon; the digits sit above the glare. */
   time {
+    position: relative;
     display: inline-flex;
+  }
+
+  .colon {
+    padding-inline: 1px;
+    color: var(--color-accent-light);
   }
 </style>

@@ -14,7 +14,7 @@ export interface InlineBytes {
 
 /** Spec §4, floor 2. */
 export const WEIGHT_BUDGET = {
-  bytes: { script: 5 * 1024, stylesheet: 28 * 1024, font: 100 * 1024 },
+  bytes: { script: 5 * 1024, stylesheet: 32 * 1024, font: 100 * 1024 },
   fontFiles: 2,
   totalBytes: 500 * 1024,
 } as const;

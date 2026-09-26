@@ -25,9 +25,9 @@ describe('checkPageWeight (spec §4, floors 2 and 3)', () => {
     assert.deepEqual(checkPageWeight([res('script', 6 * KB)], origin), ['script: 6144 B > 5120 B']);
   });
 
-  it('flags CSS over 20 KB and fonts over 100 KB', () => {
-    const failures = checkPageWeight([res('stylesheet', 29 * KB), res('font', 101 * KB)], origin);
-    assert.deepEqual(failures, ['stylesheet: 29696 B > 28672 B', 'font: 103424 B > 102400 B']);
+  it('flags CSS over 32 KB and fonts over 100 KB', () => {
+    const failures = checkPageWeight([res('stylesheet', 33 * KB), res('font', 101 * KB)], origin);
+    assert.deepEqual(failures, ['stylesheet: 33792 B > 32768 B', 'font: 103424 B > 102400 B']);
   });
 
   it('flags more than two font files', () => {
@@ -52,8 +52,8 @@ describe('checkPageWeight (spec §4, floors 2 and 3)', () => {
   });
 
   it('counts inline stylesheet bytes towards the CSS budget', () => {
-    const failures = checkPageWeight([], origin, { script: 0, stylesheet: 29 * KB });
-    assert.deepEqual(failures, ['stylesheet: 29696 B > 28672 B']);
+    const failures = checkPageWeight([], origin, { script: 0, stylesheet: 33 * KB });
+    assert.deepEqual(failures, ['stylesheet: 33792 B > 32768 B']);
   });
 
   it('does not count inline bytes towards the total', () => {

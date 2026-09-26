@@ -136,10 +136,50 @@ a {
   gap: 6px;
 }
 
-/* On phones the switch drops below the heading. */
+.section-head:has(> .collapse) {
+  grid-template-columns: 1fr auto auto;
+}
+
+/* A collapsed section keeps only its title and toggle. */
+.section-head:has(+ [hidden]) {
+  margin-block-end: 0;
+}
+
+.section-head:has(+ [hidden]) > :not(.section-title, .collapse) {
+  display: none;
+}
+
+/* The Show / Hide toggle is a secondary button with a chevron. */
+.collapse {
+  gap: var(--space-1);
+  padding-inline: var(--space-3) var(--space-4);
+}
+
+.collapse svg {
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.collapse[aria-expanded='false'] svg {
+  transform: rotate(180deg);
+}
+
+/* On phones the switch drops below the heading, and the toggle stays beside it. */
 @media (width < 40rem) {
   .section-head {
     grid-template-columns: 1fr;
+  }
+
+  .section-head:has(> .collapse) {
+    grid-template-columns: 1fr auto;
+  }
+
+  .section-head > :not(.section-title, .collapse) {
+    grid-column: 1 / -1;
+  }
+
+  .collapse {
+    grid-area: 1 / 2;
+    align-self: start;
   }
 }
 
