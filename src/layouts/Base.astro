@@ -4,6 +4,7 @@ import '../styles/global.css';
 import { Font } from 'astro:assets';
 import Seo from '../components/Seo.astro';
 import Footer from '../components/Footer.astro';
+import ScrollTop from '../components/ScrollTop.astro';
 import TopBar from '../components/TopBar.astro';
 import { getProfile } from '../lib/content.ts';
 import { isProduction } from '../lib/mode.ts';
@@ -43,7 +44,7 @@ const profile = await getProfile();
       {...(structuredData ? { structuredData } : {})}
     />
   </head>
-  <body>
+  <body id="page-top">
     <a class="skip-link" href="#main">
       Skip to content
     </a>
@@ -54,6 +55,7 @@ const profile = await getProfile();
       </main>
       <Footer name={profile.name} />
     </div>
+    <ScrollTop />
     <script>
       // Scroll reveals (global.css). Anything already on screen stays put; the rest rises in on entry.
       if (

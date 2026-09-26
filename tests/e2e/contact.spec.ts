@@ -26,10 +26,7 @@ test('the contact section offers email, CV, socials and booking', async ({ page 
     'href',
     `mailto:${EMAIL}`,
   );
-  await expect(contact.getByRole('link', { name: 'Download CV' })).toHaveAttribute(
-    'href',
-    '/cv.pdf',
-  );
+  await expect(contact.getByRole('link', { name: 'View CV' })).toHaveAttribute('href', '/cv');
   for (const platform of ['LinkedIn', 'X', 'TikTok', 'GitHub']) {
     await expect(contact.getByRole('link', { name: platform, exact: true })).toHaveCount(1);
   }
@@ -121,4 +118,13 @@ test('security.txt lists the same email as the site', async ({ page, request, br
   const mailto = await page.locator('#contact a[href^="mailto:"]').first().getAttribute('href');
   const securityTxt = await (await request.get('/.well-known/security.txt')).text();
   expect(securityTxt).toContain(`Contact: ${mailto}`);
+});
+
+test('the CV page shows the CV and offers the PDF', async ({ page }) => {
+  await page.goto('/cv');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(NAME);
+  await expect(page.getByRole('region', { name: 'Experience' }).locator('li')).toHaveCount(3);
+  const download = page.getByRole('link', { name: 'Download PDF' });
+  await expect(download).toHaveAttribute('href', '/cv.pdf');
+  await expect(download).toHaveAttribute('download', '');
 });

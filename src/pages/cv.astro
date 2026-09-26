@@ -1,0 +1,209 @@
+---
+import Shell from '../components/Shell.astro';
+import Base from '../layouts/Base.astro';
+import { getExperience, getProfile, getSkills } from '../lib/content.ts';
+import { formatRoleDates } from '../lib/dates.ts';
+import { withBase } from '../lib/paths.ts';
+import { socialLabels } from '../lib/social.ts';
+
+const profile = await getProfile();
+const roles = await getExperience();
+const skills = await getSkills();
+const linkedin = profile.socials.find((social) => social.platform === 'linkedin');
+const cvDate = new Intl.DateTimeFormat('en-GB', {
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'UTC',
+}).format(profile.cvUpdated);
+---
+
+<Base
+  title="CV"
+  description={`The CV of ${profile.name}, ${profile.jobTitle}: experience, skills and certifications.`}
+>
+  <Shell id="cv" labelledBy="cv-name">
+    <div class="card cv-head">
+      <div class="who">
+        <h1 id="cv-name">{profile.name}</h1>
+        <p class="title">
+          {profile.jobTitle}, {profile.worksFor}
+        </p>
+        <p class="muted">Based in {profile.locationLabel}</p>
+      </div>
+      <p class="summary">{profile.about}</p>
+      <ul class="contact" role="list">
+        <li>
+          <a href={`mailto:${profile.email}`}>{profile.email}</a>
+        </li>
+        {linkedin && (
+          <li>
+            <a href={linkedin.url}>{socialLabels.linkedin}</a>
+          </li>
+        )}
+      </ul>
+      <p class="actions">
+        <a class="btn btn-primary" href={withBase('/cv.pdf')} download>
+          Download PDF
+        </a>
+        <span class="muted">PDF, updated {cvDate}</span>
+      </p>
+    </div>
+  </Shell>
+
+  <Shell id="cv-experience" heading="Experience" intro={profile.sections.experience.intro}>
+    <ol class="card timeline" role="list">
+      {roles.map((role) => (
+        <li>
+          <p class="when">{formatRoleDates(role.start, role.end)}</p>
+          <div>
+            <h3>{role.role}</h3>
+            <p class="employer">{role.employer}</p>
+            <p class="muted">{role.summary}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </Shell>
+
+  <Shell id="cv-skills" heading="Skills & certifications" intro={skills.intro}>
+    <div class="pair">
+      <section class="card" aria-labelledby="cv-skills-list">
+        <h3 id="cv-skills-list">Skills</h3>
+        <ul class="checks" role="list">
+          {skills.skills.map((skill) => (
+            <li>{skill}</li>
+          ))}
+        </ul>
+      </section>
+      <section class="card" aria-labelledby="cv-certifications">
+        <h3 id="cv-certifications">Certifications</h3>
+        <ul class="checks" role="list">
+          {skills.certifications.map((certification) => (
+            <li>{certification}</li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  </Shell>
+</Base>
+
+<style>
+  .cv-head {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .who {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .title {
+    font-size: var(--text-base);
+    font-weight: var(--weight-medium);
+  }
+
+  .muted {
+    color: var(--color-text-muted);
+  }
+
+  .summary {
+    max-width: 38rem;
+    font-size: var(--text-base);
+  }
+
+  .contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-6);
+    padding: 0;
+    list-style: none;
+  }
+
+  .contact a {
+    overflow-wrap: anywhere;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-4);
+    align-items: center;
+    max-width: none;
+  }
+
+  .timeline {
+    display: grid;
+    gap: var(--space-8);
+    margin: 0;
+    list-style: none;
+  }
+
+  .timeline li {
+    display: grid;
+    grid-template-columns: 11rem minmax(0, 1fr);
+    gap: var(--space-2) var(--space-6);
+  }
+
+  .when {
+    color: var(--color-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    line-height: 1.35;
+  }
+
+  .employer {
+    margin-block-end: var(--space-2);
+    color: var(--color-accent);
+    font-weight: var(--weight-medium);
+  }
+
+  .pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  .pair h3 {
+    margin-block-end: var(--space-4);
+  }
+
+  .checks {
+    display: grid;
+    gap: var(--space-3);
+    padding: 0;
+    list-style: none;
+  }
+
+  .checks li {
+    display: flex;
+    gap: var(--space-3);
+    align-items: baseline;
+  }
+
+  /* A small indigo tick before each item. */
+  .checks li::before {
+    flex-shrink: 0;
+    width: 10px;
+    height: 5px;
+    border-block-end: 2px solid var(--color-accent);
+    border-inline-start: 2px solid var(--color-accent);
+    content: '';
+    transform: translateY(-3px) rotate(-45deg);
+  }
+
+  @media (width < 40rem) {
+    .timeline li,
+    .pair {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

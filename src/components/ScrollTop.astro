@@ -1,0 +1,70 @@
+---
+// A back-to-top button, bottom right. Without JavaScript it's a plain link that is always shown;
+// with JavaScript it appears once the visitor has scrolled a screen down the page.
+---
+
+<a class="to-top" href="#page-top" aria-label="Back to top">
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path d="M12 19V5m0 0-6 6m6-6 6 6"></path>
+  </svg>
+</a>
+
+<script>
+  const button = document.querySelector<HTMLAnchorElement>('.to-top');
+  if (button) {
+    button.dataset['hidden'] = '';
+    const update = () => button.toggleAttribute('data-hidden', window.scrollY < window.innerHeight);
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  }
+</script>
+
+<style>
+  .to-top {
+    position: fixed;
+    z-index: 9;
+    inset-block-end: var(--space-6);
+    inset-inline-end: var(--space-6);
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    box-shadow: var(--shadow-primary);
+    color: var(--color-on-accent);
+    transition:
+      opacity var(--duration-base) var(--ease-standard),
+      transform var(--duration-base) var(--ease-standard),
+      visibility var(--duration-base);
+  }
+
+  .to-top:hover {
+    background: var(--color-accent-hover);
+  }
+
+  /* Hidden near the top; visibility also takes it out of the tab order. */
+  .to-top[data-hidden] {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  @media (width < 40rem) {
+    .to-top {
+      inset-block-end: var(--space-4);
+      inset-inline-end: var(--space-4);
+    }
+  }
+</style>
