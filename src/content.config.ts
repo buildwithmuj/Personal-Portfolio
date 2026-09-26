@@ -60,6 +60,9 @@ const profile = defineCollection({
       .optional(),
     timeZone: z.string().min(1).default('Europe/London'),
     locationLabel: z.string().min(1),
+    coordinates: z
+      .object({ latitude: z.number().min(-90).max(90), longitude: z.number().min(-180).max(180) })
+      .optional(),
     socials: z.array(z.object({ platform: z.enum(socialPlatforms), url: httpsUrl })),
     cvUpdated: z.coerce.date(),
     seo: z.object({

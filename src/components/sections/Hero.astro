@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { withBase } from '../../lib/paths.ts';
+import { currentWeather } from '../../lib/weather.ts';
 import ProofStrip from '../ProofStrip.astro';
 import Shell from '../Shell.astro';
 
@@ -9,12 +10,16 @@ interface Props {
 }
 
 const { profile } = Astro.props;
+// The ambient layer follows London's weather: drifting specks of light, or rain when it rains there.
+const weather =
+  profile.coordinates &&
+  (await currentWeather(profile.coordinates.latitude, profile.coordinates.longitude));
 // Screen readers get every role once, as a sentence; the visible line cycles through them.
 const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).format(profile.roles);
 ---
 
 <Shell id="top" labelledBy="hero-name" hero>
-  <div class="card hero">
+  <div class="card hero" data-weather={weather?.wet ? 'rain' : 'dry'}>
     <div class="identity">
       {profile.avatar && (
         <img class="avatar" src={withBase(profile.avatar)} alt="" width="90" height="90" />
@@ -100,6 +105,56 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     inset: 0;
     background: radial-gradient(60% 70% at 85% 10%, var(--color-accent-glow), transparent 70%);
     content: '';
+  }
+
+  /*
+   * An ambient layer behind the card's content. Dry in London: a few specks of indigo light drift
+   * slowly upwards. Raining in London (as of the last build): soft rain falls instead. Each pattern
+   * repeats every tile, so moving the layer by one tile loops seamlessly. Still under reduced motion.
+   */
+  .hero::after {
+    position: absolute;
+    z-index: -1;
+    inset: 0 0 -240px;
+    background-image:
+      radial-gradient(2px 2px at 20% 30%, var(--color-particle), transparent),
+      radial-gradient(1.5px 1.5px at 70% 60%, var(--color-particle), transparent),
+      radial-gradient(2.5px 2.5px at 45% 85%, var(--color-particle), transparent);
+    background-size: 240px 240px;
+    content: '';
+    pointer-events: none;
+  }
+
+  .hero[data-weather='rain']::after {
+    inset: -120px -10% 0;
+    background-image:
+      radial-gradient(1px 14px at 30% 20%, var(--color-rain), transparent),
+      radial-gradient(1px 10px at 75% 60%, var(--color-rain), transparent),
+      radial-gradient(1px 12px at 55% 90%, var(--color-rain), transparent);
+    background-size: 90px 120px;
+    rotate: 8deg;
+  }
+
+  @keyframes hero-drift {
+    to {
+      translate: 0 -240px;
+    }
+  }
+
+  @keyframes hero-rain {
+    to {
+      translate: 0 120px;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero::after {
+      animation: hero-drift 40s linear infinite;
+    }
+
+    .hero[data-weather='rain']::after {
+      animation: hero-rain 700ms linear infinite;
+    }
   }
 
   .identity {

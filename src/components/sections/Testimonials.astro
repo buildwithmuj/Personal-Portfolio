@@ -58,10 +58,54 @@ const initials = (name: string) =>
             <span class="visually-hidden">{testimonial.name}</span>
           </label>
         ))}
+        {testimonials.length > 1 && (
+          <button class="pause" type="button" hidden>
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path class="when-playing" d="M9 6v12M15 6v12"></path>
+              <path class="when-paused" d="M8 5.5v13l10-6.5z"></path>
+            </svg>
+            <span class="visually-hidden">Pause testimonials</span>
+          </button>
+        )}
       </div>
     </fieldset>
   </div>
 </Shell>
+
+<script>
+  // Moves to the next person every five seconds, in order, looping. It waits while the pointer or
+  // keyboard focus is inside, and the button pauses it; picking someone pauses it too (WCAG 2.2.2).
+  // Never under reduced motion.
+  const spotlight = document.querySelector<HTMLElement>('.spotlight');
+  const button = spotlight?.querySelector<HTMLButtonElement>('.pause');
+  const label = button?.querySelector('span');
+  const radios = [...(spotlight?.querySelectorAll<HTMLInputElement>('.avatars input') ?? [])];
+  if (spotlight && button && label && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const pause = (paused: boolean) => {
+      button.toggleAttribute('data-paused', paused);
+      label.textContent = `${paused ? 'Play' : 'Pause'} testimonials`;
+    };
+    button.hidden = false;
+    button.addEventListener('click', () => pause(!button.hasAttribute('data-paused')));
+    spotlight.addEventListener('change', () => pause(true));
+    window.setInterval(() => {
+      if (button.hasAttribute('data-paused') || spotlight.matches(':hover, :focus-within')) return;
+      const next = radios[(radios.findIndex((radio) => radio.checked) + 1) % radios.length];
+      if (next) next.checked = true;
+    }, 5000);
+  }
+</script>
 
 <style>
   /*
@@ -200,5 +244,30 @@ const initials = (name: string) =>
   input:focus-visible + .avatar {
     outline: 3px solid var(--color-focus);
     outline-offset: 5px;
+  }
+
+  /* Pause / play for the rotation, at the end of the avatar row. */
+  .pause {
+    display: grid;
+    place-items: center;
+    align-self: center;
+    width: 32px;
+    height: 32px;
+    margin-inline-start: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--color-shell);
+    color: var(--color-text);
+    cursor: pointer;
+  }
+
+  .pause:hover {
+    color: var(--color-accent);
+  }
+
+  .pause[data-paused] .when-playing,
+  .pause:not([data-paused]) .when-paused {
+    display: none;
   }
 </style>

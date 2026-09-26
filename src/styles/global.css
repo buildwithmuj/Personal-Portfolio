@@ -115,6 +115,19 @@ a {
   background: var(--color-shell);
 }
 
+/* Under a mouse, a soft indigo light follows the pointer across the frame (Base.astro sets x, y). */
+@media (hover: hover) and (pointer: fine) {
+  .shell:hover {
+    background:
+      radial-gradient(
+        420px circle at var(--glow-x, 50%) var(--glow-y, 0),
+        var(--color-glow),
+        transparent 70%
+      ),
+      var(--color-shell);
+  }
+}
+
 .shell-inset {
   padding: var(--inset);
 }

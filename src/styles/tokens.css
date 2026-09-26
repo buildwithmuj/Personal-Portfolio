@@ -37,6 +37,9 @@
   --watch-shadow: rgb(15 23 42 / 28%);
   --color-on-accent-track: rgb(255 255 255 / 30%);
   --color-key-edge: #d3d6df;
+  --color-glow: rgb(79 70 229 / 12%);
+  --color-particle: rgb(79 70 229 / 35%);
+  --color-rain: rgb(79 70 229 / 30%);
 
   /* Type */
   --font-sans: var(--font-mona);

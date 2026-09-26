@@ -6,7 +6,7 @@ for (const path of [...builtPagePaths(), '/does-not-exist']) {
   test(`${path} stays within the page-weight budget`, async ({ page, browserName }) => {
     test.skip(browserName !== 'chromium', 'Resource sizes do not depend on the browser engine');
     const resources: LoadedResource[] = [];
-    const stylesheets: string[] = [];
+    const files: Record<'script' | 'stylesheet', string[]> = { script: [], stylesheet: [] };
     const pending: Promise<void>[] = [];
     page.on('response', (response) => {
       pending.push(
@@ -14,14 +14,9 @@ for (const path of [...builtPagePaths(), '/does-not-exist']) {
           .body()
           .catch(() => Buffer.alloc(0)) // redirects have no body
           .then((body) => {
-            if (response.request().resourceType() === 'stylesheet') {
-              stylesheets.push(body.toString('utf8'));
-            }
-            resources.push({
-              url: response.url(),
-              type: response.request().resourceType(),
-              bytes: body.length,
-            });
+            const type = response.request().resourceType();
+            if (type === 'script' || type === 'stylesheet') files[type].push(body.toString('utf8'));
+            resources.push({ url: response.url(), type, bytes: body.length });
           }),
       );
     });
@@ -38,17 +33,17 @@ for (const path of [...builtPagePaths(), '/does-not-exist']) {
     });
     await page.waitForLoadState('networkidle');
     await Promise.all(pending);
-    const inline = await page.evaluate(() => {
-      const byteLength = (text: string) => new TextEncoder().encode(text).length;
-      const script = [...document.querySelectorAll('script:not([src])')]
+    // Astro inlines small scripts and styles into the page, so no response carries them.
+    const inline = await page.evaluate(() => ({
+      scripts: [...document.querySelectorAll('script:not([src])')]
         .filter((el) => el.getAttribute('type') !== 'application/ld+json')
-        .reduce((sum, el) => sum + byteLength(el.textContent ?? ''), 0);
-      const styles = [...document.querySelectorAll('style')].map((el) => el.textContent ?? '');
-      return { script, styles };
-    });
-    const css = compressedSize([...stylesheets, ...inline.styles]);
-    expect(
-      checkPageWeight(resources, new URL(BASE_URL).origin, { script: inline.script }, css),
-    ).toEqual([]);
+        .map((el) => el.textContent ?? ''),
+      styles: [...document.querySelectorAll('style')].map((el) => el.textContent ?? ''),
+    }));
+    const compressed = {
+      script: compressedSize([...files.script, ...inline.scripts]),
+      stylesheet: compressedSize([...files.stylesheet, ...inline.styles]),
+    };
+    expect(checkPageWeight(resources, new URL(BASE_URL).origin, compressed)).toEqual([]);
   });
 }

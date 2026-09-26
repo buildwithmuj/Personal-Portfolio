@@ -91,3 +91,21 @@ test('the About card lists the traits as pills that settle in place', async ({ p
   await expect(traits.locator('li')).toHaveText(yamlList('src/content/profile.yaml', 'traits'));
   await expect(traits.locator('li').last()).toHaveCSS('transform', 'none');
 });
+
+test('typing on the keyboard presses the matching skill keycaps', async ({ page }) => {
+  await page.goto('/');
+  await page.keyboard.press('p');
+  const pressed = page.locator('.key.pressed');
+  await expect(pressed.first()).toBeVisible();
+  for (const text of await pressed.allTextContents()) expect(text.trim()).toMatch(/^p/i);
+});
+
+test('a soft light follows the pointer across a section frame', async ({ page }) => {
+  await page.goto('/');
+  const skills = page.locator('#skills');
+  await skills.scrollIntoViewIfNeeded();
+  const box = await skills.boundingBox();
+  if (!box) throw new Error('#skills has no box');
+  await page.mouse.move(box.x + 120, box.y + 60);
+  await expect(skills).toHaveAttribute('style', /--glow-x: 120px/);
+});

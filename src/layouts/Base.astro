@@ -78,6 +78,21 @@ const profile = await getProfile();
         }
         document.documentElement.classList.add('reveal-ready');
       }
+
+      // A soft indigo light follows the pointer across the grey section frames (global.css).
+      if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        document.addEventListener(
+          'pointermove',
+          (event) => {
+            const shell = (event.target as Element).closest<HTMLElement>('.shell');
+            if (!shell) return;
+            const box = shell.getBoundingClientRect();
+            shell.style.setProperty('--glow-x', `${event.clientX - box.left}px`);
+            shell.style.setProperty('--glow-y', `${event.clientY - box.top}px`);
+          },
+          { passive: true },
+        );
+      }
     </script>
   </body>
 </html>

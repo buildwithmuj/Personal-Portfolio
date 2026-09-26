@@ -70,6 +70,8 @@ main:
   voiceIntro: /audio/intro.wav # PLACEHOLDER: record the real voice intro
   timeZone: Europe/London
   locationLabel: London
+  # For the live weather beside the clock and in the hero (fetched when the site builds).
+  coordinates: { latitude: 51.5072, longitude: -0.1276 }
   socials:
     - platform: x
       url: https://x.com/buildwithmuj
