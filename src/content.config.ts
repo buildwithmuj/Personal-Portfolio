@@ -22,7 +22,6 @@ const profile = defineCollection({
     worksFor: z.string().min(1),
     titleTagline: z.string().min(1),
     roles: z.array(z.string().min(1)).min(1).max(6),
-    availability: z.string().min(1).optional(),
     headline: z.string().min(1),
     subline: z.string().min(1),
     about: z.string().min(1),

@@ -18,78 +18,114 @@ const initials = (name: string) =>
 ---
 
 <Shell id="testimonials" heading={heading} intro={intro}>
-  <ul class="quotes" role="list">
-    {testimonials.map((testimonial) => (
-      <li class="quote" data-reveal="rise">
-        <figure>
-          <figcaption>
+  <div class="spotlight">
+    <ul class="quotes" role="list">
+      {testimonials.map((testimonial) => (
+        <li class="quote">
+          <figure>
+            <blockquote>
+              <p>{testimonial.quote}</p>
+            </blockquote>
+            <figcaption>
+              <span class="name">{testimonial.name}</span>
+              <span class="role">{testimonial.role}</span>
+            </figcaption>
+          </figure>
+        </li>
+      ))}
+    </ul>
+    <fieldset class="people">
+      <legend class="visually-hidden">Choose whose words to read</legend>
+      <div class="avatars">
+        {testimonials.map((testimonial, index) => (
+          <label>
+            <input
+              class="visually-hidden"
+              type="radio"
+              name="testimonial"
+              value={String(index)}
+              checked={index === 0}
+            />
             <span class="avatar" aria-hidden="true">
               {initials(testimonial.name)}
             </span>
-            <span class="who">
-              <span class="name">{testimonial.name}</span>
-              <span class="role">{testimonial.role}</span>
-            </span>
-          </figcaption>
-          <blockquote>
-            <p>{testimonial.quote}</p>
-          </blockquote>
-        </figure>
-      </li>
-    ))}
-  </ul>
+            <span class="visually-hidden">{testimonial.name}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  </div>
 </Shell>
 
 <style>
-  /* Measured from the reference's "What Clients Are Saying" cards. */
-  .quotes {
+  /*
+   * A spotlight: one quote at a time, large, with a row of avatars to switch between people.
+   * Native radio buttons do the switching, so it works without JavaScript; browsers without :has()
+   * simply show every quote.
+   */
+  .spotlight {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--inset);
-    padding: 0;
-    list-style: none;
-  }
-
-  .quote {
-    padding: var(--card-pad-sm);
+    gap: var(--space-6);
+    padding: var(--card-pad);
     border-radius: var(--radius-card);
     background: var(--color-surface);
   }
 
-  figcaption {
-    display: flex;
-    gap: var(--space-3);
-    align-items: center;
-    padding-block-end: 15px;
-    border-block-end: 1px solid var(--color-border);
+  .quotes {
+    padding: 0;
+    list-style: none;
   }
 
-  .avatar {
+  .spotlight:has(.avatars > :nth-child(1) input:checked) .quotes > :not(:nth-child(1)),
+  .spotlight:has(.avatars > :nth-child(2) input:checked) .quotes > :not(:nth-child(2)),
+  .spotlight:has(.avatars > :nth-child(3) input:checked) .quotes > :not(:nth-child(3)),
+  .spotlight:has(.avatars > :nth-child(4) input:checked) .quotes > :not(:nth-child(4)),
+  .spotlight:has(.avatars > :nth-child(5) input:checked) .quotes > :not(:nth-child(5)),
+  .spotlight:has(.avatars > :nth-child(6) input:checked) .quotes > :not(:nth-child(6)) {
+    display: none;
+  }
+
+  @keyframes quote-in {
+    from {
+      transform: translateY(12px);
+    }
+  }
+
+  .quote {
+    animation: quote-in 500ms var(--ease-out);
+  }
+
+  figure {
     display: grid;
-    flex-shrink: 0;
-    place-items: center;
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: var(--gradient-avatar-1);
-    color: var(--color-avatar-text);
-    font-size: var(--text-xs);
+    gap: var(--space-6);
+  }
+
+  blockquote {
+    position: relative;
+    margin: 0;
+    padding-block-start: var(--space-8);
+  }
+
+  /* A large indigo quotation mark above the words. */
+  blockquote::before {
+    position: absolute;
+    inset-block-start: -0.35em;
+    inset-inline-start: -0.04em;
+    color: var(--color-accent);
+    content: '\201C';
+    font-size: 4rem;
+    line-height: 1;
+  }
+
+  blockquote p {
+    max-width: 36rem;
+    font-size: clamp(1.25rem, 1.05rem + 0.6vw, 1.5rem);
     font-weight: var(--weight-medium);
+    letter-spacing: -0.015em;
+    line-height: 1.4;
   }
 
-  .quote:nth-child(4n + 2) .avatar {
-    background: var(--gradient-avatar-2);
-  }
-
-  .quote:nth-child(4n + 3) .avatar {
-    background: var(--gradient-avatar-3);
-  }
-
-  .quote:nth-child(4n) .avatar {
-    background: var(--gradient-avatar-4);
-  }
-
-  .who {
+  figcaption {
     display: grid;
   }
 
@@ -99,17 +135,64 @@ const initials = (name: string) =>
 
   .role {
     color: var(--color-text-muted);
+  }
+
+  .people {
+    min-inline-size: 0;
+    margin: 0;
+    padding: var(--space-6) 0 0;
+    border: 0;
+    border-block-start: 1px solid var(--color-hairline);
+  }
+
+  .avatars {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  label {
+    cursor: pointer;
+  }
+
+  .avatar {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--gradient-avatar-1);
+    color: var(--color-avatar-text);
     font-size: var(--text-xs);
-    line-height: var(--leading-snug);
+    font-weight: var(--weight-medium);
+    transition: transform var(--duration-fast) var(--ease-standard);
   }
 
-  blockquote {
-    margin: 24px 0 0;
+  label:nth-child(4n + 2) .avatar {
+    background: var(--gradient-avatar-2);
   }
 
-  @media (width < 40rem) {
-    .quotes {
-      grid-template-columns: 1fr;
-    }
+  label:nth-child(4n + 3) .avatar {
+    background: var(--gradient-avatar-3);
+  }
+
+  label:nth-child(4n) .avatar {
+    background: var(--gradient-avatar-4);
+  }
+
+  label:hover .avatar {
+    transform: scale(1.06);
+  }
+
+  /* The selected person gets an indigo ring. */
+  input:checked + .avatar {
+    box-shadow:
+      0 0 0 3px var(--color-surface),
+      0 0 0 5px var(--color-accent);
+  }
+
+  input:focus-visible + .avatar {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 5px;
   }
 </style>

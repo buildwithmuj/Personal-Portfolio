@@ -11,28 +11,13 @@ interface Props {
 const { profile } = Astro.props;
 // Screen readers get every role once, as a sentence; the visible line cycles through them.
 const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).format(profile.roles);
-const monogram = profile.name
-  .split(/\s+/)
-  .map((part) => part[0] ?? '')
-  .join('')
-  .slice(0, 2);
 ---
 
 <Shell id="top" labelledBy="hero-name" hero>
   <div class="card hero">
-    {profile.availability && (
-      <p class="badge">
-        <span class="dot" aria-hidden="true"></span>
-        {profile.availability}
-      </p>
-    )}
     <div class="identity">
-      {profile.avatar ? (
+      {profile.avatar && (
         <img class="avatar" src={withBase(profile.avatar)} alt="" width="90" height="90" />
-      ) : (
-        <span class="avatar monogram" aria-hidden="true">
-          {monogram}
-        </span>
       )}
       <div>
         <h1 id="hero-name">{profile.name}</h1>
@@ -117,29 +102,6 @@ const monogram = profile.name
     content: '';
   }
 
-  .badge {
-    position: absolute;
-    inset-block-start: var(--space-4);
-    inset-inline-end: var(--space-4);
-    display: inline-flex;
-    gap: var(--space-2);
-    align-items: center;
-    padding: 6px 16px 6px 14px;
-    border-radius: var(--radius-pill);
-    background: var(--color-status-bg);
-    color: var(--color-status-text);
-    font-size: var(--text-xs);
-    font-weight: var(--weight-medium);
-    line-height: var(--leading-snug);
-  }
-
-  .dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentcolor;
-  }
-
   .identity {
     display: flex;
     gap: var(--space-4);
@@ -152,15 +114,6 @@ const monogram = profile.name
     height: var(--avatar);
     border-radius: 50%;
     object-fit: cover;
-  }
-
-  .monogram {
-    display: grid;
-    place-items: center;
-    background: var(--color-shell);
-    color: var(--color-text);
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-medium);
   }
 
   h1 {
