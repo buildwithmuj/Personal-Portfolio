@@ -109,16 +109,19 @@ There are two long-lived branches:
    for bigger pieces. Every push to `dev` runs the checks. To see work in progress, run
    `pnpm dev` (drafts and placeholder testimonials show there). GitHub Pages hosts one site, the live
    one, so there is no online preview of `dev`.
-2. **Release.** Merge `dev` into `main` with a **merge commit**, not a squash or rebase, so `dev` and
-   `main` keep a shared history.
+2. **Release.** Open a pull request from `dev` into `main`
+   (<https://github.com/buildwithmuj/Personal-Portfolio/compare/main...dev>). The `main` ruleset only
+   accepts pull requests whose `ci` check has passed. Merge with **Create a merge commit**, not a
+   squash or rebase, so `dev` and `main` keep a shared history.
 3. **Go live.** CI runs on `main`; when it passes, `pages.yml` builds `main` in production mode and
    deploys it to GitHub Pages. It also rebuilds every hour so London's weather, fetched at build time,
    stays current. GitHub pauses that schedule after 60 days without activity; re-enable it in the
    Actions tab if the weather stops changing.
 
-To roll back, revert the release's merge commit on `main` (`git revert -m 1 <merge-sha>`) and push;
-the reverted site goes live once CI passes. Recommended: add a ruleset on `main` (Settings → Rules)
-that blocks force pushes and requires the `ci` check.
+To roll back, revert the release's merge commit (`git revert -m 1 <merge-sha>`) on a branch and merge
+it into `main` through a pull request; the reverted site goes live once CI passes. Rulesets protect
+both branches: neither can be deleted or force-pushed, and `main` needs a pull request with a passing
+`ci` check.
 
 ## Security
 
