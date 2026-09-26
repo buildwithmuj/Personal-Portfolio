@@ -1,0 +1,228 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import { caseStudyLabel } from '../lib/case-studies.ts';
+import { withBase } from '../lib/paths.ts';
+
+interface Props {
+  studies: CollectionEntry<'caseStudies'>[];
+  /** How many projects each tab shows: one featured, the rest as an index. */
+  limit: number;
+}
+
+const { studies, limit } = Astro.props;
+const groups = (['client', 'product'] as const).map((kind) => {
+  const [feature, ...rest] = studies.filter((study) => study.data.kind === kind).slice(0, limit);
+  return { kind, feature, rest };
+});
+---
+
+{groups.map((group) => (
+  <div class="showcase" data-kind={group.kind}>
+    {group.feature && (
+      <article class="feature" data-reveal="rise">
+        <div class="media">
+          <Image
+            src={group.feature.data.cover}
+            alt={group.feature.data.coverAlt}
+            widths={[560, 1120]}
+            sizes="(min-width: 64rem) 620px, 100vw"
+            loading="lazy"
+          />
+        </div>
+        <div class="feature-text">
+          <p class="card-label">{caseStudyLabel(group.feature.data)}</p>
+          <h3 class="feature-title">
+            <a href={withBase(`/work/${group.feature.id}`)}>{group.feature.data.title}</a>
+          </h3>
+          <p class="summary">{group.feature.data.summary}</p>
+          <p class="read" aria-hidden="true">
+            Read the case study
+          </p>
+        </div>
+      </article>
+    )}
+    <ol class="index" role="list">
+      {group.rest.map((study) => (
+        <li class="row" data-reveal="rise">
+          <div class="thumb">
+            <Image src={study.data.cover} alt="" widths={[112, 224]} sizes="112px" loading="lazy" />
+          </div>
+          <div class="row-text">
+            <h3 class="row-title">
+              <a href={withBase(`/work/${study.id}`)}>{study.data.title}</a>
+            </h3>
+            <p class="card-label">{caseStudyLabel(study.data)}</p>
+          </div>
+          <p class="when">{study.data.timeframe}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+))}
+
+<style>
+  /* One featured project, then the rest as an index: a list you scan, not a grid of tiles. */
+  .showcase {
+    display: grid;
+    gap: 56px;
+  }
+
+  /* The Work | Personal projects switch in the section heading picks which showcase shows. */
+  :global(section:has(input[name='work-filter'][value='product']:checked))
+    .showcase[data-kind='client'],
+  :global(section:has(input[name='work-filter'][value='client']:checked))
+    .showcase[data-kind='product'] {
+    display: none;
+  }
+
+  .feature {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 48px;
+    align-items: center;
+  }
+
+  .media,
+  .thumb {
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--color-surface);
+  }
+
+  .media img,
+  .thumb img {
+    width: 100%;
+    object-fit: cover;
+    transition: scale var(--duration-base) var(--ease-standard);
+  }
+
+  .media img {
+    aspect-ratio: 4 / 3;
+  }
+
+  .feature-text {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+  }
+
+  .card-label {
+    color: var(--color-text-muted);
+  }
+
+  .feature-title {
+    font-size: clamp(1.5rem, 1.1rem + 1.2vw, 2.125rem);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+
+  .summary {
+    color: var(--color-text-muted);
+    font-size: var(--text-base);
+  }
+
+  .read {
+    color: var(--color-accent);
+    font-weight: var(--weight-medium);
+    text-decoration: underline;
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.25em;
+  }
+
+  .index {
+    padding: 0;
+    border-block-end: 1px solid var(--color-hairline);
+    list-style: none;
+  }
+
+  .row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr) auto;
+    gap: var(--space-6);
+    align-items: center;
+    padding-block: var(--space-6);
+    border-block-start: 1px solid var(--color-hairline);
+  }
+
+  .thumb {
+    border-radius: var(--radius-image);
+  }
+
+  .thumb img {
+    aspect-ratio: 4 / 3;
+  }
+
+  .row-text {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .row-title {
+    font-size: var(--text-lg);
+    line-height: 1.35;
+  }
+
+  .when {
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+  .feature-title a,
+  .row-title a {
+    color: var(--color-text);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  /* The whole feature and each whole row are clickable; each link's name stays the title. */
+  .feature-title a::after,
+  .row-title a::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+  }
+
+  .feature-title a:focus-visible,
+  .row-title a:focus-visible {
+    outline: none;
+  }
+
+  .feature:has(a:focus-visible),
+  .row:has(a:focus-visible) {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 6px;
+    border-radius: var(--radius-image);
+  }
+
+  /* Hover states last, so they win over the base rules above. */
+  .feature:hover .media img,
+  .row:hover .thumb img {
+    scale: 1.03;
+  }
+
+  .feature:hover .feature-title a,
+  .row:hover .row-title a {
+    color: var(--color-accent);
+  }
+
+  @media (width < 56rem) {
+    .feature {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+  }
+
+  @media (width < 40rem) {
+    .row {
+      grid-template-columns: 88px minmax(0, 1fr);
+      gap: var(--space-4);
+    }
+
+    .when {
+      display: none;
+    }
+  }
+</style>

@@ -27,116 +27,145 @@ const tracks = (['process', 'product'] as const).map((track) => ({
     ]}
   />
   {tracks.map((group) => (
-    <ol class="steps" role="list" data-track={group.track}>
-      {group.steps.map((step, index) => (
-        <li class="card step" data-reveal="rise">
-          <span class="number" aria-hidden="true">
-            {String(index + 1).padStart(2, '0')}
-          </span>
-          <div>
+    <div class="flow" data-track={group.track}>
+      <div class="rail" aria-hidden="true">
+        <span class="pulse"></span>
+      </div>
+      <ol class="steps" role="list">
+        {group.steps.map((step, index) => (
+          <li class="step" data-reveal="rise">
+            <span class="node" aria-hidden="true">
+              {String(index + 1).padStart(2, '0')}
+            </span>
             <h3>{step.title}</h3>
             <p>{step.description}</p>
-          </div>
-        </li>
-      ))}
-    </ol>
+          </li>
+        ))}
+      </ol>
+    </div>
   ))}
 </Shell>
 
 <style>
-  /* Measured from the reference's "Services I provide" cards. */
+  /*
+   * A process flow: numbered nodes on one line, with a pulse of light travelling along it like work
+   * moving through an automation. Left to right on wide screens, top to bottom on phones.
+   */
+  .flow {
+    --node: 60px;
+
+    position: relative;
+  }
+
+  /* The Processes | Products switch picks which track shows. */
+  :global(section:has(input[name='method-track'][value='product']:checked))
+    .flow[data-track='process'],
+  :global(section:has(input[name='method-track'][value='process']:checked))
+    .flow[data-track='product'] {
+    display: none;
+  }
+
+  .rail {
+    position: absolute;
+    inset-block-start: calc(var(--node) / 2 - 1px);
+    inset-inline: calc(var(--node) / 2) calc(100% / 5 - var(--node) / 2);
+    height: 2px;
+    overflow: hidden;
+    background: var(--color-hairline);
+  }
+
+  .pulse {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 30%;
+    background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+    animation: pulse 3.6s var(--ease-standard) infinite;
+  }
+
+  @keyframes pulse {
+    from {
+      transform: translateX(-100%);
+    }
+
+    to {
+      transform: translateX(340%);
+    }
+  }
+
   .steps {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: var(--space-4);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--space-6);
     padding: 0;
     list-style: none;
   }
 
-  .steps > li {
-    grid-column: span 2;
-  }
-
-  .steps > li:nth-child(n + 4) {
-    grid-column: span 3;
-  }
-
-  /* The Process optimisation | Building products switch picks which track shows. */
-  :global(section:has(input[name='method-track'][value='product']:checked))
-    .steps[data-track='process'],
-  :global(section:has(input[name='method-track'][value='process']:checked))
-    .steps[data-track='product'] {
-    display: none;
-  }
-
   .step {
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+  }
+
+  /* Each node is a small orb with the same slowly drifting indigo light as the old cards. */
+  .node {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-8);
-    justify-content: space-between;
-    min-height: 240px;
+    display: grid;
+    place-items: center;
+    width: var(--node);
+    height: var(--node);
+    margin-block-end: var(--space-4);
     overflow: hidden;
     isolation: isolate;
+    border: 1px solid var(--color-hairline);
+    border-radius: 50%;
+    background: var(--color-surface);
+    box-shadow: 0 0 0 6px var(--color-page);
+    color: var(--color-accent);
+    font-weight: var(--weight-medium);
   }
 
-  /*
-   * A slowly drifting indigo glow in the top half of each card. It fades out before the title and
-   * description, so the text always sits on the plain card. Only transform animates (composited).
-   */
-  .step::before {
+  .node::before {
     position: absolute;
     z-index: -1;
-    inset: -40% -20% 30%;
+    inset: -30%;
     background:
-      radial-gradient(45% 60% at 78% 38%, var(--color-blob-1), transparent 70%),
-      radial-gradient(40% 55% at 52% 22%, var(--color-blob-2), transparent 70%),
-      radial-gradient(40% 50% at 95% 70%, var(--color-blob-3), transparent 70%);
+      radial-gradient(40% 40% at 70% 30%, var(--color-blob-1), transparent 70%),
+      radial-gradient(40% 40% at 30% 70%, var(--color-blob-2), transparent 70%);
     content: '';
-    mask-image: linear-gradient(to bottom, var(--color-text) 50%, transparent 85%);
-    animation: drift 14s ease-in-out infinite alternate;
+    opacity: 0.9;
+    animation: drift 8s ease-in-out infinite alternate;
   }
 
-  .step:nth-child(2)::before {
-    animation-direction: alternate-reverse;
+  .step:nth-child(2) .node::before {
+    animation-delay: -2s;
+  }
+
+  .step:nth-child(3) .node::before {
     animation-delay: -4s;
   }
 
-  .step:nth-child(3)::before {
-    animation-delay: -8s;
+  .step:nth-child(4) .node::before {
+    animation-delay: -6s;
   }
 
-  .step:nth-child(4)::before {
-    animation-direction: alternate-reverse;
-    animation-delay: -11s;
-  }
-
-  .step:nth-child(5)::before {
-    animation-delay: -2s;
+  .step:nth-child(5) .node::before {
+    animation-delay: -1s;
   }
 
   @keyframes drift {
     from {
-      transform: translate3d(-6%, -4%, 0) rotate(0deg) scale(1);
+      transform: rotate(0deg) scale(1);
     }
 
     to {
-      transform: translate3d(6%, 5%, 0) rotate(14deg) scale(1.15);
+      transform: rotate(160deg) scale(1.15);
     }
   }
 
-  .number {
-    color: var(--color-accent);
-    font-size: var(--text-2xl);
-    letter-spacing: -0.01em;
-    line-height: var(--leading-tight);
-  }
-
   h3 {
-    margin-block-end: var(--space-4);
-    font-size: var(--text-xl);
-    font-weight: var(--weight-regular);
-    line-height: var(--leading-snug);
+    font-size: var(--text-lg);
+    line-height: 1.3;
   }
 
   p {
@@ -144,33 +173,56 @@ const tracks = (['process', 'product'] as const).map((track) => ({
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .step::before {
+    .pulse,
+    .node::before {
       animation: none;
     }
+
+    .pulse {
+      display: none;
+    }
   }
 
+  /* Phones and narrow screens: the flow runs top to bottom, with the rail on the left. */
   @media (width < 56rem) {
-    .steps {
-      grid-template-columns: repeat(2, 1fr);
+    .rail {
+      inset-block: calc(var(--node) / 2) calc(var(--node) * 1.5);
+      inset-inline: calc(var(--node) / 2 - 1px) auto;
+      width: 2px;
+      height: auto;
     }
 
-    .steps > li,
-    .steps > li:nth-child(n + 4) {
-      grid-column: auto;
+    .pulse {
+      inset-inline: 0;
+      width: auto;
+      height: 30%;
+      background: linear-gradient(180deg, transparent, var(--color-accent), transparent);
+      animation-name: pulse-down;
     }
 
-    .steps > li:last-child:nth-child(odd) {
-      grid-column: 1 / -1;
-    }
-  }
+    @keyframes pulse-down {
+      from {
+        transform: translateY(-100%);
+      }
 
-  @media (width < 40rem) {
+      to {
+        transform: translateY(340%);
+      }
+    }
+
     .steps {
       grid-template-columns: 1fr;
+      gap: var(--space-8);
     }
 
     .step {
-      min-height: 200px;
+      grid-template-columns: var(--node) minmax(0, 1fr);
+      column-gap: var(--space-6);
+    }
+
+    .node {
+      grid-row: span 2;
+      margin-block-end: 0;
     }
   }
 </style>

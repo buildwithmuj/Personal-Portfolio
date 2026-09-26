@@ -3,7 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import { withBase } from '../../lib/paths.ts';
 import Shell from '../Shell.astro';
 import Switch from '../Switch.astro';
-import WorkGrid from '../WorkGrid.astro';
+import WorkShowcase from '../WorkShowcase.astro';
 
 interface Props {
   studies: CollectionEntry<'caseStudies'>[];
@@ -24,7 +24,7 @@ const { studies, heading, intro } = Astro.props;
       { value: 'product', label: 'Personal projects' },
     ]}
   />
-  <WorkGrid studies={studies} limit={4} />
+  <WorkShowcase studies={studies} limit={4} />
   <p class="more">
     <a class="btn btn-secondary" href={withBase('/projects')}>
       View all
