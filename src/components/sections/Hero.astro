@@ -117,18 +117,6 @@ const monogram = profile.name
     content: '';
   }
 
-  .hero::after {
-    position: absolute;
-    z-index: -1;
-    inset: 0 0 0 55%;
-    background-image:
-      linear-gradient(var(--color-grid-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--color-grid-line) 1px, transparent 1px);
-    background-size: 64px 64px;
-    content: '';
-    mask-image: radial-gradient(circle at 60% 35%, var(--color-text), transparent 70%);
-  }
-
   .badge {
     position: absolute;
     inset-block-start: var(--space-4);

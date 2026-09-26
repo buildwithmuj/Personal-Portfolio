@@ -21,24 +21,7 @@ const { profile } = Astro.props;
       <span>{profile.about}</span>
     </p>
     <ul class="contact-row" role="list">
-      <li>
-        <svg
-          viewBox="0 0 24 24"
-          width="18"
-          height="18"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-          <path d="m3.5 6.5 8.5 6 8.5-6"></path>
-        </svg>
-        <a href={`mailto:${profile.email}`}>{profile.email}</a>
-      </li>
+      {profile.voiceIntro && <VoiceIntro src={withBase(profile.voiceIntro)} />}
       <li>
         <svg
           viewBox="0 0 24 24"
@@ -58,7 +41,6 @@ const { profile } = Astro.props;
           Download CV
         </a>
       </li>
-      {profile.voiceIntro && <VoiceIntro src={withBase(profile.voiceIntro)} />}
     </ul>
     <Stats stats={profile.stats} />
   </div>
@@ -102,16 +84,6 @@ const { profile } = Astro.props;
     font-size: var(--text-sm);
     letter-spacing: -0.01em;
     line-height: var(--leading-tight);
-  }
-
-  /* The reference separates the items with small grey dots (global: VoiceIntro renders its own li). */
-  .contact-row > :global(li + li)::before {
-    width: 4px;
-    height: 4px;
-    margin-inline-end: 12px;
-    border-radius: 50%;
-    background: var(--color-separator);
-    content: '';
   }
 
   .contact-row svg {
@@ -169,11 +141,6 @@ const { profile } = Astro.props;
   @media (width < 40rem) {
     .about {
       padding: 40px 24px 36px;
-    }
-
-    /* On phones the items wrap onto their own lines, so the separators go. */
-    .contact-row > :global(li + li)::before {
-      display: none;
     }
 
     .contact-row {
