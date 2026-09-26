@@ -115,6 +115,24 @@ const nav = [
       if (menu) menu.open = false;
     });
   }
+
+  // On phones the bar slides away while scrolling down and comes back on the way up, as in the
+  // reference. It stays while its menu is open or while focus is inside it.
+  const bar = document.querySelector<HTMLElement>('.top-bar');
+  const phone = window.matchMedia('(width < 40rem)');
+  if (bar) {
+    let lastY = window.scrollY;
+    window.addEventListener(
+      'scroll',
+      () => {
+        const y = window.scrollY;
+        const busy = bar.querySelector('details[open]') || bar.contains(document.activeElement);
+        bar.toggleAttribute('data-away', phone.matches && !busy && y > lastY && y > 120);
+        lastY = y;
+      },
+      { passive: true },
+    );
+  }
 </script>
 
 <style>
@@ -132,6 +150,21 @@ const nav = [
     border-radius: var(--radius-card);
     background: var(--color-nav);
     backdrop-filter: blur(12px);
+    transition: transform 350ms var(--ease-out);
+  }
+
+  /* A strip in the page colour fills the gap above the bar, so nothing shows through it. */
+  .top-bar::before {
+    position: absolute;
+    inset-inline: calc(-1 * var(--gutter));
+    inset-block-end: 100%;
+    height: var(--bar-offset);
+    background: var(--color-page);
+    content: '';
+  }
+
+  .top-bar[data-away] {
+    transform: translateY(calc(-100% - var(--bar-offset) - 8px));
   }
 
   .where {

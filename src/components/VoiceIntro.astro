@@ -44,25 +44,79 @@ const { src } = Astro.props;
         <path d="M10 9v6M14 9v6"></path>
       </svg>
       <span data-label>Play my intro</span>
+      <span class="bars" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
     </button>
   </voice-intro>
 </li>
 
 <script>
+  // While the intro plays, the label becomes a row of bars that move with the voice: an analyser
+  // reads the audio's loudness per frequency band each frame. Under reduced motion, or without
+  // Web Audio, the label simply reads "Pause intro".
   class VoiceIntro extends HTMLElement {
     connectedCallback(): void {
       const button = this.querySelector('button');
-      const label = this.querySelector('[data-label]');
+      const label = this.querySelector<HTMLElement>('[data-label]');
+      const bars = [...this.querySelectorAll<HTMLElement>('.bars > span')];
       const src = this.dataset['src'];
       if (!button || !label || !src) return;
+      const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       let audio: HTMLAudioElement | undefined;
-      const show = (playing: boolean) => {
-        this.toggleAttribute('data-playing', playing);
-        label.textContent = playing ? 'Pause intro' : 'Play my intro';
+      let analyser: AnalyserNode | undefined;
+      let levels: Uint8Array<ArrayBuffer> | undefined;
+      let frame = 0;
+
+      const draw = () => {
+        if (!analyser || !levels) return;
+        analyser.getByteFrequencyData(levels);
+        bars.forEach((bar, index) => {
+          const level = (levels?.[index + 1] ?? 0) / 255;
+          bar.style.transform = `scaleY(${0.15 + level * 0.85})`;
+        });
+        frame = requestAnimationFrame(draw);
       };
+
+      const listen = (element: HTMLAudioElement) => {
+        if (still || !('AudioContext' in window)) return;
+        const context = new AudioContext();
+        analyser = context.createAnalyser();
+        analyser.fftSize = 64;
+        analyser.smoothingTimeConstant = 0.7;
+        context.createMediaElementSource(element).connect(analyser);
+        analyser.connect(context.destination);
+        levels = new Uint8Array(analyser.frequencyBinCount);
+        element.addEventListener('play', () => void context.resume());
+      };
+
+      const show = (playing: boolean) => {
+        const animate = playing && Boolean(analyser);
+        this.toggleAttribute('data-playing', playing);
+        this.toggleAttribute('data-bars', animate);
+        label.textContent = playing ? 'Pause intro' : 'Play my intro';
+        label.classList.toggle('visually-hidden', animate);
+        cancelAnimationFrame(frame);
+        if (animate) draw();
+      };
+
       button.addEventListener('click', () => {
         if (!audio) {
           audio = new Audio(src);
+          listen(audio);
           audio.addEventListener('play', () => show(true));
           audio.addEventListener('pause', () => show(false));
           audio.addEventListener('ended', () => show(false));
@@ -94,7 +148,7 @@ const { src } = Astro.props;
     color: var(--color-accent);
   }
 
-  button:hover span {
+  button:hover [data-label] {
     text-decoration: underline;
   }
 
@@ -105,5 +159,26 @@ const { src } = Astro.props;
 
   voice-intro[data-playing] .pause {
     display: block;
+  }
+
+  /* The sound bars replace the label while the intro plays. */
+  .bars {
+    display: none;
+    gap: 3px;
+    align-items: center;
+    height: 18px;
+  }
+
+  voice-intro[data-bars] .bars {
+    display: inline-flex;
+  }
+
+  .bars > span {
+    width: 3px;
+    height: 100%;
+    border-radius: 2px;
+    background: var(--color-accent);
+    transform: scaleY(0.15);
+    transition: transform 80ms linear;
   }
 </style>

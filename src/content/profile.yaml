@@ -53,7 +53,7 @@ main:
     contact:
       heading: Let's work together
       intro: Hiring, or have a process that needs untangling? Book a call or send me an email.
-  email: hello@example.com # PLACEHOLDER: the address to publish
+  email: mujtaba.shah@outlook.com
   bookingUrl: https://cal.com/mujtaba.shah/30min
   avatar: /avatar.jpg
   voiceIntro: /audio/intro.wav # PLACEHOLDER: record the real voice intro
