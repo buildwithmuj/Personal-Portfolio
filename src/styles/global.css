@@ -88,58 +88,72 @@ a {
   transform: none;
 }
 
-/*
- * Sections are open, full-width bands. Tinted bands alternate with white ones; two white bands in a
- * row are split by a hairline instead.
- */
-.band {
-  padding-block: var(--section-pad);
+/* The page's column of section shells */
+.stack {
+  display: grid;
+  gap: var(--shell-gap);
 }
 
-.band-tint {
-  background: var(--color-tint);
+.stack > :first-child {
+  padding-block-start: calc(var(--bar-height) + var(--shell-pad));
 }
 
-.band:not(.band-tint) + .band:not(.band-tint) {
-  padding-block-start: 0;
+.shell {
+  padding: var(--shell-pad-top) var(--shell-pad) var(--shell-pad);
+  border-radius: var(--radius-shell);
+  background: var(--color-shell);
 }
 
-.band:not(.band-tint) + .band:not(.band-tint) > .container {
-  padding-block-start: var(--section-pad);
-  border-block-start: 1px solid var(--color-hairline);
+.shell-inset {
+  padding: var(--inset);
+}
+
+.stack > .shell-hero:first-child {
+  padding: calc(var(--bar-height) + var(--inset)) var(--inset) var(--inset);
+}
+
+.shell-join-top {
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.shell-join-bottom {
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+}
+
+.stack > .shell-join-top + .shell-join-bottom {
+  margin-block-start: calc(-1 * var(--shell-gap));
 }
 
 .section-head {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  gap: var(--space-6) var(--space-8);
+  grid-template-columns: 1fr auto;
+  gap: var(--space-4) var(--space-6);
   align-items: end;
-  margin-block-end: 56px;
+  margin-block-end: 40px;
+}
+
+.section-title {
+  display: grid;
+  gap: 6px;
+}
+
+/* On phones the switch drops below the heading. */
+@media (width < 40rem) {
+  .section-head {
+    grid-template-columns: 1fr;
+  }
 }
 
 .section-head :is(h1, h2) {
-  font-size: var(--text-h2);
-  letter-spacing: -0.025em;
-  line-height: 1.1;
+  font-size: var(--text-xl);
 }
 
-.section-aside {
-  display: grid;
-  gap: var(--space-4);
-  justify-items: start;
-}
-
-.section-aside p {
-  max-width: 28rem;
+.section-head p {
+  max-width: 25rem;
   color: var(--color-text-muted);
-  font-size: var(--text-base);
-}
-
-@media (width < 48rem) {
-  .section-head {
-    grid-template-columns: 1fr;
-    margin-block-end: 40px;
-  }
+  font-size: var(--text-sm);
 }
 
 .label {
@@ -150,7 +164,6 @@ a {
 
 .card {
   padding: var(--card-pad);
-  border: 1px solid var(--color-hairline);
   border-radius: var(--radius-card);
   background: var(--color-surface);
 }

@@ -62,11 +62,11 @@ main:
   locationLabel: London
   socials:
     - platform: x
-      url: https://x.com/ # PLACEHOLDER: the X profile URL
+      url: https://x.com/buildwithmuj
     - platform: linkedin
-      url: https://www.linkedin.com/in/mujtaba-shah-028b1a56 # PLACEHOLDER: confirm the profile URL
+      url: https://www.linkedin.com/in/mujtaba-shah-028b1a56
     - platform: tiktok
-      url: https://www.tiktok.com/ # PLACEHOLDER: the TikTok profile URL
+      url: https://www.tiktok.com/@buildwithmuj
     - platform: github
       url: https://github.com/buildwithmuj
   cvUpdated: 2026-09-25

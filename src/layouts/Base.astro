@@ -47,11 +47,11 @@ const profile = await getProfile();
     <a class="skip-link" href="#main">
       Skip to content
     </a>
-    <TopBar profile={profile} />
-    <main id="main" tabindex="-1">
-      <slot />
-    </main>
-    <div class="container">
+    <div class="container page">
+      <TopBar profile={profile} />
+      <main id="main" tabindex="-1" class="stack">
+        <slot />
+      </main>
       <Footer name={profile.name} />
     </div>
     <script>
@@ -79,3 +79,9 @@ const profile = await getProfile();
     </script>
   </body>
 </html>
+
+<style>
+  .page {
+    padding-block-start: var(--bar-offset);
+  }
+</style>

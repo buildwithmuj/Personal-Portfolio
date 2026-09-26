@@ -37,8 +37,10 @@ const tracks = (['process', 'product'] as const).map((track) => ({
             <span class="node" aria-hidden="true">
               {String(index + 1).padStart(2, '0')}
             </span>
-            <h3>{step.title}</h3>
-            <p>{step.description}</p>
+            <div class="step-body">
+              <h3>{step.title}</h3>
+              <p>{step.description}</p>
+            </div>
           </li>
         ))}
       </ol>
@@ -48,11 +50,11 @@ const tracks = (['process', 'product'] as const).map((track) => ({
 
 <style>
   /*
-   * A process flow: numbered nodes on one line, with a pulse of light travelling along it like work
-   * moving through an automation. Left to right on wide screens, top to bottom on phones.
+   * A process flow: numbered nodes down one line, with a pulse of light travelling along it like
+   * work moving through an automation. It sits in the section's grey frame.
    */
   .flow {
-    --node: 60px;
+    --node: 56px;
 
     position: relative;
   }
@@ -67,60 +69,68 @@ const tracks = (['process', 'product'] as const).map((track) => ({
 
   .rail {
     position: absolute;
-    inset-block-start: calc(var(--node) / 2 - 1px);
-    inset-inline: calc(var(--node) / 2) calc(100% / 5 - var(--node) / 2);
-    height: 2px;
+    inset-block: calc(var(--node) / 2) calc(var(--node) * 1.5);
+    inset-inline-start: calc(var(--node) / 2 - 1px);
+    width: 2px;
     overflow: hidden;
     background: var(--color-hairline);
   }
 
   .pulse {
     position: absolute;
-    inset-block: 0;
-    inset-inline-start: 0;
-    width: 30%;
-    background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+    inset-inline: 0;
+    inset-block-start: 0;
+    height: 30%;
+    background: linear-gradient(180deg, transparent, var(--color-accent), transparent);
     animation: pulse 3.6s var(--ease-standard) infinite;
   }
 
   @keyframes pulse {
     from {
-      transform: translateX(-100%);
+      transform: translateY(-100%);
     }
 
     to {
-      transform: translateX(340%);
+      transform: translateY(340%);
     }
   }
 
   .steps {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: var(--space-6);
+    gap: var(--space-4);
     padding: 0;
     list-style: none;
   }
 
+  /* Each step is a white card beside its node on the line. */
   .step {
     display: grid;
-    gap: var(--space-2);
-    align-content: start;
+    grid-template-columns: var(--node) minmax(0, 1fr);
+    column-gap: var(--space-6);
+    align-items: center;
   }
 
-  /* Each node is a small orb with the same slowly drifting indigo light as the old cards. */
+  .step-body {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-6) var(--card-pad);
+    border-radius: var(--radius-card);
+    background: var(--color-surface);
+  }
+
+  /* Each node is a small orb with the slowly drifting indigo light. */
   .node {
     position: relative;
     display: grid;
     place-items: center;
     width: var(--node);
     height: var(--node);
-    margin-block-end: var(--space-4);
     overflow: hidden;
     isolation: isolate;
     border: 1px solid var(--color-hairline);
     border-radius: 50%;
     background: var(--color-surface);
-    box-shadow: 0 0 0 6px var(--color-page);
+    box-shadow: 0 0 0 6px var(--color-shell);
     color: var(--color-accent);
     font-weight: var(--weight-medium);
   }
@@ -183,46 +193,17 @@ const tracks = (['process', 'product'] as const).map((track) => ({
     }
   }
 
-  /* Phones and narrow screens: the flow runs top to bottom, with the rail on the left. */
-  @media (width < 56rem) {
-    .rail {
-      inset-block: calc(var(--node) / 2) calc(var(--node) * 1.5);
-      inset-inline: calc(var(--node) / 2 - 1px) auto;
-      width: 2px;
-      height: auto;
-    }
-
-    .pulse {
-      inset-inline: 0;
-      width: auto;
-      height: 30%;
-      background: linear-gradient(180deg, transparent, var(--color-accent), transparent);
-      animation-name: pulse-down;
-    }
-
-    @keyframes pulse-down {
-      from {
-        transform: translateY(-100%);
-      }
-
-      to {
-        transform: translateY(340%);
-      }
-    }
-
-    .steps {
-      grid-template-columns: 1fr;
-      gap: var(--space-8);
+  @media (width < 40rem) {
+    .flow {
+      --node: 44px;
     }
 
     .step {
-      grid-template-columns: var(--node) minmax(0, 1fr);
-      column-gap: var(--space-6);
+      column-gap: var(--space-4);
     }
 
-    .node {
-      grid-row: span 2;
-      margin-block-end: 0;
+    .step-body {
+      padding: var(--space-4) var(--space-4) var(--space-4) var(--space-6);
     }
   }
 </style>

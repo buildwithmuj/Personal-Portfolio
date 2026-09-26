@@ -17,7 +17,7 @@ const initials = (name: string) =>
     .slice(0, 2);
 ---
 
-<Shell id="testimonials" heading={heading} intro={intro} tint>
+<Shell id="testimonials" heading={heading} intro={intro}>
   <ul class="quotes" role="list">
     {testimonials.map((testimonial) => (
       <li class="quote" data-reveal="rise">
@@ -45,14 +45,13 @@ const initials = (name: string) =>
   .quotes {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-4);
+    gap: var(--inset);
     padding: 0;
     list-style: none;
   }
 
   .quote {
     padding: var(--card-pad-sm);
-    border: 1px solid var(--color-hairline);
     border-radius: var(--radius-card);
     background: var(--color-surface);
   }
