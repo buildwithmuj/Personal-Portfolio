@@ -4,34 +4,43 @@ interface Props {
 }
 
 const { timeZone } = Astro.props;
-// Without JavaScript the clock shows the build time, without seconds (content spec §5.1).
-const buildTime = new Intl.DateTimeFormat('en-US', {
+// The build-time local time; with JavaScript it keeps ticking (content spec §5.1).
+const parts = new Intl.DateTimeFormat('en-GB', {
   hour: '2-digit',
   minute: '2-digit',
-  hour12: true,
+  hour12: false,
   timeZone,
-}).format(new Date());
+}).formatToParts(new Date());
+const hour = parts.find((part) => part.type === 'hour')?.value ?? '00';
+const minute = parts.find((part) => part.type === 'minute')?.value ?? '00';
 ---
 
-<live-clock data-time-zone={timeZone}>
-  <time>{buildTime}</time>
+<live-clock class="watch" data-time-zone={timeZone}>
+  <time>
+    <span data-hour>{hour}</span>
+    <span class="colon">:</span>
+    <span data-minute>{minute}</span>
+  </time>
 </live-clock>
 
 <script>
+  // A small digital watch face: hours and minutes in the owner's time zone.
   class LiveClock extends HTMLElement {
     connectedCallback(): void {
-      const time = this.querySelector('time');
+      const hour = this.querySelector('[data-hour]');
+      const minute = this.querySelector('[data-minute]');
       const timeZone = this.dataset['timeZone'];
-      if (!time || !timeZone) return;
-      const format = new Intl.DateTimeFormat('en-US', {
+      if (!hour || !minute || !timeZone) return;
+      const format = new Intl.DateTimeFormat('en-GB', {
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit',
-        hour12: true,
+        hour12: false,
         timeZone,
       });
       const tick = () => {
-        time.textContent = format.format(new Date());
+        const parts = format.formatToParts(new Date());
+        hour.textContent = parts.find((part) => part.type === 'hour')?.value ?? '';
+        minute.textContent = parts.find((part) => part.type === 'minute')?.value ?? '';
       };
       tick();
       window.setInterval(tick, 1000);
@@ -40,3 +49,40 @@ const buildTime = new Intl.DateTimeFormat('en-US', {
 
   customElements.define('live-clock', LiveClock);
 </script>
+
+<style>
+  /* A tiny Apple Watch-style digital face, with a crown on the right. */
+  .watch {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    min-width: 54px;
+    height: 30px;
+    padding-inline: 9px;
+    border-radius: 10px;
+    background: var(--color-inverse);
+    box-shadow: 0 1px 3px var(--color-grid-line);
+    color: var(--color-accent-light);
+    font-size: var(--text-clock);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    line-height: 1;
+  }
+
+  .watch::after {
+    position: absolute;
+    inset-block-start: 9px;
+    inset-inline-end: -3px;
+    width: 3px;
+    height: 10px;
+    border-radius: 0 2px 2px 0;
+    background: var(--color-inverse);
+    content: '';
+  }
+
+  /* Flex drops the whitespace between the digits and the colon. */
+  time {
+    display: inline-flex;
+  }
+</style>

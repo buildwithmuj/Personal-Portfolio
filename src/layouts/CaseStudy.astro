@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
+import BackLink from '../components/BackLink.astro';
 import Shell from '../components/Shell.astro';
 import TagList from '../components/TagList.astro';
 import { caseStudyLabel } from '../lib/case-studies.ts';
@@ -25,6 +26,7 @@ const { title, summary, role, timeframe, employer, tags, links, cover, coverAlt 
   structuredData={structuredData}
 >
   <Shell id="case-study" labelledBy="case-study-title">
+    <BackLink slot="lead" />
     <article class="case-study">
       <header class="head">
         <p class="label">{caseStudyLabel(study.data)}</p>

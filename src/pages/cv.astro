@@ -1,4 +1,5 @@
 ---
+import BackLink from '../components/BackLink.astro';
 import Shell from '../components/Shell.astro';
 import Base from '../layouts/Base.astro';
 import { getExperience, getProfile, getSkills } from '../lib/content.ts';
@@ -22,6 +23,7 @@ const cvDate = new Intl.DateTimeFormat('en-GB', {
   description={`The CV of ${profile.name}, ${profile.jobTitle}: experience, skills and certifications.`}
 >
   <Shell id="cv" labelledBy="cv-name">
+    <BackLink slot="lead" />
     <div class="card cv-head">
       <div class="who">
         <h1 id="cv-name">{profile.name}</h1>

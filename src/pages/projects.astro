@@ -1,4 +1,5 @@
 ---
+import BackLink from '../components/BackLink.astro';
 import Shell from '../components/Shell.astro';
 import Switch from '../components/Switch.astro';
 import WorkGrid from '../components/WorkGrid.astro';
@@ -11,6 +12,7 @@ const profile = await getProfile();
 
 <Base title="All work" description={`Every case study and personal project by ${profile.name}.`}>
   <Shell id="all-work" heading="All work" headingLevel={1} intro={profile.sections.work.intro}>
+    <BackLink slot="lead" />
     <Switch
       slot="actions"
       name="work-filter"

@@ -13,12 +13,12 @@
   --color-text-muted: #4a4f54;
   --color-accent: #4f46e5;
   --color-accent-hover: #4338ca;
+  --color-accent-light: #a5b4fc;
   --color-on-accent: #fff;
   --color-accent-glow: rgb(79 70 229 / 14%);
   --color-avatar-text: #fff;
   --color-blob-1: rgb(79 70 229 / 75%);
   --color-blob-2: rgb(139 92 246 / 65%);
-  --color-blob-3: rgb(56 189 248 / 50%);
   --gradient-avatar-1: linear-gradient(135deg, #4f46e5, #7c3aed);
   --gradient-avatar-2: linear-gradient(135deg, #1d4ed8, #4f46e5);
   --gradient-avatar-3: linear-gradient(135deg, #7c3aed, #be185d);
@@ -26,9 +26,7 @@
   --color-inverse: #0a0a0a;
   --color-on-inverse: #fff;
   --color-on-inverse-muted: rgb(255 255 255 / 80%);
-  --color-border: #e5e7eb;
   --color-hairline: #e3e4ea;
-  --color-separator: #9ca3af;
   --color-nav: rgb(242 243 245 / 80%);
   --color-focus: #4f46e5;
   --color-grid-line: rgb(79 70 229 / 9%);
@@ -72,7 +70,6 @@
   --shell-pad: 32px;
   --inset: 2px;
   --card-pad: 32px;
-  --card-pad-sm: 28px;
   --hero-card-pad: 44px;
   --gap-work: 24px;
   --gap-pair: 10px;
@@ -111,7 +108,6 @@
   :root {
     --shell-pad: 20px;
     --card-pad: 24px;
-    --card-pad-sm: 24px;
     --hero-card-pad: 24px;
   }
 }

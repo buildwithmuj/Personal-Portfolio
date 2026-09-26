@@ -6,7 +6,6 @@ interface Props {
   headingLevel?: 1 | 2;
   intro?: string;
   labelledBy?: string;
-  join?: 'top' | 'bottom';
   inset?: boolean;
   hero?: boolean;
 }
@@ -17,7 +16,6 @@ const {
   headingLevel = 2,
   intro,
   labelledBy,
-  join,
   inset = false,
   hero = false,
 } = Astro.props;
@@ -28,9 +26,10 @@ const words = heading?.split(/\s+/) ?? [];
 
 <section
   id={id}
-  class:list={['shell', { 'shell-inset': inset, 'shell-hero': hero }, join && `shell-join-${join}`]}
+  class:list={['shell', { 'shell-inset': inset, 'shell-hero': hero }]}
   aria-labelledby={heading ? headingId : labelledBy}
 >
+  <slot name="lead" />
   {heading && (
     <header class="section-head" data-reveal="heading">
       <div class="section-title">

@@ -28,15 +28,6 @@ body {
   line-height: var(--leading-body);
 }
 
-/* A soft cloudscape in the brand's lavenders sits behind everything, fixed to the viewport. */
-body::before {
-  position: fixed;
-  z-index: -1;
-  inset: 0;
-  background: url('../assets/clouds.webp') center / cover no-repeat;
-  content: '';
-}
-
 img,
 svg {
   display: block;
@@ -72,6 +63,11 @@ a {
 .container {
   width: min(100% - 2 * var(--gutter), var(--page-max-width));
   margin-inline: auto;
+}
+
+/* Elements marked hidden (for example, controls that need JavaScript) always stay hidden. */
+[hidden] {
+  display: none !important;
 }
 
 .visually-hidden {
@@ -125,20 +121,6 @@ a {
 
 .stack > .shell-hero:first-child {
   padding: calc(var(--bar-height) + var(--inset)) var(--inset) var(--inset);
-}
-
-.shell-join-top {
-  border-end-start-radius: 0;
-  border-end-end-radius: 0;
-}
-
-.shell-join-bottom {
-  border-start-start-radius: 0;
-  border-start-end-radius: 0;
-}
-
-.stack > .shell-join-top + .shell-join-bottom {
-  margin-block-start: calc(-1 * var(--shell-gap));
 }
 
 .section-head {

@@ -11,6 +11,7 @@ interface Props {
 }
 
 const { profile } = Astro.props;
+const [emailUser, emailDomain] = profile.email.split('@');
 ---
 
 <Shell
@@ -36,7 +37,8 @@ const { profile } = Astro.props;
         <path d="m3.5 6.5 8.5 6 8.5-6"></path>
       </svg>
       <a class="email" href={`mailto:${profile.email}`}>
-        {profile.email}
+        {emailUser}@<wbr />
+        {emailDomain}
       </a>
       <CopyEmail email={profile.email} />
     </p>
@@ -113,15 +115,17 @@ const { profile } = Astro.props;
   }
 
   .email {
-    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+
+  /* The email line never wraps its copy button onto a second line. */
+  .field:has(.email) {
+    flex-wrap: nowrap;
+    gap: var(--space-2);
   }
 
   .muted {
     color: var(--color-text-muted);
-  }
-
-  .end {
-    margin-inline-start: auto;
   }
 
   .socials {
