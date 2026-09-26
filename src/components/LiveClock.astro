@@ -15,7 +15,7 @@ const hour = parts.find((part) => part.type === 'hour')?.value ?? '00';
 const minute = parts.find((part) => part.type === 'minute')?.value ?? '00';
 ---
 
-<live-clock class="watch" data-time-zone={timeZone}>
+<live-clock class="watch watch-face" data-time-zone={timeZone}>
   <time>
     <span data-hour>{hour}</span>
     <span class="colon">:</span>
@@ -51,7 +51,7 @@ const minute = parts.find((part) => part.type === 'minute')?.value ?? '00';
 </script>
 
 <style>
-  /* A tiny Apple Watch-style face: a brushed-metal bezel around a black glass screen. */
+  /* A tiny Apple Watch-style face (the shared .watch-face), with a crown on the right. */
   .watch {
     position: relative;
     display: inline-grid;
@@ -59,33 +59,12 @@ const minute = parts.find((part) => part.type === 'minute')?.value ?? '00';
     min-width: 60px;
     height: 32px;
     padding-inline: 10px;
-    border: 2px solid transparent;
     border-radius: 12px;
-    background:
-      linear-gradient(var(--color-inverse), var(--color-inverse)) padding-box,
-      linear-gradient(
-          150deg,
-          var(--watch-metal-light),
-          var(--watch-metal-dark) 50%,
-          var(--watch-metal-light)
-        )
-        border-box;
-    box-shadow: 0 3px 8px -2px var(--watch-shadow);
-    color: var(--color-on-inverse);
     font-size: var(--text-sm);
     font-variant-numeric: tabular-nums;
     font-weight: var(--weight-medium);
     letter-spacing: 0.02em;
     line-height: 1;
-  }
-
-  /* The glass catches a soft light across its top. */
-  .watch::before {
-    position: absolute;
-    inset: 0;
-    border-radius: 10px;
-    background: linear-gradient(165deg, var(--watch-glare), transparent 45%);
-    content: '';
   }
 
   /* The ridged digital crown, with the side button beneath it. */
@@ -104,9 +83,8 @@ const minute = parts.find((part) => part.type === 'minute')?.value ?? '00';
     content: '';
   }
 
-  /* Flex drops the whitespace between the digits and the colon; the digits sit above the glare. */
+  /* Flex drops the whitespace between the digits and the colon. */
   time {
-    position: relative;
     display: inline-flex;
   }
 

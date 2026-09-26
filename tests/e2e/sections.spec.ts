@@ -1,28 +1,35 @@
 import { expect, test } from '@playwright/test';
 import { sectionHeading } from '../support/content.ts';
 
-// Long sections can be collapsed; How I work starts collapsed, the others start open.
-test('How I work starts collapsed and opens with its Show button', async ({ page }) => {
+// Long sections can be collapsed with a round toggle (named after the section, announcing whether
+// it's expanded); How I work starts collapsed, the others start open.
+test('How I work starts collapsed and opens with its toggle', async ({ page }) => {
   await page.goto('/');
-  const toggle = page.locator('#method .collapse');
-  await expect(toggle).toHaveAccessibleName(`Show ${sectionHeading('method')}`);
+  const toggle = page.getByRole('button', { name: sectionHeading('method'), exact: true });
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await expect(page.locator('#method-body')).toBeHidden();
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-  await expect(toggle).toHaveAccessibleName(`Hide ${sectionHeading('method')}`);
   await expect(page.locator('#method-body')).toBeVisible();
 });
 
 test('Selected work starts open and can be hidden', async ({ page }) => {
   await page.goto('/');
-  const toggle = page.locator('#work .collapse');
-  await expect(toggle).toHaveAccessibleName(`Hide ${sectionHeading('work')}`);
+  const toggle = page.getByRole('button', { name: sectionHeading('work'), exact: true });
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   await expect(page.locator('#work-body')).toBeVisible();
   await toggle.click();
   await expect(page.locator('#work-body')).toBeHidden();
   // The Work / Personal projects switch hides with the section.
   await expect(page.locator('#work fieldset')).toBeHidden();
+});
+
+test('clicking a collapsible section title toggles it too', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#method .section-title').click();
+  await expect(page.locator('#method-body')).toBeVisible();
+  await page.locator('#method h2').click();
+  await expect(page.locator('#method-body')).toBeHidden();
 });
 
 test.describe('without JavaScript', () => {

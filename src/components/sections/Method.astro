@@ -16,7 +16,13 @@ const tracks = (['process', 'product'] as const).map((track) => ({
 }));
 ---
 
-<Shell id="method" heading={heading} intro={intro} collapsible="closed">
+<Shell
+  id="method"
+  heading={heading}
+  intro={intro}
+  collapsible="closed"
+  icon="M6 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM18 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM6 7v4a3 3 0 0 0 3 3h6a3 3 0 0 1 3 3"
+>
   <Switch
     slot="actions"
     name="method-track"

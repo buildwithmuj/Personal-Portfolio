@@ -17,7 +17,13 @@ const initials = (name: string) =>
     .slice(0, 2);
 ---
 
-<Shell id="testimonials" heading={heading} intro={intro} collapsible="open">
+<Shell
+  id="testimonials"
+  heading={heading}
+  intro={intro}
+  collapsible="open"
+  icon="M10 11H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6c0 2.5-1.5 4-4 5M19 11h-4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6c0 2.5-1.5 4-4 5"
+>
   <div class="spotlight">
     <ul class="quotes" role="list">
       {testimonials.map((testimonial) => (

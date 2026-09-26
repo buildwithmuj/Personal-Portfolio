@@ -8,8 +8,10 @@ interface Props {
   labelledBy?: string;
   inset?: boolean;
   hero?: boolean;
-  /** Adds a Show / Hide toggle to the header; 'closed' starts the section collapsed. */
+  /** Adds a round toggle to the header; 'closed' starts the section collapsed. */
   collapsible?: 'open' | 'closed';
+  /** The toggle's icon while the section is collapsed: SVG path data on a 24 × 24 grid. */
+  icon?: string;
 }
 
 const {
@@ -21,6 +23,7 @@ const {
   inset = false,
   hero = false,
   collapsible,
+  icon,
 } = Astro.props;
 const headingId = `${id}-heading`;
 const bodyId = `${id}-body`;
@@ -52,13 +55,14 @@ const words = heading?.split(/\s+/) ?? [];
       <slot name="actions" />
       {collapsible && (
         <button
-          class="btn btn-secondary collapse"
+          class="collapse"
           type="button"
           aria-expanded="true"
           aria-controls={bodyId}
           data-start={collapsible}
           hidden
         >
+          {/* The section's own icon while it's collapsed; an up chevron (to close it) while open. */}
           <svg
             viewBox="0 0 24 24"
             width="16"
@@ -71,10 +75,10 @@ const words = heading?.split(/\s+/) ?? [];
             aria-hidden="true"
             focusable="false"
           >
-            <path d="m6 15 6-6 6 6"></path>
+            <path class="when-closed" d={icon ?? 'm6 9 6 6 6-6'}></path>
+            <path class="when-open" d="m6 15 6-6 6 6"></path>
           </svg>
-          <span data-label>Hide</span>
-          <span class="visually-hidden">{` ${heading}`}</span>
+          <span class="visually-hidden">{heading}</span>
         </button>
       )}
     </header>
@@ -90,18 +94,19 @@ const words = heading?.split(/\s+/) ?? [];
 
 <script>
   // Collapsible sections. The toggle only appears with JavaScript, so without it every section
-  // stays open; with it, a section marked 'closed' starts collapsed.
+  // stays open; with it, a section marked 'closed' starts collapsed. Clicking the title also
+  // toggles, for a bigger target on phones; the button is the one keyboards and screen readers use.
   for (const button of document.querySelectorAll<HTMLButtonElement>('.collapse')) {
     const body = document.getElementById(button.getAttribute('aria-controls') ?? '');
-    const label = button.querySelector('[data-label]');
-    if (!body || !label) continue;
+    if (!body) continue;
     const show = (open: boolean) => {
       body.hidden = !open;
       button.setAttribute('aria-expanded', String(open));
-      label.textContent = open ? 'Hide' : 'Show';
     };
+    const toggle = () => show(button.ariaExpanded !== 'true');
     show(button.dataset['start'] !== 'closed');
     button.hidden = false;
-    button.addEventListener('click', () => show(button.ariaExpanded !== 'true'));
+    button.addEventListener('click', toggle);
+    button.parentElement?.querySelector('.section-title')?.addEventListener('click', toggle);
   }
 </script>

@@ -136,8 +136,18 @@ a {
   gap: 6px;
 }
 
+/*
+ * Collapsible sections: a small round toggle sits top right, level with the title, with the
+ * section's switch (if any) beneath it. The title is clickable too.
+ */
 .section-head:has(> .collapse) {
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto;
+}
+
+.section-head:has(> .collapse) > .section-title {
+  grid-row: span 2;
+  align-self: start;
+  cursor: pointer;
 }
 
 /* A collapsed section keeps only its title and toggle. */
@@ -149,21 +159,34 @@ a {
   display: none;
 }
 
-/* The Show / Hide toggle is a secondary button with a chevron. */
 .collapse {
-  gap: var(--space-1);
-  padding-inline: var(--space-3) var(--space-4);
-}
-
-.collapse svg {
+  display: grid;
+  grid-area: 1 / 2;
+  place-items: center;
+  place-self: start end;
+  width: 32px;
+  margin-block-start: -4px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-secondary);
+  color: var(--color-accent);
+  cursor: pointer;
   transition: transform var(--duration-fast) var(--ease-standard);
 }
 
-.collapse[aria-expanded='false'] svg {
-  transform: rotate(180deg);
+.collapse:hover {
+  transform: scale(1.08);
 }
 
-/* On phones the switch drops below the heading, and the toggle stays beside it. */
+.collapse[aria-expanded='true'] .when-closed,
+.collapse[aria-expanded='false'] .when-open {
+  display: none;
+}
+
+/* On phones the switch drops below the heading, and the toggle stays beside the title. */
 @media (width < 40rem) {
   .section-head {
     grid-template-columns: 1fr;
@@ -173,13 +196,12 @@ a {
     grid-template-columns: 1fr auto;
   }
 
-  .section-head > :not(.section-title, .collapse) {
-    grid-column: 1 / -1;
+  .section-head:has(> .collapse) > .section-title {
+    grid-row: auto;
   }
 
-  .collapse {
-    grid-area: 1 / 2;
-    align-self: start;
+  .section-head > :not(.section-title, .collapse) {
+    grid-column: 1 / -1;
   }
 }
 
@@ -203,6 +225,23 @@ a {
   padding: var(--card-pad);
   border-radius: var(--radius-card);
   background: var(--color-surface);
+}
+
+/* A digital watch face (the clock, the About stats): black glass with a sheen, in a metal bezel. */
+.watch-face {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(165deg, var(--watch-glare), transparent 45%) padding-box,
+    linear-gradient(var(--color-inverse), var(--color-inverse)) padding-box,
+    linear-gradient(
+        150deg,
+        var(--watch-metal-light),
+        var(--watch-metal-dark) 50%,
+        var(--watch-metal-light)
+      )
+      border-box;
+  box-shadow: 0 3px 8px -2px var(--watch-shadow);
+  color: var(--color-on-inverse);
 }
 
 /* Buttons */
