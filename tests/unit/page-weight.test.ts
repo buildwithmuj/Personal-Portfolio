@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { checkPageWeight, type LoadedResource } from '../support/page-weight.ts';
+import { checkPageWeight, compressedSize, type LoadedResource } from '../support/page-weight.ts';
 
 const origin = 'http://127.0.0.1:8787';
 const KB = 1024;
@@ -25,9 +25,26 @@ describe('checkPageWeight (spec §4, floors 2 and 3)', () => {
     assert.deepEqual(checkPageWeight([res('script', 6 * KB)], origin), ['script: 6144 B > 5120 B']);
   });
 
-  it('flags CSS over 32 KB and fonts over 100 KB', () => {
-    const failures = checkPageWeight([res('stylesheet', 33 * KB), res('font', 101 * KB)], origin);
-    assert.deepEqual(failures, ['stylesheet: 33792 B > 32768 B', 'font: 103424 B > 102400 B']);
+  it('flags fonts over 100 KB', () => {
+    const failures = checkPageWeight([res('font', 101 * KB)], origin);
+    assert.deepEqual(failures, ['font: 103424 B > 102400 B']);
+  });
+
+  it('flags CSS over 8 KB compressed, whatever its decoded size', () => {
+    assert.deepEqual(
+      checkPageWeight([res('stylesheet', 40 * KB)], origin, { script: 0 }, 7 * KB),
+      [],
+    );
+    assert.deepEqual(checkPageWeight([], origin, { script: 0 }, 9 * KB), [
+      'stylesheet (compressed): 9216 B > 8192 B',
+    ]);
+  });
+
+  it('measures CSS compressed, file by file', () => {
+    const rule = '.card { padding: 32px; border-radius: 24px; } ';
+    const one = compressedSize([rule.repeat(200)]);
+    assert.ok(one < rule.length * 200 * 0.1);
+    assert.equal(compressedSize([rule, rule]), 2 * compressedSize([rule]));
   });
 
   it('flags more than two font files', () => {
@@ -47,20 +64,12 @@ describe('checkPageWeight (spec §4, floors 2 and 3)', () => {
   });
 
   it('counts inline script bytes towards the script budget', () => {
-    const failures = checkPageWeight([], origin, { script: 6 * KB, stylesheet: 0 });
+    const failures = checkPageWeight([], origin, { script: 6 * KB });
     assert.deepEqual(failures, ['script: 6144 B > 5120 B']);
   });
 
-  it('counts inline stylesheet bytes towards the CSS budget', () => {
-    const failures = checkPageWeight([], origin, { script: 0, stylesheet: 33 * KB });
-    assert.deepEqual(failures, ['stylesheet: 33792 B > 32768 B']);
-  });
-
   it('does not count inline bytes towards the total', () => {
-    const failures = checkPageWeight([res('document', 10 * KB)], origin, {
-      script: 6 * KB,
-      stylesheet: 21 * KB,
-    });
+    const failures = checkPageWeight([res('document', 10 * KB)], origin, { script: 6 * KB });
     assert.ok(!failures.some((f) => f.startsWith('total:')));
   });
 });

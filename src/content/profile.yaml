@@ -35,10 +35,23 @@ main:
       label: Case studies
     - value: '2'
       label: Own products built
+  # The softer side: pills that fall into the About card as it scrolls into view.
+  traits:
+    - Entrepreneur
+    - Ambitious
+    - Not afraid to fail
+    - Curious
+    - Builder at heart
+    - Boxer
+    - Four languages
+    - Calm under pressure
   sections:
     work:
       heading: Selected work
       intro: Client programmes and my own products, each turning a messy problem into something people use.
+    skills:
+      heading: Skills
+      intro: The methods and tools I bring, and the certifications behind them.
     method:
       heading: How I work
       intro: Two ways I work, whether I'm untangling processes for organisations or building products of my own.

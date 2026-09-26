@@ -68,7 +68,7 @@ this section is amended in writing, never quietly.
 | # | Floor | Enforced by |
 |---|---|---|
 | 1 | Lighthouse (mobile) on every page: Performance ≥ 95; Accessibility, Best Practices and SEO = 100 | Lighthouse, every PR |
-| 2 | Per page: JS ≤ 5 KB, CSS ≤ 32 KB (raised from 20 KB to 28 KB on 2026-09-25, then to 32 KB on 2026-09-26, §15), fonts ≤ 2 files and ≤ 100 KB, total ≤ 500 KB (CV excluded) | Playwright page-weight check |
+| 2 | Per page: JS ≤ 5 KB, CSS ≤ 8 KB brotli-compressed (was 20, 28 then 32 KB uncompressed; measured compressed since 2026-09-26, §15), fonts ≤ 2 files and ≤ 100 KB, total ≤ 500 KB (CV excluded) | Playwright page-weight check |
 | 3 | No requests to any third-party origin | CSP + Playwright page-weight check |
 | 4 | Lab metrics: LCP ≤ 2.5 s, CLS ≤ 0.1, TBT ≤ 100 ms | Lighthouse |
 | 5 | WCAG 2.2 AA: zero axe violations in light and dark schemes, plus a manual keyboard-only and screen-reader pass (VoiceOver or NVDA) on the home page and one case study before launch | Playwright + axe; release checklist |
@@ -538,5 +538,7 @@ and the default branch, and `main`, for releases. It replaces "branch → PR →
 **2026-09-25, CSS budget.** Floor 2's CSS budget rises from 20 KB to 28 KB per page (uncompressed; about 7 KB compressed). The owner approved the change when the designed home page reached 21.3 KB, so the rise-on-scroll, hero effects and animated cards could stay. `tests/support/page-weight.ts` enforces the new value.
 
 **2026-09-26, CSS budget.** Floor 2's CSS budget rises again, from 28 KB to 32 KB per page (uncompressed; about 6 KB brotli-compressed). The owner approved it when the watch-face clock and the Show / Hide section toggles took the home page to 29.8 KB, after dead CSS and unused tokens had already been removed. The Lighthouse floors still guard real-world speed.
+
+**2026-09-26, CSS measured compressed.** Floor 2's CSS budget now measures what visitors download: each page's stylesheets and inline styles, brotli-compressed file by file, at most 8 KB. The owner chose this when the Skills section and the About pills took the home page to 34.8 KB uncompressed (6.7 KB compressed), so the budget tracks the real cost instead of needing a new raise with every feature. Scripts and fonts keep their decoded-size budgets. `tests/support/page-weight.ts` enforces it.
 
 **2026-09-25, GitHub Pages preview.** At the owner's request, `.github/workflows/pages.yml` deploys the `dev` branch to GitHub Pages as a preview (noindex, placeholders visible) at `https://buildwithmuj.github.io/Personal-Portfolio/`. Its deploy job is the only place any workflow has write access, and only `pages: write` and `id-token: write`, which GitHub Pages requires; `tests/unit/workflows.test.ts` enforces that. The build sets `PAGES_SITE` and `PAGES_BASE`; every internal link goes through `withBase()` (`src/lib/paths.ts`), and the All work page moved to `/projects` so it cannot clash with the `/work/<slug>` folder on Pages. Cloudflare remains the production host.

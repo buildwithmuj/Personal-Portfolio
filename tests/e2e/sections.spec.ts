@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { sectionHeading } from '../support/content.ts';
+import { sectionHeading, yamlList } from '../support/content.ts';
 
 // Long sections can be collapsed with a round toggle (named after the section, announcing whether
 // it's expanded); How I work starts collapsed, the others start open.
@@ -70,4 +70,24 @@ test('the About statement fills to full colour as it scrolls into view', async (
   await expect
     .poll(async () => span.evaluate((el) => getComputedStyle(el).animationTimeline))
     .toBe('--statement');
+});
+
+// The Skills section: every skill is a keycap and every certification a badge, straight from the CV.
+test('the Skills section shows each skill as a key and each certification as a badge', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const skills = page.getByRole('region', { name: sectionHeading('skills') });
+  await expect(skills.locator('.key')).toHaveText(yamlList('src/content/skills.yaml', 'skills'));
+  await expect(skills.locator('.badge')).toHaveText(
+    yamlList('src/content/skills.yaml', 'certifications'),
+  );
+});
+
+test('the About card lists the traits as pills that settle in place', async ({ page }) => {
+  await page.goto('/');
+  const traits = page.getByRole('list', { name: 'A few words about me' });
+  await traits.scrollIntoViewIfNeeded();
+  await expect(traits.locator('li')).toHaveText(yamlList('src/content/profile.yaml', 'traits'));
+  await expect(traits.locator('li').last()).toHaveCSS('transform', 'none');
 });

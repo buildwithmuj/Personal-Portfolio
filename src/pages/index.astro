@@ -4,10 +4,17 @@ import Contact from '../components/sections/Contact.astro';
 import Hero from '../components/sections/Hero.astro';
 import Method from '../components/sections/Method.astro';
 import SelectedWork from '../components/sections/SelectedWork.astro';
+import Skills from '../components/sections/Skills.astro';
 import Testimonials from '../components/sections/Testimonials.astro';
 import Base from '../layouts/Base.astro';
 import { featuredStudies } from '../lib/case-studies.ts';
-import { getCaseStudies, getMethod, getProfile, getTestimonials } from '../lib/content.ts';
+import {
+  getCaseStudies,
+  getMethod,
+  getProfile,
+  getSkills,
+  getTestimonials,
+} from '../lib/content.ts';
 import { personJsonLd } from '../lib/structured-data.ts';
 
 const profile = await getProfile();
@@ -21,6 +28,7 @@ const structuredData = personJsonLd({
   sameAs: profile.socials.map((social) => social.url),
 });
 const featured = featuredStudies(await getCaseStudies());
+const skills = await getSkills();
 const method = await getMethod();
 const testimonials = await getTestimonials();
 ---
@@ -35,6 +43,11 @@ const testimonials = await getTestimonials();
       intro={profile.sections.work.intro}
     />
   )}
+  <Skills
+    skills={skills}
+    heading={profile.sections.skills.heading}
+    intro={profile.sections.skills.intro}
+  />
   <Method
     steps={method}
     heading={profile.sections.method.heading}

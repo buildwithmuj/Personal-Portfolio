@@ -1,0 +1,172 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Shell from '../Shell.astro';
+
+interface Props {
+  skills: CollectionEntry<'skills'>['data'];
+  heading: string;
+  intro: string;
+}
+
+const { skills, heading, intro } = Astro.props;
+---
+
+<Shell
+  id="skills"
+  heading={heading}
+  intro={intro}
+  collapsible="open"
+  icon="M3 6h18v12H3zM7 10h.01M11 10h.01M15 10h.01M7 14h10"
+>
+  <div class="card">
+    <ul class="keys" role="list" data-reveal="type">
+      {skills.skills.map((skill) => (
+        <li class="key">{skill}</li>
+      ))}
+    </ul>
+    <h3 class="label">Certifications</h3>
+    <ul class="badges" role="list">
+      {skills.certifications.map((certification) => (
+        <li class="badge">{certification}</li>
+      ))}
+    </ul>
+  </div>
+</Shell>
+
+<style>
+  /*
+   * Skills as keycaps on a keyboard plate. Each key presses down under the pointer and lights its
+   * little indicator, like caps lock. As the section scrolls into view the keys press in a quick,
+   * uneven ripple, as if someone were typing (never under reduced motion).
+   */
+  .keys {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-block-end: var(--space-8);
+    padding: var(--space-3) var(--space-3) var(--space-4);
+    border-radius: 18px;
+    background: var(--color-shell);
+    list-style: none;
+  }
+
+  .key {
+    position: relative;
+    flex: 1 1 11rem;
+    min-height: 72px;
+    padding: var(--space-3) var(--space-8) var(--space-4) var(--space-4);
+    border-radius: 12px;
+    background: var(--color-surface);
+    box-shadow:
+      0 4px 0 var(--color-key-edge),
+      0 8px 14px -8px var(--watch-shadow);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    line-height: 1.35;
+    transition:
+      transform 90ms var(--ease-standard),
+      box-shadow 90ms var(--ease-standard);
+  }
+
+  /* The indicator light, top right. */
+  .key::after {
+    position: absolute;
+    inset-block-start: 12px;
+    inset-inline-end: 12px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-key-edge);
+    content: '';
+    transition: background var(--duration-fast) var(--ease-standard);
+  }
+
+  .key:hover,
+  .key:active {
+    box-shadow:
+      0 1px 0 var(--color-key-edge),
+      0 3px 6px -4px var(--watch-shadow);
+    transform: translateY(3px);
+  }
+
+  .key:hover::after,
+  .key:active::after {
+    background: var(--color-accent);
+  }
+
+  @keyframes key-press {
+    50% {
+      box-shadow:
+        0 1px 0 var(--color-key-edge),
+        0 3px 6px -4px var(--watch-shadow);
+      transform: translateY(3px);
+    }
+  }
+
+  @keyframes key-light {
+    50% {
+      background: var(--color-accent);
+    }
+  }
+
+  /* An uneven order reads more like typing than a left-to-right sweep. */
+  .key:nth-child(2) {
+    --d: 380ms;
+  }
+
+  .key:nth-child(3) {
+    --d: 140ms;
+  }
+
+  .key:nth-child(4) {
+    --d: 520ms;
+  }
+
+  .key:nth-child(5) {
+    --d: 260ms;
+  }
+
+  .key:nth-child(n + 6) {
+    --d: 640ms;
+  }
+
+  :global(.reveal-ready) .keys.in .key {
+    animation: key-press 260ms var(--ease-standard) calc(200ms + var(--d, 0ms));
+  }
+
+  :global(.reveal-ready) .keys.in .key::after {
+    animation: key-light 260ms var(--ease-standard) calc(200ms + var(--d, 0ms));
+  }
+
+  .label {
+    margin-block-end: var(--space-3);
+  }
+
+  /* Certifications as small badges, each with an indigo tick. */
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: 0;
+    list-style: none;
+  }
+
+  .badge {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: baseline;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--color-shell);
+    font-size: var(--text-sm);
+  }
+
+  .badge::before {
+    width: 9px;
+    height: 5px;
+    border-block-end: 2px solid var(--color-accent);
+    border-inline-start: 2px solid var(--color-accent);
+    content: '';
+    transform: translateY(-3px) rotate(-45deg);
+  }
+</style>

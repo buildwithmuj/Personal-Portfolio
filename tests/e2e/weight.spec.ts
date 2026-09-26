@@ -1,11 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { checkPageWeight, type LoadedResource } from '../support/page-weight.ts';
+import { checkPageWeight, compressedSize, type LoadedResource } from '../support/page-weight.ts';
 import { BASE_URL, builtPagePaths } from '../support/site.ts';
 
 for (const path of [...builtPagePaths(), '/does-not-exist']) {
   test(`${path} stays within the page-weight budget`, async ({ page, browserName }) => {
     test.skip(browserName !== 'chromium', 'Resource sizes do not depend on the browser engine');
     const resources: LoadedResource[] = [];
+    const stylesheets: string[] = [];
     const pending: Promise<void>[] = [];
     page.on('response', (response) => {
       pending.push(
@@ -13,6 +14,9 @@ for (const path of [...builtPagePaths(), '/does-not-exist']) {
           .body()
           .catch(() => Buffer.alloc(0)) // redirects have no body
           .then((body) => {
+            if (response.request().resourceType() === 'stylesheet') {
+              stylesheets.push(body.toString('utf8'));
+            }
             resources.push({
               url: response.url(),
               type: response.request().resourceType(),
@@ -39,12 +43,12 @@ for (const path of [...builtPagePaths(), '/does-not-exist']) {
       const script = [...document.querySelectorAll('script:not([src])')]
         .filter((el) => el.getAttribute('type') !== 'application/ld+json')
         .reduce((sum, el) => sum + byteLength(el.textContent ?? ''), 0);
-      const stylesheet = [...document.querySelectorAll('style')].reduce(
-        (sum, el) => sum + byteLength(el.textContent ?? ''),
-        0,
-      );
-      return { script, stylesheet };
+      const styles = [...document.querySelectorAll('style')].map((el) => el.textContent ?? '');
+      return { script, styles };
     });
-    expect(checkPageWeight(resources, new URL(BASE_URL).origin, inline)).toEqual([]);
+    const css = compressedSize([...stylesheets, ...inline.styles]);
+    expect(
+      checkPageWeight(resources, new URL(BASE_URL).origin, { script: inline.script }, css),
+    ).toEqual([]);
   });
 }

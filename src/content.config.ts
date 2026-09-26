@@ -36,8 +36,11 @@ const profile = defineCollection({
       )
       .min(1)
       .max(4),
+    // Short personality words for the About card's pills.
+    traits: z.array(z.string().min(1).max(24)).max(12).default([]),
     sections: z.object({
       work: sectionCopy,
+      skills: sectionCopy,
       method: sectionCopy,
       testimonials: sectionCopy,
       experience: sectionCopy,
