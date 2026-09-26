@@ -1,13 +1,18 @@
 ---
 // A back-to-top button, bottom right. Without JavaScript it's a plain link that is always shown;
-// with JavaScript it appears once the visitor has scrolled a screen down the page.
+// with JavaScript it appears once the visitor has scrolled a screen down the page. Its ring closes
+// as they near the end of the page, like an activity ring on a fitness watch (CSS scroll timeline).
 ---
 
 <a class="to-top" href="#page-top" aria-label="Back to top">
+  <svg class="progress" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true">
+    <circle cx="24" cy="24" r="19"></circle>
+    <circle class="done" cx="24" cy="24" r="19" pathLength="100"></circle>
+  </svg>
   <svg
     viewBox="0 0 24 24"
-    width="20"
-    height="20"
+    width="18"
+    height="18"
     fill="none"
     stroke="currentColor"
     stroke-width="1.8"
@@ -52,6 +57,46 @@
 
   .to-top:hover {
     background: var(--color-accent-hover);
+  }
+
+  /* The ring and the arrow share the button's one grid cell. */
+  .to-top > svg {
+    grid-area: 1 / 1;
+  }
+
+  .progress {
+    fill: none;
+    stroke: var(--color-on-accent-track);
+    stroke-width: 2.5;
+    rotate: -90deg;
+  }
+
+  .done {
+    stroke: var(--color-on-accent);
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    stroke-linecap: round;
+  }
+
+  /* The ring follows the page's scroll position; without support it shows just its faint track. */
+  @keyframes scroll-ring {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  /*
+   * The timeline sits in its own rule: in one rule the minifier folds it into the animation
+   * shorthand, which browsers reject.
+   */
+  @supports (animation-timeline: scroll()) {
+    .done {
+      animation: scroll-ring linear both;
+    }
+
+    .to-top .done {
+      animation-timeline: scroll(root);
+    }
   }
 
   /* Hidden near the top; visibility also takes it out of the tab order. */

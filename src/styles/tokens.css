@@ -34,6 +34,7 @@
   --watch-metal-dark: #45474f;
   --watch-glare: rgb(255 255 255 / 16%);
   --watch-shadow: rgb(15 23 42 / 28%);
+  --color-on-accent-track: rgb(255 255 255 / 30%);
 
   /* Type */
   --font-sans: var(--font-mona);

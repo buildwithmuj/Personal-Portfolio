@@ -35,3 +35,32 @@ test.describe('without JavaScript', () => {
     await expect(page.locator('#method-body')).toBeVisible();
   });
 });
+
+// Scroll-linked effects. The minifier once folded their timelines into the animation shorthand,
+// which browsers reject, so both silently never ran.
+test('the back-to-top ring closes at the end of the page', async ({ page }) => {
+  await page.goto('/');
+  const supported = await page.evaluate(() => CSS.supports('animation-timeline: scroll()'));
+  test.skip(
+    !supported,
+    'This browser has no CSS scroll timeline, so the ring shows only its track',
+  );
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  const ring = page.locator('.to-top .done');
+  await expect(ring).toBeVisible();
+  await expect
+    .poll(async () =>
+      parseFloat(await ring.evaluate((el) => getComputedStyle(el).strokeDashoffset)),
+    )
+    .toBeLessThan(1);
+});
+
+test('the About statement fills to full colour as it scrolls into view', async ({ page }) => {
+  await page.goto('/');
+  const supported = await page.evaluate(() => CSS.supports('animation-timeline: view()'));
+  test.skip(!supported, 'This browser has no CSS view timeline, so the statement is plain text');
+  const span = page.locator('.statement span');
+  await expect
+    .poll(async () => span.evaluate((el) => getComputedStyle(el).animationTimeline))
+    .toBe('--statement');
+});

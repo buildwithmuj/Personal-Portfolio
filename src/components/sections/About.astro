@@ -131,6 +131,10 @@ const { profile } = Astro.props;
         background-clip: text;
         color: transparent;
         animation: fill linear both;
+      }
+
+      /* In a rule of its own, so the minifier can't fold it into the shorthand (see ScrollTop). */
+      .about .statement span {
         animation-timeline: --statement;
         animation-range: cover 15% contain 35%;
       }
