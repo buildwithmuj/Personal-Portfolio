@@ -3,6 +3,27 @@ import { profileValue, sectionHeading } from '../support/content.ts';
 
 // The headline and section headings are split into words for their reveal animations; the text
 // people and screen readers get must still match the content exactly.
+// Headless browsers render WebGL in software, like a machine without a usable graphics card. There
+// the sky's shader would run on the CPU (and compile on the main thread), so the sky keeps its CSS
+// gradient instead. (On CI's runners the shader cost the home page ~900ms of blocking time.)
+test('with software rendering, the skies keep their CSS gradient and skip the shader', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const software = await page.evaluate(() => {
+    const gl = document.createElement('canvas').getContext('webgl');
+    const info = gl?.getExtension('WEBGL_debug_renderer_info');
+    return /swiftshader|llvmpipe|softpipe|software/i.test(
+      String(gl && gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER)),
+    );
+  });
+  test.skip(!software, 'This browser renders WebGL on a graphics card');
+  for (const sky of await page.locator('sky-gradient').all()) {
+    await expect(sky).not.toHaveAttribute('data-ready');
+    await expect(sky).toHaveCSS('background-image', /linear-gradient/);
+  }
+});
+
 test('the hero headline reads exactly as written', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#top .headline')).toHaveText(profileValue('headline'));

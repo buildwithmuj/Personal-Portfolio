@@ -169,6 +169,15 @@ void main(){
         powerPreference: 'low-power',
       });
       if (!canvas || !gl) return;
+      // Without a usable graphics card (and in headless browsers), WebGL runs in software: the
+      // shader would draw on the CPU and compile on the main thread (~900ms of blocking time on CI's
+      // runners). Keep the CSS gradient instead, and let the context go.
+      const info = gl.getExtension('WEBGL_debug_renderer_info');
+      const renderer = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
+      if (/swiftshader|llvmpipe|softpipe|software/i.test(renderer)) {
+        gl.getExtension('WEBGL_lose_context')?.loseContext();
+        return;
+      }
       const root = document.documentElement;
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
       let resolution: WebGLUniformLocation | null = null;
