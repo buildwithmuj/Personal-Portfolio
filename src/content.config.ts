@@ -134,12 +134,8 @@ const testimonials = defineCollection({
     name: z.string().min(1),
     role: z.string().min(1),
     quote: z.string().min(1).max(320),
-    // For the card's footer, both optional: when it was given, and where (a LinkedIn
-    // recommendation, a post on X, or an email).
-    date: z
-      .string()
-      .regex(/^\d{4}-\d{2}$/, 'Use YYYY-MM')
-      .optional(),
+    // Where it was given, for the mark in the card's corner: a LinkedIn recommendation, a post on X,
+    // or an email (no mark).
     source: z.enum(['linkedin', 'x', 'email']).optional(),
     // Required, so no quote can reach the live site without stating whether it is real.
     placeholder: z.boolean(),

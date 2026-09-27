@@ -207,14 +207,50 @@ const nav = [
     content: '';
   }
 
-  /* The bar's own surface, over the strip: the grey of the section frames it sits in at the top. */
+  /*
+   * The bar's own surface, over the strip: the grey of the section frames it sits in at the top.
+   * There it is the top of the hero's frame, so its lower corners are square and it joins the frame
+   * cleanly; as the page scrolls they round off, and the bar floats as a pill. Browsers without
+   * scroll timelines keep the square corners.
+   */
   .top-bar::after {
     position: absolute;
     z-index: -1;
     inset: 0;
     border-radius: inherit;
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
     background: var(--color-shell);
     content: '';
+  }
+
+  @keyframes bar-float {
+    to {
+      border-end-start-radius: var(--radius-card);
+      border-end-end-radius: var(--radius-card);
+    }
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .top-bar::after {
+      animation: bar-float linear both;
+    }
+
+    /* Own rule, more specific: the shorthand can't reset the timeline (see ScrollTop). */
+    :global(body) .top-bar::after {
+      animation-timeline: scroll(root);
+      animation-range: 0 var(--bar-offset);
+    }
+  }
+
+  /* It follows the scroll, not the clock, so pausing animations leaves it running (global.css). */
+  :global(.motion-paused) .top-bar::after {
+    animation-play-state: running !important;
+  }
+
+  /* With the phone menu open its panel hangs below the bar, so the corners stay square. */
+  .top-bar:has(.menu[open])::after {
+    animation: none;
   }
 
   .where {

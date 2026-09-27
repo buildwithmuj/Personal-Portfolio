@@ -16,14 +16,6 @@ const initials = (name: string) =>
     .map((part) => part[0] ?? '')
     .join('')
     .slice(0, 2);
-const monthYear = new Intl.DateTimeFormat('en-GB', {
-  month: 'short',
-  year: 'numeric',
-  timeZone: 'UTC',
-});
-const sources = { linkedin: 'LinkedIn', x: 'X', email: 'email' } as const;
-// Newest first, as in a feed; undated quotes go last.
-const posts = testimonials.toSorted((a, b) => (b.date ?? '').localeCompare(a.date ?? ''));
 ---
 
 <Shell
@@ -33,117 +25,182 @@ const posts = testimonials.toSorted((a, b) => (b.date ?? '').localeCompare(a.dat
   collapsible="open"
   icon="M10 11H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6c0 2.5-1.5 4-4 5M19 11h-4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6c0 2.5-1.5 4-4 5"
 >
-  <ul class="posts" role="list">
-    {posts.map((testimonial, index) => (
-      <li class="post" data-reveal="rise">
-        <figure>
-          <figcaption class="author">
-            <span class="avatar" data-tone={(index % 4) + 1} aria-hidden="true">
-              {initials(testimonial.name)}
-            </span>
-            <span class="who">
-              <span class="name">{testimonial.name}</span>
-              <span class="role">{testimonial.role}</span>
-            </span>
-            {(testimonial.source === 'linkedin' || testimonial.source === 'x') && (
-              <span class="source">
-                <SocialIcon platform={testimonial.source} />
+  <div class="wall">
+    <ul class="posts" role="list">
+      {testimonials.map((testimonial, index) => (
+        <li class="post">
+          <figure>
+            <figcaption class="author">
+              <span class="avatar" data-tone={(index % 4) + 1} aria-hidden="true">
+                {initials(testimonial.name)}
               </span>
-            )}
-          </figcaption>
-          <blockquote>
-            <p>{testimonial.quote}</p>
-          </blockquote>
-          {(testimonial.date || testimonial.source) && (
-            <p class="meta">
-              {testimonial.date && (
-                <time datetime={testimonial.date}>
-                  {monthYear.format(new Date(`${testimonial.date}-01T00:00:00Z`))}
-                </time>
+              <span class="who">
+                <span class="name">{testimonial.name}</span>
+                <span class="role">{testimonial.role}</span>
+              </span>
+              {(testimonial.source === 'linkedin' || testimonial.source === 'x') && (
+                <span class="source">
+                  <SocialIcon platform={testimonial.source} />
+                  <span class="visually-hidden">
+                    {testimonial.source === 'x' ? 'Posted on X' : 'A LinkedIn recommendation'}
+                  </span>
+                </span>
               )}
-              {testimonial.date && testimonial.source && ' · '}
-              {testimonial.source && `via ${sources[testimonial.source]}`}
-            </p>
-          )}
-        </figure>
-      </li>
-    ))}
-  </ul>
+            </figcaption>
+            <blockquote>
+              <p>{testimonial.quote}</p>
+            </blockquote>
+          </figure>
+        </li>
+      ))}
+    </ul>
+    {testimonials.length > 1 && (
+      <fieldset class="pager">
+        <legend class="visually-hidden">Choose whose words to read</legend>
+        {testimonials.map((testimonial, index) => (
+          <label>
+            <input
+              class="visually-hidden"
+              type="radio"
+              name="testimonial"
+              value={String(index)}
+              checked={index === 0}
+            />
+            <span class="dot" aria-hidden="true"></span>
+            <span class="visually-hidden">{testimonial.name}</span>
+          </label>
+        ))}
+        <button class="pause" type="button" hidden>
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path class="when-playing" d="M9 6v12M15 6v12"></path>
+            <path class="when-paused" d="M8 5.5v13l10-6.5z"></path>
+          </svg>
+          <span class="visually-hidden">Pause testimonials</span>
+        </button>
+      </fieldset>
+    )}
+  </div>
 </Shell>
+
+<script>
+  // On phones one card shows at a time, and every three seconds the next one takes its place,
+  // looping. It waits while the pointer or keyboard focus is inside, the button pauses it, and
+  // picking a dot pauses it too (WCAG 2.2.2). Wider screens show every card, so it never runs there,
+  // nor under reduced motion or the hero's pause button.
+  const wall = document.querySelector<HTMLElement>('.wall');
+  const button = wall?.querySelector<HTMLButtonElement>('.pause');
+  const label = button?.querySelector('span');
+  const radios = [...(wall?.querySelectorAll<HTMLInputElement>('.pager input') ?? [])];
+  const phone = matchMedia('(width < 48rem)');
+  if (wall && button && label && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const pause = (paused: boolean) => {
+      button.toggleAttribute('data-paused', paused);
+      label.textContent = `${paused ? 'Play' : 'Pause'} testimonials`;
+    };
+    button.hidden = false;
+    button.addEventListener('click', () => pause(!button.hasAttribute('data-paused')));
+    wall.addEventListener('change', () => pause(true));
+    window.setInterval(() => {
+      if (!phone.matches || button.hasAttribute('data-paused')) return;
+      if (wall.matches(':hover, :focus-within')) return;
+      if (document.documentElement.classList.contains('motion-paused')) return;
+      const next = radios[(radios.findIndex((radio) => radio.checked) + 1) % radios.length];
+      if (next) next.checked = true;
+    }, 3000);
+  }
+</script>
 
 <style>
   /*
-   * Testimonials as posts, in the manner of a social feed: an author row (initials avatar, name, and
-   * role where a handle would be), the words, then when and where they were given. The cards flow
-   * into two columns like a feed on wide screens and one on phones.
+   * Testimonials as social posts: an author row (initials avatar, name, and the role where a handle
+   * would be, with a LinkedIn or X mark in the corner), a faint rule, then the words. On wide
+   * screens the cards sit in a grid of equal rows; on phones they stack in one place and show one
+   * at a time, chosen by the dots (native radio buttons, so it works without JavaScript). Sizes
+   * follow the Portfolik reference at 1440px: 14px words on 21px lines, a 14px name over a 12px
+   * role, a 42px avatar, 28px of padding and 10px between cards.
    */
   .posts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 1fr;
+    gap: 10px;
     padding: 0;
-    columns: 2 20rem;
-    column-gap: var(--space-4);
     list-style: none;
-  }
-
-  .post {
-    margin-block-end: var(--space-4);
-    break-inside: avoid;
   }
 
   figure {
     display: grid;
-    gap: var(--space-3);
+    grid-template-rows: auto 1fr;
+    gap: var(--space-4);
+    height: 100%;
     margin: 0;
-    padding: var(--space-4) var(--space-4) var(--space-3);
+    padding: 28px;
     border-radius: var(--radius-card);
     background: var(--color-surface);
-    box-shadow: inset 0 0 0 1px var(--color-hairline);
   }
 
   .author {
     display: flex;
     gap: var(--space-3);
     align-items: center;
+    padding-block-end: var(--space-4);
+    border-block-end: 1px dashed var(--color-hairline);
   }
 
   .avatar {
     display: grid;
     flex-shrink: 0;
     place-items: center;
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
-    background: var(--gradient-avatar-1);
+    background: var(--color-avatar-1);
     color: var(--color-avatar-text);
     font-size: var(--text-sm);
     font-weight: var(--weight-medium);
   }
 
   .avatar[data-tone='2'] {
-    background: var(--gradient-avatar-2);
+    background: var(--color-avatar-2);
   }
 
   .avatar[data-tone='3'] {
-    background: var(--gradient-avatar-3);
+    background: var(--color-avatar-3);
+    color: var(--color-avatar-text-light);
   }
 
   .avatar[data-tone='4'] {
-    background: var(--gradient-avatar-4);
+    background: var(--color-avatar-4);
+    color: var(--color-avatar-text-light);
   }
 
   .who {
     display: grid;
     flex: 1;
+    gap: 2px;
     min-width: 0;
     line-height: 1.3;
   }
 
   .name {
+    font-size: var(--text-sm);
     font-weight: var(--weight-medium);
   }
 
   .role {
     color: var(--color-text-muted);
-    font-size: var(--text-sm);
+    font-size: var(--text-xs);
   }
 
   .source {
@@ -153,12 +210,103 @@ const posts = testimonials.toSorted((a, b) => (b.date ?? '').localeCompare(a.dat
 
   blockquote {
     margin: 0;
-    font-size: var(--text-base);
+    font-size: var(--text-sm);
     line-height: var(--leading-body);
   }
 
-  .meta {
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
+  /* The dots and the pause button: phones only. */
+  .pager {
+    display: none;
+  }
+
+  @media (width < 48rem) {
+    figure {
+      padding: var(--space-6);
+    }
+
+    .pager {
+      display: flex;
+      gap: var(--space-2);
+      align-items: center;
+      justify-content: center;
+      margin: var(--space-4) 0 0;
+      padding: 0;
+      border: 0;
+    }
+
+    label {
+      display: grid;
+      place-items: center;
+      min-width: 24px;
+      min-height: 24px;
+      cursor: pointer;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: var(--radius-pill);
+      background: var(--color-chip-edge);
+      transition:
+        width var(--duration-base) var(--ease-standard),
+        background-color var(--duration-base) var(--ease-standard);
+    }
+
+    input:checked + .dot {
+      width: 20px;
+      background: var(--color-accent);
+    }
+
+    input:focus-visible + .dot {
+      outline: 3px solid var(--color-focus);
+      outline-offset: 3px;
+    }
+
+    .pause {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      margin-inline-start: var(--space-2);
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: var(--color-surface);
+      color: var(--color-text);
+      cursor: pointer;
+    }
+
+    .pause[hidden] {
+      display: none;
+    }
+
+    .pause[data-paused] .when-playing,
+    .pause:not([data-paused]) .when-paused {
+      display: none;
+    }
+
+    /* One card at a time, all in one grid cell (as tall as the tallest); without :has(), a list. */
+    @supports selector(:has(*)) {
+      .posts {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .post {
+        grid-area: 1 / 1;
+        transition:
+          opacity var(--duration-base) var(--ease-standard),
+          visibility var(--duration-base);
+      }
+
+      .wall:has(.pager label:nth-of-type(1) input:checked) .post:not(:nth-child(1)),
+      .wall:has(.pager label:nth-of-type(2) input:checked) .post:not(:nth-child(2)),
+      .wall:has(.pager label:nth-of-type(3) input:checked) .post:not(:nth-child(3)),
+      .wall:has(.pager label:nth-of-type(4) input:checked) .post:not(:nth-child(4)),
+      .wall:has(.pager label:nth-of-type(5) input:checked) .post:not(:nth-child(5)),
+      .wall:has(.pager label:nth-of-type(6) input:checked) .post:not(:nth-child(6)) {
+        visibility: hidden;
+        opacity: 0;
+      }
+    }
   }
 </style>

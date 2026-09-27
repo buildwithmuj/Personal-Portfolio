@@ -1,32 +1,28 @@
 # Testimonials (content spec §5.6). These four are MADE UP for design review: the people and quotes
 # are invented. Entries with placeholder: true never reach the live site. Replace them with real
-# quotes that the person has agreed to publish, and set placeholder: false. `date` (YYYY-MM) and
-# `source` (linkedin, x or email) fill the card's footer; the ones below are invented too.
+# quotes that the person has agreed to publish, and set placeholder: false. `source` (linkedin, x or
+# email) sets the mark in the card's corner; the ones below are invented too.
 sarah-whitfield:
   name: Sarah Whitfield
   role: Head of Operations, a UK healthcare group
   quote: Mujtaba mapped our back-office processes faster than anyone we had worked with, and the automation he delivered cut our turnaround times. He brought the whole team with him.
-  date: '2025-11'
   source: linkedin
   placeholder: true
 james-okafor:
   name: James Okafor
   role: Programme Director, a UK pensions administrator
   quote: A rare mix of analytical depth and calm stakeholder management. For the first time, our operating model and SOPs were something the team actually used.
-  date: '2025-06'
   source: linkedin
   placeholder: true
 priya-raman:
   name: Priya Raman
   role: Product Lead, a global satellite communications company
   quote: As our Product Owner he kept a complex backlog focused on what mattered. The dashboards shipped on time, and people used them.
-  date: '2024-09'
   source: linkedin
   placeholder: true
 daniel-hughes:
   name: Daniel Hughes
   role: Service Manager, a UK public-sector organisation
   quote: Clear business cases, careful delivery and real care for the people affected by the change. Mujtaba made automation feel safe.
-  date: '2023-03'
   source: email
   placeholder: true
