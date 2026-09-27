@@ -41,17 +41,19 @@ test('Tab reaches every link and button on the home page', async ({ page, browse
     'a[href]:visible, button:visible, summary:visible, input[type="radio"]:checked:visible';
   const count = await page.locator(focusable).count();
   const reached = new Set<number>();
+  // Where focus went, when Tab lands on something that isn't a link, button or control.
+  const strays: string[] = [];
   for (let i = 0; i < count; i++) {
     await page.keyboard.press('Tab');
-    reached.add(
-      await page.evaluate(() =>
-        [...document.querySelectorAll('a[href], button, summary, input[type="radio"]')].indexOf(
-          document.activeElement as Element,
-        ),
-      ),
-    );
+    const { index, element } = await page.evaluate(() => {
+      const active = document.activeElement as Element;
+      const all = [...document.querySelectorAll('a[href], button, summary, input[type="radio"]')];
+      return { index: all.indexOf(active), element: `${active.tagName} ${active.className}` };
+    });
+    reached.add(index);
+    if (index === -1) strays.push(`Tab ${i + 1} of ${count}: ${element}`);
   }
-  expect(reached.has(-1)).toBe(false);
+  expect(strays).toEqual([]);
   expect(reached.size).toBe(count);
 });
 

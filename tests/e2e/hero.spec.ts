@@ -96,14 +96,18 @@ test('with animations paused, entrances still finish and only loops are held', a
     /^(none|matrix\(1, 0, 0, 1, 0, 0\))$/,
   );
 
-  // Scroll through the page so every scroll reveal starts, then list what the pause holds.
+  // Bring every scroll reveal on screen for at least one rendered frame, so the reveal observer sees
+  // it even on a slow machine, then list what the pause holds. Reveals in a hidden tab (the other
+  // side of the Work switch) can't scroll into view; skip them.
   await page.evaluate(async () => {
-    for (let y = 0; y < document.documentElement.scrollHeight; y += 300) {
-      window.scrollTo(0, y);
-      await new Promise((resolve) => setTimeout(resolve, 60));
+    const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+    for (const element of document.querySelectorAll('[data-reveal]')) {
+      if (element.getClientRects().length === 0) continue;
+      element.scrollIntoView({ block: 'center' });
+      await frame();
+      await frame();
     }
   });
-  // Reveals in a hidden tab (the other side of the Work switch) can't scroll into view; skip them.
   await page.waitForFunction(() =>
     [...document.querySelectorAll('.reveal-ready [data-reveal]:not(.in)')].every(
       (element) => element.getClientRects().length === 0,
