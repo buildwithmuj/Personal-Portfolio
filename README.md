@@ -15,7 +15,8 @@ changing how the site is built.
 - Hosting: GitHub Pages, deployed by `.github/workflows/pages.yml` once CI passes on `main`. The
   Cloudflare setup (`wrangler.jsonc`, `public/_headers`, [docs/setup.md](docs/setup.md)) is kept for
   a later move to the site's own domain.
-- CI: GitHub Actions (`ci.yml` runs every check; `pages.yml` deploys)
+- CI: GitHub Actions (`ci.yml` runs every check in parallel jobs, gated by one job named `ci`;
+  `pages.yml` deploys)
 
 ## Getting started
 
