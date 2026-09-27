@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import Shell from '../Shell.astro';
+import SocialIcon from '../SocialIcon.astro';
 
 interface Props {
   testimonials: CollectionEntry<'testimonials'>['data'][];
@@ -15,6 +16,14 @@ const initials = (name: string) =>
     .map((part) => part[0] ?? '')
     .join('')
     .slice(0, 2);
+const monthYear = new Intl.DateTimeFormat('en-GB', {
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+const sources = { linkedin: 'LinkedIn', x: 'X', email: 'email' } as const;
+// Newest first, as in a feed; undated quotes go last.
+const posts = testimonials.toSorted((a, b) => (b.date ?? '').localeCompare(a.date ?? ''));
 ---
 
 <Shell
@@ -24,165 +33,108 @@ const initials = (name: string) =>
   collapsible="open"
   icon="M10 11H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6c0 2.5-1.5 4-4 5M19 11h-4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6c0 2.5-1.5 4-4 5"
 >
-  <div class="spotlight">
-    <ul class="quotes" role="list">
-      {testimonials.map((testimonial) => (
-        <li class="quote">
-          <figure>
-            <blockquote>
-              <p>{testimonial.quote}</p>
-            </blockquote>
-            <figcaption>
-              <span class="name">{testimonial.name}</span>
-              <span class="role">{testimonial.role}</span>
-            </figcaption>
-          </figure>
-        </li>
-      ))}
-    </ul>
-    <fieldset class="people">
-      <legend class="visually-hidden">Choose whose words to read</legend>
-      <div class="avatars">
-        {testimonials.map((testimonial, index) => (
-          <label>
-            <input
-              class="visually-hidden"
-              type="radio"
-              name="testimonial"
-              value={String(index)}
-              checked={index === 0}
-            />
-            <span class="avatar" aria-hidden="true">
+  <ul class="posts" role="list">
+    {posts.map((testimonial, index) => (
+      <li class="post" data-reveal="rise">
+        <figure>
+          <figcaption class="author">
+            <span class="avatar" data-tone={(index % 4) + 1} aria-hidden="true">
               {initials(testimonial.name)}
             </span>
-            <span class="visually-hidden">{testimonial.name}</span>
-          </label>
-        ))}
-        {testimonials.length > 1 && (
-          <button class="pause" type="button" hidden>
-            <svg
-              viewBox="0 0 24 24"
-              width="14"
-              height="14"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path class="when-playing" d="M9 6v12M15 6v12"></path>
-              <path class="when-paused" d="M8 5.5v13l10-6.5z"></path>
-            </svg>
-            <span class="visually-hidden">Pause testimonials</span>
-          </button>
-        )}
-      </div>
-    </fieldset>
-  </div>
+            <span class="who">
+              <span class="name">{testimonial.name}</span>
+              <span class="role">{testimonial.role}</span>
+            </span>
+            {(testimonial.source === 'linkedin' || testimonial.source === 'x') && (
+              <span class="source">
+                <SocialIcon platform={testimonial.source} />
+              </span>
+            )}
+          </figcaption>
+          <blockquote>
+            <p>{testimonial.quote}</p>
+          </blockquote>
+          {(testimonial.date || testimonial.source) && (
+            <p class="meta">
+              {testimonial.date && (
+                <time datetime={testimonial.date}>
+                  {monthYear.format(new Date(`${testimonial.date}-01T00:00:00Z`))}
+                </time>
+              )}
+              {testimonial.date && testimonial.source && ' · '}
+              {testimonial.source && `via ${sources[testimonial.source]}`}
+            </p>
+          )}
+        </figure>
+      </li>
+    ))}
+  </ul>
 </Shell>
-
-<script>
-  // Moves to the next person every three seconds, in order, looping. It waits while the pointer or
-  // keyboard focus is inside, and the button pauses it; picking someone pauses it too (WCAG 2.2.2).
-  // Never under reduced motion.
-  const spotlight = document.querySelector<HTMLElement>('.spotlight');
-  const button = spotlight?.querySelector<HTMLButtonElement>('.pause');
-  const label = button?.querySelector('span');
-  const radios = [...(spotlight?.querySelectorAll<HTMLInputElement>('.avatars input') ?? [])];
-  if (spotlight && button && label && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const pause = (paused: boolean) => {
-      button.toggleAttribute('data-paused', paused);
-      label.textContent = `${paused ? 'Play' : 'Pause'} testimonials`;
-    };
-    button.hidden = false;
-    button.addEventListener('click', () => pause(!button.hasAttribute('data-paused')));
-    spotlight.addEventListener('change', () => pause(true));
-    window.setInterval(() => {
-      if (button.hasAttribute('data-paused') || spotlight.matches(':hover, :focus-within')) return;
-      if (document.documentElement.classList.contains('motion-paused')) return;
-      const next = radios[(radios.findIndex((radio) => radio.checked) + 1) % radios.length];
-      if (next) next.checked = true;
-    }, 3000);
-  }
-</script>
 
 <style>
   /*
-   * A spotlight: one quote at a time, large, with a row of avatars to switch between people.
-   * Native radio buttons do the switching, so it works without JavaScript; browsers without :has()
-   * simply show every quote.
+   * Testimonials as posts, in the manner of a social feed: an author row (initials avatar, name, and
+   * role where a handle would be), the words, then when and where they were given. The cards flow
+   * into two columns like a feed on wide screens and one on phones.
    */
-  .spotlight {
-    display: grid;
-    gap: var(--space-6);
-    padding: var(--card-pad);
-    border-radius: var(--radius-card);
-    background: var(--color-surface);
-  }
-
-  .quotes {
+  .posts {
     padding: 0;
+    columns: 2 20rem;
+    column-gap: var(--space-4);
     list-style: none;
   }
 
-  .spotlight:has(.avatars > :nth-child(1) input:checked) .quotes > :not(:nth-child(1)),
-  .spotlight:has(.avatars > :nth-child(2) input:checked) .quotes > :not(:nth-child(2)),
-  .spotlight:has(.avatars > :nth-child(3) input:checked) .quotes > :not(:nth-child(3)),
-  .spotlight:has(.avatars > :nth-child(4) input:checked) .quotes > :not(:nth-child(4)),
-  .spotlight:has(.avatars > :nth-child(5) input:checked) .quotes > :not(:nth-child(5)),
-  .spotlight:has(.avatars > :nth-child(6) input:checked) .quotes > :not(:nth-child(6)) {
-    display: none;
-  }
-
-  @keyframes quote-in {
-    from {
-      transform: translateY(12px);
-    }
-  }
-
-  .quote {
-    animation: quote-in 500ms var(--ease-out);
-  }
-
-  /* A one-off, so it still plays with animations paused, which holds only loops (global.css). */
-  :global(.motion-paused) .quote {
-    animation-play-state: running !important;
+  .post {
+    margin-block-end: var(--space-4);
+    break-inside: avoid;
   }
 
   figure {
     display: grid;
-    gap: var(--space-6);
-  }
-
-  blockquote {
-    position: relative;
+    gap: var(--space-3);
     margin: 0;
-    padding-block-start: var(--space-8);
+    padding: var(--space-4) var(--space-4) var(--space-3);
+    border-radius: var(--radius-card);
+    background: var(--color-surface);
+    box-shadow: inset 0 0 0 1px var(--color-hairline);
   }
 
-  /* A large accent quotation mark above the words. */
-  blockquote::before {
-    position: absolute;
-    inset-block-start: -0.35em;
-    inset-inline-start: -0.04em;
-    color: var(--color-accent);
-    content: '\201C';
-    font-size: 4rem;
-    line-height: 1;
+  .author {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
   }
 
-  blockquote p {
-    max-width: 36rem;
-    font-size: clamp(1.25rem, 1.05rem + 0.6vw, 1.5rem);
-    font-weight: var(--weight-medium);
-    letter-spacing: -0.015em;
-    line-height: 1.4;
-  }
-
-  figcaption {
+  .avatar {
     display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--gradient-avatar-1);
+    color: var(--color-avatar-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+  }
+
+  .avatar[data-tone='2'] {
+    background: var(--gradient-avatar-2);
+  }
+
+  .avatar[data-tone='3'] {
+    background: var(--gradient-avatar-3);
+  }
+
+  .avatar[data-tone='4'] {
+    background: var(--gradient-avatar-4);
+  }
+
+  .who {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    line-height: 1.3;
   }
 
   .name {
@@ -191,89 +143,22 @@ const initials = (name: string) =>
 
   .role {
     color: var(--color-text-muted);
+    font-size: var(--text-sm);
   }
 
-  .people {
-    min-inline-size: 0;
+  .source {
+    align-self: flex-start;
+    color: var(--color-text-muted);
+  }
+
+  blockquote {
     margin: 0;
-    padding: var(--space-6) 0 0;
-    border: 0;
-    border-block-start: 1px solid var(--color-hairline);
+    font-size: var(--text-base);
+    line-height: var(--leading-body);
   }
 
-  .avatars {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3);
-  }
-
-  label {
-    cursor: pointer;
-  }
-
-  .avatar {
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: var(--gradient-avatar-1);
-    color: var(--color-avatar-text);
-    font-size: var(--text-xs);
-    font-weight: var(--weight-medium);
-    transition: transform var(--duration-fast) var(--ease-standard);
-  }
-
-  label:nth-child(4n + 2) .avatar {
-    background: var(--gradient-avatar-2);
-  }
-
-  label:nth-child(4n + 3) .avatar {
-    background: var(--gradient-avatar-3);
-  }
-
-  label:nth-child(4n) .avatar {
-    background: var(--gradient-avatar-4);
-  }
-
-  label:hover .avatar {
-    transform: scale(1.06);
-  }
-
-  /* The selected person gets an accent ring. */
-  input:checked + .avatar {
-    box-shadow:
-      0 0 0 3px var(--color-surface),
-      0 0 0 5px var(--color-accent);
-  }
-
-  input:focus-visible + .avatar {
-    outline: 3px solid var(--color-focus);
-    outline-offset: 5px;
-  }
-
-  /* Pause / play for the rotation, at the end of the avatar row. */
-  .pause {
-    display: grid;
-    place-items: center;
-    align-self: center;
-    width: 32px;
-    height: 32px;
-    margin-inline-start: auto;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background: var(--color-shell);
-    color: var(--color-text);
-    cursor: pointer;
-  }
-
-  .pause:hover {
-    color: var(--color-accent);
-  }
-
-  .pause[data-paused] .when-playing,
-  .pause:not([data-paused]) .when-paused {
-    display: none;
+  .meta {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
   }
 </style>
