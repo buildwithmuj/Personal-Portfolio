@@ -146,6 +146,11 @@ const initials = (name: string) =>
     animation: quote-in 500ms var(--ease-out);
   }
 
+  /* A one-off, so it still plays with animations paused, which holds only loops (global.css). */
+  :global(.motion-paused) .quote {
+    animation-play-state: running !important;
+  }
+
   figure {
     display: grid;
     gap: var(--space-6);
@@ -157,7 +162,7 @@ const initials = (name: string) =>
     padding-block-start: var(--space-8);
   }
 
-  /* A large indigo quotation mark above the words. */
+  /* A large accent quotation mark above the words. */
   blockquote::before {
     position: absolute;
     inset-block-start: -0.35em;
@@ -235,7 +240,7 @@ const initials = (name: string) =>
     transform: scale(1.06);
   }
 
-  /* The selected person gets an indigo ring. */
+  /* The selected person gets an accent ring. */
   input:checked + .avatar {
     box-shadow:
       0 0 0 3px var(--color-surface),

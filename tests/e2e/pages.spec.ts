@@ -79,6 +79,7 @@ for (const path of builtPagePaths()) {
         "base-uri 'self'",
         "form-action 'none'",
         'frame-src https://cal.com https://app.cal.com',
+        "connect-src 'self' https://api.open-meteo.com",
       ]) {
         expect(content).toContain(directive);
       }

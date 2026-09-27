@@ -12,6 +12,11 @@ message to reply.
 30-minute call". When you book, Cal.com handles your details under
 [its privacy policy](https://cal.com/privacy).
 
+**Weather.** The London weather beside the clock comes from
+[Open-Meteo](https://open-meteo.com/), a free weather service. When a page loads, your browser asks
+Open-Meteo for the current conditions, which shares your IP address with it, as any web request does.
+Nothing else about you is sent, and the answer is kept in your browser for 15 minutes.
+
 **Hosting.** The site is hosted on GitHub Pages, which processes standard request data, such as IP
 addresses, to serve and protect it, under
 [GitHub's privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement).

@@ -1,4 +1,6 @@
 ---
+import SkyGradient from './SkyGradient.astro';
+
 interface Props {
   id: string;
   heading?: string;
@@ -12,6 +14,8 @@ interface Props {
   collapsible?: 'open' | 'closed';
   /** The toggle's icon while the section is collapsed: SVG path data on a 24 × 24 grid. */
   icon?: string;
+  /** Paints the hero's living Blue sky behind the whole section instead of the grey frame. */
+  sky?: boolean;
 }
 
 const {
@@ -24,6 +28,7 @@ const {
   hero = false,
   collapsible,
   icon,
+  sky = false,
 } = Astro.props;
 const headingId = `${id}-heading`;
 const bodyId = `${id}-body`;
@@ -33,9 +38,10 @@ const words = heading?.split(/\s+/) ?? [];
 
 <section
   id={id}
-  class:list={['shell', { 'shell-inset': inset, 'shell-hero': hero }]}
+  class:list={['shell', { 'shell-inset': inset, 'shell-hero': hero, 'shell-sky': sky }]}
   aria-labelledby={heading ? headingId : labelledBy}
 >
+  {sky && <SkyGradient class="sky" scale={0.5} />}
   <slot name="lead" />
   {heading && (
     <header class="section-head" data-reveal="heading">

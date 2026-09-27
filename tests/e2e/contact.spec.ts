@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { profileValue } from '../support/content.ts';
 import { SERVER_ONLY } from '../support/site.ts';
+import { stubWeather } from '../support/weather.ts';
 
 const EMAIL = profileValue('email');
 const NAME = profileValue('name');
@@ -52,6 +53,7 @@ test('nothing loads from Cal.com until the booking panel opens', async ({ page }
   page.on('request', (request) => {
     if (CAL.test(request.url())) calRequests.push(request.url());
   });
+  await stubWeather(page); // so the quiet-network wait never hangs on Open-Meteo
   await page.goto('/');
   await page.waitForLoadState('networkidle');
   expect(calRequests).toEqual([]);
@@ -123,7 +125,7 @@ test('security.txt lists the same email as the site', async ({ page, request, br
 test('the CV page shows the CV and offers the PDF', async ({ page }) => {
   await page.goto('/cv');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(NAME);
-  await expect(page.getByRole('region', { name: 'Experience' }).locator('li')).toHaveCount(3);
+  await expect(page.locator('#cv-experience .timeline > li')).toHaveCount(3);
   const download = page.getByRole('link', { name: 'Download PDF' });
   await expect(download).toHaveAttribute('href', '/cv.pdf');
   await expect(download).toHaveAttribute('download', '');

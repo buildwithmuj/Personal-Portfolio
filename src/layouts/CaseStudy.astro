@@ -50,15 +50,16 @@ const { title, summary, role, timeframe, employer, tags, links, cover, coverAlt 
         </dl>
         <TagList tags={tags} />
       </header>
-      <Image
-        class="cover"
-        src={cover}
-        alt={coverAlt}
-        widths={[640, 1280]}
-        sizes="(min-width: 48rem) 696px, 100vw"
-        loading="eager"
-        fetchpriority="high"
-      />
+      <div class="cover sky-grade">
+        <Image
+          src={cover}
+          alt={coverAlt}
+          widths={[640, 1280]}
+          sizes="(min-width: 48rem) 696px, 100vw"
+          loading="eager"
+          fetchpriority="high"
+        />
+      </div>
       <div class="card body">
         <slot />
       </div>
@@ -122,8 +123,13 @@ const { title, summary, role, timeframe, employer, tags, links, cover, coverAlt 
   }
 
   .cover {
-    width: 100%;
+    overflow: hidden;
     border-radius: var(--radius-image);
+  }
+
+  .cover img {
+    display: block;
+    width: 100%;
     aspect-ratio: 4 / 3;
     object-fit: cover;
   }

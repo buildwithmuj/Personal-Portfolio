@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { describeWeather } from '../../src/lib/weather.ts';
+import { describeWeather, parseWeather, weatherUrl } from '../../src/lib/weather.ts';
 
 describe('describeWeather (WMO codes from Open-Meteo)', () => {
   it('gives each kind of weather its hero scene', () => {
@@ -17,5 +17,28 @@ describe('describeWeather (WMO codes from Open-Meteo)', () => {
 
   it('gives no description for a code it does not know', () => {
     assert.equal(describeWeather(42), undefined);
+  });
+});
+
+describe('weatherUrl and parseWeather (build and browser share them)', () => {
+  it('asks Open-Meteo for the current temperature and weather code', () => {
+    const url = new URL(weatherUrl(51.5072, -0.1276));
+    assert.equal(url.origin, 'https://api.open-meteo.com');
+    assert.equal(url.searchParams.get('current'), 'temperature_2m,weather_code');
+    assert.equal(url.searchParams.get('latitude'), '51.5072');
+  });
+
+  it('reads a rounded temperature and the scene from a response', () => {
+    assert.deepEqual(parseWeather({ current: { temperature_2m: 17.6, weather_code: 61 } }), {
+      temperature: 18,
+      condition: 'Light rain',
+      scene: 'rain',
+    });
+  });
+
+  it('reads nothing from an incomplete or unexpected response', () => {
+    assert.equal(parseWeather({ current: { temperature_2m: 17 } }), undefined);
+    assert.equal(parseWeather(null), undefined);
+    assert.equal(parseWeather({ current: { temperature_2m: 17, weather_code: 42 } }), undefined);
   });
 });

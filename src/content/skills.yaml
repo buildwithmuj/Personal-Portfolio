@@ -8,6 +8,13 @@ main:
     - Power BI and data products
     - Agile delivery and product ownership
     - Low-code, no-code and AI building
+  # From the CV; shown on the CV page only (the home page keeps six keycaps).
+  cvOnly:
+    - Project management
+    - Business analysis
+    - Stakeholder management
+    - Technical writing (SOPs)
+    - Agile methods (Scrum and Kanban)
   certifications:
     - Certified ScrumMaster (CSM)
     - Professional Scrum Product Owner (PSPO I)

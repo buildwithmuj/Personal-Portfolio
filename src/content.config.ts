@@ -26,6 +26,11 @@ const profile = defineCollection({
     subline: z.string().min(1),
     about: z.string().min(1),
     interests: z.string().min(1),
+    // For the CV page.
+    languages: z.array(z.object({ language: z.string().min(1), level: z.string().min(1) })),
+    outsideWork: z.array(
+      z.object({ activity: z.string().min(1), start: z.string().regex(/^\d{4}-\d{2}$/) }),
+    ),
     proof: z.object({ label: z.string().min(1), items: z.array(z.string().min(1)).min(1) }),
     stats: z
       .array(
@@ -44,6 +49,9 @@ const profile = defineCollection({
       method: sectionCopy,
       testimonials: sectionCopy,
       experience: sectionCopy,
+      // The CV page's Education and Languages & interests sections.
+      education: sectionCopy,
+      languages: sectionCopy,
       contact: sectionCopy,
     }),
     email: z.email(),
@@ -141,6 +149,18 @@ const experience = defineCollection({
     start: yearMonth,
     end: yearMonth.optional(),
     summary: z.string().min(1),
+    // Key achievements, shown under the summary on the CV page.
+    highlights: z.array(z.string().min(1)).default([]),
+  }),
+});
+
+const education = defineCollection({
+  loader: file('src/content/education.yaml'),
+  schema: z.object({
+    qualification: z.string().min(1),
+    institution: z.string().min(1),
+    start: yearMonth,
+    end: yearMonth.optional(),
   }),
 });
 
@@ -149,6 +169,8 @@ const skills = defineCollection({
   schema: z.object({
     intro: z.string().min(1),
     skills: z.array(z.string().min(1)).min(1),
+    // Listed on the CV page only; the home page's Skills keycaps stay at the main list.
+    cvOnly: z.array(z.string().min(1)).default([]),
     certifications: z.array(z.string().min(1)),
   }),
 });
@@ -164,6 +186,7 @@ export const collections = {
   method,
   testimonials,
   experience,
+  education,
   skills,
   pages,
 };

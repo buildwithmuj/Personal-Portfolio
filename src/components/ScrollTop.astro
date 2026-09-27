@@ -26,10 +26,11 @@
 </a>
 
 <script>
+  // Hidden by default in CSS whenever scripting is on, so it never flashes (or sits focusable
+  // mid-fade) at the top of a page before this runs; this only reveals it.
   const button = document.querySelector<HTMLAnchorElement>('.to-top');
   if (button) {
-    button.dataset['hidden'] = '';
-    const update = () => button.toggleAttribute('data-hidden', window.scrollY < window.innerHeight);
+    const update = () => button.toggleAttribute('data-shown', window.scrollY >= window.innerHeight);
     window.addEventListener('scroll', update, { passive: true });
     update();
   }
@@ -99,11 +100,21 @@
     }
   }
 
-  /* Hidden near the top; visibility also takes it out of the tab order. */
-  .to-top[data-hidden] {
-    visibility: hidden;
-    opacity: 0;
-    transform: translateY(12px);
+  /* It moves only as the visitor scrolls, so pausing animations (global.css) leaves it running. */
+  :global(.motion-paused) .done {
+    animation-play-state: running !important;
+  }
+
+  /*
+   * Hidden near the top; visibility also takes it out of the tab order. With scripting on it starts
+   * hidden and the script shows it; without, it stays a plain link that is always there.
+   */
+  @media (scripting: enabled) {
+    .to-top:not([data-shown]) {
+      visibility: hidden;
+      opacity: 0;
+      transform: translateY(12px);
+    }
   }
 
   @media (width < 40rem) {

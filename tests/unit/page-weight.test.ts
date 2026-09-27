@@ -22,9 +22,9 @@ describe('checkPageWeight (spec §4, floors 2 and 3)', () => {
     );
   });
 
-  it('flags JavaScript over 6 KB and CSS over 9 KB compressed', () => {
-    assert.deepEqual(checkPageWeight([], origin, { script: 7 * KB, stylesheet: 10 * KB }), [
-      'script (compressed): 7168 B > 6144 B',
+  it('flags JavaScript over 7 KB and CSS over 9 KB compressed', () => {
+    assert.deepEqual(checkPageWeight([], origin, { script: 8 * KB, stylesheet: 10 * KB }), [
+      'script (compressed): 8192 B > 7168 B',
       'stylesheet (compressed): 10240 B > 9216 B',
     ]);
   });
@@ -54,6 +54,11 @@ describe('checkPageWeight (spec §4, floors 2 and 3)', () => {
   it('flags every third-party request', () => {
     const failures = checkPageWeight([res('script', 100, 'https://cdn.example.net/x.js')], origin);
     assert.deepEqual(failures, ['third-party request: https://cdn.example.net/x.js']);
+  });
+
+  it('allows the live weather request to Open-Meteo, and nothing else from outside', () => {
+    const weather = res('fetch', 300, 'https://api.open-meteo.com/v1/forecast?latitude=51.5');
+    assert.deepEqual(checkPageWeight([weather], origin), []);
   });
 
   it('measures compressed size file by file', () => {

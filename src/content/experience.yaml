@@ -1,18 +1,35 @@
 # Roles for "Experience & skills" (content spec §5.7). Clients are described by industry, never named.
+# Highlights are from the 2026 CV, lightly tightened; the owner confirms every word.
 digiblu:
   employer: DigiBlu
   role: Senior Intelligent Automation Analyst
   start: '2021-12'
   summary: Design and deliver intelligent automation, from APIs and Power Apps to RPA, for healthcare, education and financial-services organisations.
+  highlights:
+    - Led automation for a UK healthcare group, delivering RPA and workflow solutions that streamlined processes, cut manual work and improved turnaround times.
+    - Partnered with a pensions administrator on as-is process assessments, future-state operating models, and the SOPs and technical documentation behind automation-driven service delivery.
+    - Delivered opportunity assessments and ROI-focused business cases that won senior stakeholder approval for automation roadmaps and investment.
+    - Designed and implemented intelligent automation combining automation technologies, document digitisation and process orchestration, with measurable gains in efficiency, compliance and cost.
+    - Ran workshops, requirements gathering and solution design sessions with business and IT stakeholders, keeping delivery aligned with strategic objectives.
 infosys-management-consultant:
   employer: Infosys Consulting
   role: Management Consultant
   start: '2018-04'
   end: '2021-11'
   summary: Led RPA, digital-experience and data-product work for UK public-sector and global telecoms clients, from business case to rollout.
+  highlights:
+    - Managed digital transformation programmes, including RPA implementation and a Digital Experience Platform discovery for a major educational institution, improving operational efficiency and user engagement.
+    - Ran technical feasibility assessments and designed future-state processes, with business cases that secured senior stakeholder buy-in and funding.
+    - Defined end-to-end solution requirements (functional, non-functional and security) and wrote the specifications that guided development and implementation teams.
+    - Drove adoption through change management, training and stakeholder engagement, and supported public-sector procurement and compliance assessments.
 infosys-consulting-analyst:
   employer: Infosys Consulting
   role: Consulting Analyst
   start: '2016-09'
   end: '2018-03'
   summary: Requirements, process assessments and user acceptance testing on transformation programmes for large banking, pharmaceutical and public-sector clients.
+  highlights:
+    - Supported senior consultants on engagements across financial services, the public sector and education, with research, data analysis and documentation that informed strategic initiatives.
+    - Contributed to client workshops, requirements gathering and stakeholder meetings, shaping solutions to business challenges.
+    - Helped build key deliverables, including process maps, business cases and executive presentations.
+    - Built consulting skills through formal training and on-the-job learning, with early exposure to RPA and digital platforms.

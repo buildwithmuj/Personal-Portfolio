@@ -114,9 +114,8 @@ There are two long-lived branches:
    accepts pull requests whose `ci` check has passed. Merge with **Create a merge commit**, not a
    squash or rebase, so `dev` and `main` keep a shared history.
 3. **Go live.** CI runs on `main`; when it passes, `pages.yml` builds `main` in production mode and
-   deploys it to GitHub Pages. It also rebuilds every hour so London's weather, fetched at build time,
-   stays current. GitHub pauses that schedule after 60 days without activity; re-enable it in the
-   Actions tab if the weather stops changing.
+   deploys it to GitHub Pages. The weather beside the clock refreshes live in
+   visitors' browsers, from Open-Meteo, so nothing needs rebuilding on a schedule.
 
 To roll back, revert the release's merge commit (`git revert -m 1 <merge-sha>`) on a branch and merge
 it into `main` through a pull request; the reverted site goes live once CI passes. Rulesets protect
@@ -129,7 +128,9 @@ both branches: neither can be deleted or force-pushed, and `main` needs a pull r
   styles, and a `<meta name="referrer">` sets the referrer policy. GitHub Pages can't send custom
   headers, so `public/_headers` (`frame-ancestors` and the other security headers) only takes effect
   after a move to Cloudflare; see the foundation spec §15, 2026-09-26. Tests fail on any CSP violation.
-- **Nothing third-party:** no requests to other sites, no cookies, no analytics, no forms.
+- **Almost nothing third-party:** no cookies, no analytics, no forms. The one request to another site
+  is the live London weather from Open-Meteo (see the privacy notice); the Cal.com calendar loads only
+  when a visitor opens it.
 - **Dependencies:**
   - pnpm won't install a version younger than 7 days (`minimumReleaseAge`).
   - It runs no install scripts except for the packages listed in `pnpm-workspace.yaml`.

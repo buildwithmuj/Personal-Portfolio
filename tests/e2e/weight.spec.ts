@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { checkPageWeight, compressedSize, type LoadedResource } from '../support/page-weight.ts';
 import { BASE_URL, builtPagePaths } from '../support/site.ts';
+import { stubWeather } from '../support/weather.ts';
 
 for (const path of [...builtPagePaths(), '/does-not-exist']) {
   test(`${path} stays within the page-weight budget`, async ({ page, browserName }) => {
@@ -20,6 +21,8 @@ for (const path of [...builtPagePaths(), '/does-not-exist']) {
           }),
       );
     });
+    // The wait for a quiet network below must not hang on Open-Meteo.
+    await stubWeather(page);
     await page.goto(path);
     // Scroll to the bottom in viewport-height steps so lazy images below the fold load.
     await page.evaluate(async () => {
