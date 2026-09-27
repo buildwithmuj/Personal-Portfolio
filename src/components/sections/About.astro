@@ -230,6 +230,15 @@ const { profile } = Astro.props;
     animation: pill-drop 900ms cubic-bezier(0.3, 1.2, 0.5, 1) var(--d, 0ms) backwards;
   }
 
+  /*
+   * With animations paused, which holds only loops (global.css), the pills still drop into place
+   * and the statement still fills as it scrolls.
+   */
+  :global(.motion-paused) .traits.in li,
+  :global(.motion-paused) .statement span {
+    animation-play-state: running !important;
+  }
+
   @media (width < 40rem) {
     .about {
       padding: 40px 24px 36px;

@@ -99,6 +99,11 @@
     }
   }
 
+  /* It moves only as the visitor scrolls, so pausing animations (global.css) leaves it running. */
+  :global(.motion-paused) .done {
+    animation-play-state: running !important;
+  }
+
   /* Hidden near the top; visibility also takes it out of the tab order. */
   .to-top[data-hidden] {
     visibility: hidden;

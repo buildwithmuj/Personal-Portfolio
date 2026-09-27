@@ -67,7 +67,7 @@ for (const width of [770, 960, 1280]) {
 
 // WCAG 2.2.2: the moving parts (sector strip, role line, weather, rotations) can be paused, and the
 // choice holds on the next page load.
-test('the hero pause button stops every animation and remembers it', async ({ page }) => {
+test('the hero pause button holds the moving parts and remembers it', async ({ page }) => {
   await page.goto('/');
   const toggle = page.getByRole('button', { name: 'Pause animations' });
   await expect(toggle).toHaveAttribute('aria-pressed', 'false');
@@ -81,4 +81,39 @@ test('the hero pause button stops every animation and remembers it', async ({ pa
     'aria-pressed',
     'true',
   );
+});
+
+// The pause is for what loops. One-off entrances still finish and scroll-linked effects still follow
+// the page, so a visitor who paused never gets a page frozen on an entrance's first frame.
+test('with animations paused, entrances still finish and only loops are held', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('motion', 'paused'));
+  await page.goto('/');
+  await expect(page.locator('html')).toHaveClass(/motion-paused/);
+  await expect(page.locator('#top .headline .w > span').first()).toBeInViewport();
+  // Settled in place: an entrance that has finished may report its end state as an identity matrix.
+  await expect(page.locator('#top .identity')).toHaveCSS(
+    'transform',
+    /^(none|matrix\(1, 0, 0, 1, 0, 0\))$/,
+  );
+
+  // Scroll through the page so every scroll reveal starts, then list what the pause holds.
+  await page.evaluate(async () => {
+    for (let y = 0; y < document.documentElement.scrollHeight; y += 300) {
+      window.scrollTo(0, y);
+      await new Promise((resolve) => setTimeout(resolve, 60));
+    }
+  });
+  // Reveals in a hidden tab (the other side of the Work switch) can't scroll into view; skip them.
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll('.reveal-ready [data-reveal]:not(.in)')].every(
+      (element) => element.getClientRects().length === 0,
+    ),
+  );
+  const held = await page.evaluate(() =>
+    document
+      .getAnimations()
+      .filter((a) => a.playState === 'paused' && a.effect?.getTiming().iterations !== Infinity)
+      .map((a) => (a instanceof CSSAnimation ? a.animationName : a.id)),
+  );
+  expect(held).toEqual([]);
 });

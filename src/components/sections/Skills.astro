@@ -135,6 +135,12 @@ const { skills, heading, intro } = Astro.props;
     animation: key-light 260ms var(--ease-standard) calc(200ms + var(--d, 0ms));
   }
 
+  /* A one-off, so it still plays with animations paused, which holds only loops (global.css). */
+  :global(.motion-paused) .keys.in .key,
+  :global(.motion-paused) .keys.in .key::after {
+    animation-play-state: running !important;
+  }
+
   .label {
     margin-block: var(--space-8) var(--space-3);
   }

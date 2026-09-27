@@ -416,6 +416,12 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     animation-delay: calc(200ms + var(--i, 0) * 45ms);
   }
 
+  /* One-off entrances finish even with animations paused, which holds only loops (global.css). */
+  :global(.motion-paused) .hero > *,
+  :global(.motion-paused) .headline .w > span {
+    animation-play-state: running !important;
+  }
+
   .headline {
     max-width: 34rem;
     font-size: var(--text-hero);
