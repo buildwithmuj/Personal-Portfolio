@@ -21,7 +21,7 @@ const groups = (['client', 'product'] as const).map((kind) => {
   <div class="showcase" data-kind={group.kind}>
     {group.feature && (
       <article class="feature" data-reveal="rise">
-        <div class="media">
+        <div class="media sky-grade">
           <Image
             src={group.feature.data.cover}
             alt={group.feature.data.coverAlt}
@@ -45,7 +45,7 @@ const groups = (['client', 'product'] as const).map((kind) => {
     <ol class="index" role="list">
       {group.rest.map((study) => (
         <li class="row" data-reveal="rise">
-          <div class="thumb">
+          <div class="thumb sky-grade">
             <Image src={study.data.cover} alt="" widths={[112, 224]} sizes="112px" loading="lazy" />
           </div>
           <div class="row-text">

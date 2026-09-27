@@ -2,7 +2,7 @@
 import BackLink from '../components/BackLink.astro';
 import Shell from '../components/Shell.astro';
 import Base from '../layouts/Base.astro';
-import { getExperience, getProfile, getSkills } from '../lib/content.ts';
+import { getEducation, getExperience, getProfile, getSkills } from '../lib/content.ts';
 import { formatRoleDates } from '../lib/dates.ts';
 import { withBase } from '../lib/paths.ts';
 import { socialLabels } from '../lib/social.ts';
@@ -10,17 +10,19 @@ import { socialLabels } from '../lib/social.ts';
 const profile = await getProfile();
 const roles = await getExperience();
 const skills = await getSkills();
+const education = await getEducation();
 const linkedin = profile.socials.find((social) => social.platform === 'linkedin');
-const cvDate = new Intl.DateTimeFormat('en-GB', {
+const monthYear = new Intl.DateTimeFormat('en-GB', {
   month: 'short',
   year: 'numeric',
   timeZone: 'UTC',
-}).format(profile.cvUpdated);
+});
+const cvDate = monthYear.format(profile.cvUpdated);
 ---
 
 <Base
   title="CV"
-  description={`The CV of ${profile.name}, ${profile.jobTitle}: experience, skills and certifications.`}
+  description={`The CV of ${profile.name}, ${profile.jobTitle}: experience, skills, certifications, education and languages.`}
 >
   <Shell id="cv" labelledBy="cv-name">
     <BackLink slot="lead" />
@@ -52,7 +54,13 @@ const cvDate = new Intl.DateTimeFormat('en-GB', {
     </div>
   </Shell>
 
-  <Shell id="cv-experience" heading="Experience" intro={profile.sections.experience.intro}>
+  {/* Each CV section collapses like the home page's; all start open. */}
+  <Shell
+    id="cv-experience"
+    heading="Experience"
+    intro={profile.sections.experience.intro}
+    collapsible="open"
+  >
     <ol class="card timeline" role="list">
       {roles.map((role) => (
         <li>
@@ -61,18 +69,25 @@ const cvDate = new Intl.DateTimeFormat('en-GB', {
             <h3>{role.role}</h3>
             <p class="employer">{role.employer}</p>
             <p class="muted">{role.summary}</p>
+            {role.highlights.length > 0 && (
+              <ul class="highlights" role="list">
+                {role.highlights.map((highlight) => (
+                  <li>{highlight}</li>
+                ))}
+              </ul>
+            )}
           </div>
         </li>
       ))}
     </ol>
   </Shell>
 
-  <Shell id="cv-skills" heading="Skills & certifications" intro={skills.intro}>
+  <Shell id="cv-skills" heading="Skills & certifications" intro={skills.intro} collapsible="open">
     <div class="pair">
       <section class="card" aria-labelledby="cv-skills-list">
         <h3 id="cv-skills-list">Skills</h3>
         <ul class="checks" role="list">
-          {skills.skills.map((skill) => (
+          {[...skills.skills, ...skills.cvOnly].map((skill) => (
             <li>{skill}</li>
           ))}
         </ul>
@@ -82,6 +97,46 @@ const cvDate = new Intl.DateTimeFormat('en-GB', {
         <ul class="checks" role="list">
           {skills.certifications.map((certification) => (
             <li>{certification}</li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  </Shell>
+
+  <Shell id="cv-education" heading="Education" collapsible="open">
+    <ol class="card timeline" role="list">
+      {education.map((entry) => (
+        <li>
+          <p class="when">{formatRoleDates(entry.start, entry.end)}</p>
+          <div>
+            <h3>{entry.qualification}</h3>
+            <p class="employer">{entry.institution}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </Shell>
+
+  <Shell id="cv-languages" heading="Languages & outside work" collapsible="open">
+    <div class="pair">
+      <section class="card" aria-labelledby="cv-languages-list">
+        <h3 id="cv-languages-list">Languages</h3>
+        <dl class="levels">
+          {profile.languages.map(({ language, level }) => (
+            <div>
+              <dt>{language}</dt>
+              <dd class="muted">{level}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+      <section class="card" aria-labelledby="cv-outside-work">
+        <h3 id="cv-outside-work">Outside work</h3>
+        <ul class="checks" role="list">
+          {profile.outsideWork.map(({ activity, start }) => (
+            <li>
+              {activity}, since {monthYear.format(new Date(`${start}-01T00:00:00Z`))}
+            </li>
           ))}
         </ul>
       </section>
@@ -146,7 +201,7 @@ const cvDate = new Intl.DateTimeFormat('en-GB', {
     list-style: none;
   }
 
-  .timeline li {
+  .timeline > li {
     display: grid;
     grid-template-columns: 11rem minmax(0, 1fr);
     gap: var(--space-2) var(--space-6);
@@ -166,6 +221,40 @@ const cvDate = new Intl.DateTimeFormat('en-GB', {
     margin-block-end: var(--space-2);
     color: var(--color-accent);
     font-weight: var(--weight-medium);
+  }
+
+  /* Each role's key achievements, as a quiet bulleted list under its summary. */
+  .highlights {
+    display: grid;
+    gap: var(--space-2);
+    margin-block-start: var(--space-3);
+    padding-inline-start: 1.1em;
+    color: var(--color-text-muted);
+    list-style: disc;
+  }
+
+  .highlights li::marker {
+    color: var(--color-accent);
+  }
+
+  .levels {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+  }
+
+  .levels div {
+    display: flex;
+    gap: var(--space-4);
+    justify-content: space-between;
+  }
+
+  .levels dt {
+    font-weight: var(--weight-medium);
+  }
+
+  .levels dd {
+    margin: 0;
   }
 
   .pair {
@@ -203,7 +292,7 @@ const cvDate = new Intl.DateTimeFormat('en-GB', {
   }
 
   @media (width < 40rem) {
-    .timeline li,
+    .timeline > li,
     .pair {
       grid-template-columns: 1fr;
     }

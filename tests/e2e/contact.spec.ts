@@ -123,7 +123,7 @@ test('security.txt lists the same email as the site', async ({ page, request, br
 test('the CV page shows the CV and offers the PDF', async ({ page }) => {
   await page.goto('/cv');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(NAME);
-  await expect(page.getByRole('region', { name: 'Experience' }).locator('li')).toHaveCount(3);
+  await expect(page.locator('#cv-experience .timeline > li')).toHaveCount(3);
   const download = page.getByRole('link', { name: 'Download PDF' });
   await expect(download).toHaveAttribute('href', '/cv.pdf');
   await expect(download).toHaveAttribute('download', '');

@@ -18,6 +18,14 @@ main:
     Hey, I'm Mujtaba Shah, a Senior Intelligent Automation Analyst who turns complex processes into
     automation, data and AI products that save time, cut errors and scale.
   interests: 'Outside work: boxing at Legends MMA, four languages, and building side projects.'
+  # For the CV page, from the 2026 CV.
+  languages:
+    - { language: English, level: Native }
+    - { language: Punjabi, level: Native }
+    - { language: Urdu, level: Highly proficient }
+    - { language: Spanish, level: Working knowledge }
+  outsideWork:
+    - { activity: Boxing at Legends MMA, start: '2023-09' }
   proof:
     label: 10+ years across
     items:
@@ -50,7 +58,7 @@ main:
       heading: Selected work
       intro: Client programmes and my own products, each turning a messy problem into something people use.
     skills:
-      heading: Skills
+      heading: Skills & certifications
       intro: The methods and tools I bring, and the certifications behind them.
     method:
       heading: How I work
@@ -81,7 +89,7 @@ main:
       url: https://www.tiktok.com/@buildwithmuj
     - platform: github
       url: https://github.com/buildwithmuj
-  cvUpdated: 2026-09-25
+  cvUpdated: 2026-09-27
   seo:
     description: Mujtaba Shah, Senior Intelligent Automation Analyst and AI product builder, turning messy processes into automation and products people use.
     image: /og-default.png

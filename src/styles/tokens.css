@@ -5,44 +5,57 @@
 :root {
   color-scheme: light;
 
-  /* Colour: the Lagoon palette (the owner's Feral UI gradient), deep lagoon blue as the accent */
+  /*
+   * Colour: the Blue sky palette (the owner's Feral UI gradient). The palette's own blues are too
+   * light for text, so the accent is its #6699e6 deepened in the same hue (6:1 on white).
+   */
   --color-page: #fff;
   --color-shell: #f3f4f6;
   --color-surface: #fff;
   --color-text: #0a0a0a;
   --color-text-muted: #4a4f54;
-  --color-accent: #0b6f8e;
-  --color-accent-hover: #274a78;
-  --color-accent-light: #5ce3e6;
+  --color-accent: #2661ba;
+  --color-accent-hover: #1f3f7a;
+  --color-accent-light: #80b3ff;
   --color-on-accent: #fff;
-  --color-accent-glow: rgb(15 156 194 / 14%);
+  --color-accent-glow: rgb(102 153 230 / 14%);
   --color-avatar-text: #fff;
-  --color-blob-1: rgb(15 156 194 / 75%);
-  --color-blob-2: rgb(92 227 230 / 65%);
-  --gradient-avatar-1: linear-gradient(135deg, #0b6f8e, #274a78);
-  --gradient-avatar-2: linear-gradient(135deg, #274a78, #0b6f8e);
-  --gradient-avatar-3: linear-gradient(135deg, #1b5f86, #0b6f8e);
-  --gradient-avatar-4: linear-gradient(135deg, #0b6f8e, #1b3f66);
-  --gradient-stat: linear-gradient(135deg, #0f9cc2, #274a78);
+  --color-blob-1: rgb(102 153 230 / 75%);
+  --color-blob-2: rgb(128 179 255 / 65%);
+  --gradient-avatar-1: linear-gradient(135deg, #2661ba, #1f3f7a);
+  --gradient-avatar-2: linear-gradient(135deg, #1f3f7a, #2661ba);
+  --gradient-avatar-3: linear-gradient(135deg, #2a55a0, #2661ba);
+  --gradient-avatar-4: linear-gradient(135deg, #2661ba, #1a3566);
+  --gradient-stat: linear-gradient(135deg, #4a7fd6, #1f3f7a);
   --color-inverse: #0a0a0a;
   --color-on-inverse: #fff;
   --color-hairline: #e3e4ea;
   --color-nav: rgb(242 243 245 / 80%);
-  --color-focus: #0b6f8e;
-  --color-grid-line: rgb(15 156 194 / 9%);
+  --color-focus: #2661ba;
+  --color-grid-line: rgb(102 153 230 / 9%);
   --watch-metal-light: #d4d6de;
   --watch-metal-dark: #45474f;
   --watch-glare: rgb(255 255 255 / 16%);
   --watch-shadow: rgb(15 23 42 / 28%);
   --color-on-accent-track: rgb(255 255 255 / 30%);
   --color-key-edge: #d3d6df;
-  --color-glow: rgb(15 156 194 / 12%);
-  --color-particle: rgb(15 156 194 / 38%);
-  --color-rain: rgb(39 74 120 / 30%);
-  --color-sun: rgb(92 227 230 / 30%);
-  --color-cloud: rgb(39 74 120 / 10%);
-  --color-fog: rgb(15 156 194 / 16%);
-  --color-flash: rgb(92 227 230 / 18%);
+  --color-glow: rgb(102 153 230 / 12%);
+  --color-particle: rgb(102 153 230 / 38%);
+  --color-rain: rgb(31 63 122 / 30%);
+  --color-sun: rgb(128 179 255 / 30%);
+  --color-cloud: rgb(31 63 122 / 10%);
+  --color-fog: rgb(102 153 230 / 16%);
+  --color-flash: rgb(128 179 255 / 18%);
+
+  /* The hero band's Blue sky stops (Feral UI export), shown until WebGL paints or without it */
+  --gradient-sky: linear-gradient(180deg, #e6f2ff, #b3d9ff, #80b3ff, #6699e6);
+
+  /* Cover images take the sky's hue and keep their own light and shade (global.css .sky-grade) */
+  --color-sky-grade: #2661ba;
+
+  /* Contact's sky band (global.css .shell-sky): solid behind the heading, fading into the grey */
+  --sky-band: 200px;
+  --mask-fade-down: linear-gradient(180deg, #000 55%, transparent);
 
   /* Type */
   --font-sans: var(--font-mona);
@@ -102,7 +115,7 @@
 
   /* Elevation */
   --shadow-primary:
-    inset 0 1px 3px 0 rgb(255 255 255 / 30%), 0 0 0 1px #1b4f6b, 0 1.5px 3px 0 rgb(27 79 107 / 14%),
+    inset 0 1px 3px 0 rgb(255 255 255 / 30%), 0 0 0 1px #1f3f7a, 0 1.5px 3px 0 rgb(31 63 122 / 14%),
     0 4px 4px 0 rgb(31 31 31 / 7%), 0 12px 6px 0 rgb(31 31 31 / 4%), 0 16px 8px 0 rgb(31 31 31 / 1%);
   --shadow-secondary:
     inset 0 2px 2px 0 #fff, 0 12px 12px -6px rgb(41 41 41 / 4%), 0 6px 6px -3px rgb(41 41 41 / 4%),

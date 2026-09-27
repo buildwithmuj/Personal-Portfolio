@@ -144,6 +144,26 @@ a {
   padding: var(--inset);
 }
 
+/*
+ * A section crowned with the hero's living sky (Shell's `sky`): Contact closes the page as the
+ * hero opens it. The sky is a band behind the heading that fades into the grey frame, so the
+ * cards and the booking button below sit on grey, as everywhere else. Muted text would lose
+ * contrast on the sky's deeper blues, so the intro uses the full text colour.
+ */
+.shell-sky {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.shell-sky > .sky {
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 auto;
+  height: var(--sky-band);
+  mask-image: var(--mask-fade-down);
+}
+
 .stack > .shell-hero:first-child {
   padding: calc(var(--bar-height) + var(--inset)) var(--inset) var(--inset);
 }
@@ -240,6 +260,11 @@ a {
   font-size: var(--text-sm);
 }
 
+/* On the sky (.shell-sky), muted text would lose contrast on the deeper blues. */
+.shell-sky .section-head p {
+  color: var(--color-text);
+}
+
 .label {
   color: var(--color-text-muted);
   font-size: var(--text-sm);
@@ -272,6 +297,7 @@ a {
 /* Buttons */
 .btn {
   display: inline-flex;
+  gap: var(--space-2);
   align-items: center;
   justify-content: center;
   min-height: var(--button-height);
@@ -283,16 +309,15 @@ a {
   font-weight: var(--weight-medium);
   text-decoration: none;
   cursor: pointer;
-  transition: transform var(--duration-fast) var(--ease-standard);
+  transition:
+    background var(--duration-base) var(--ease-standard),
+    background-position var(--duration-base) var(--ease-standard);
 }
 
-.btn:hover {
-  transform: translateY(-1px);
-}
-
+/* Flat, solid sky blue and fully rounded, with an arrow that nudges forward on hover. */
 .btn-primary {
+  border-radius: var(--radius-pill);
   background: var(--color-accent);
-  box-shadow: var(--shadow-primary);
   color: var(--color-on-accent);
 }
 
@@ -300,10 +325,39 @@ a {
   background: var(--color-accent-hover);
 }
 
+.btn-primary::after {
+  content: '→' / '';
+  transition: translate var(--duration-base) var(--ease-standard);
+}
+
+.btn-primary:hover::after {
+  translate: 3px 0;
+}
+
+/* Flat: white with a hairline edge, no shading. */
 .btn-secondary {
   background: var(--color-surface);
-  box-shadow: var(--shadow-secondary);
+  box-shadow: inset 0 0 0 1px var(--color-hairline);
   color: var(--color-text);
+}
+
+.btn-secondary:hover {
+  background: var(--color-shell);
+}
+
+/* Cover images take the Blue sky palette: the layer lends its hue; the photo keeps its shading. */
+.sky-grade {
+  position: relative;
+  isolation: isolate;
+}
+
+.sky-grade::after {
+  position: absolute;
+  inset: 0;
+  background: var(--color-sky-grade);
+  mix-blend-mode: hue;
+  content: '';
+  pointer-events: none;
 }
 
 /*

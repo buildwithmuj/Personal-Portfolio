@@ -2,17 +2,15 @@
 import type { CollectionEntry } from 'astro:content';
 import { withBase } from '../../lib/paths.ts';
 import { currentWeather } from '../../lib/weather.ts';
-import FlowGradient from '../FlowGradient.astro';
 import ProofStrip from '../ProofStrip.astro';
 import Shell from '../Shell.astro';
+import SkyGradient from '../SkyGradient.astro';
 
 interface Props {
   profile: CollectionEntry<'profile'>['data'];
 }
 
 const { profile } = Astro.props;
-// The owner's Lagoon gradient (their Feral UI export), flowing across the top of the card.
-const LAGOON = ['#EAFBF7', '#5CE3E6', '#0F9CC2', '#274A78'];
 // The ambient layer plays a scene for London's weather when the site last built.
 const weather =
   profile.coordinates &&
@@ -61,7 +59,7 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
       </a>
     </p>
     <ProofStrip label={profile.proof.label} items={profile.proof.items} />
-    <FlowGradient class="cover" stops={LAGOON} />
+    <SkyGradient class="cover" />
     <button class="motion-toggle" type="button" aria-pressed="false" hidden>
       <svg
         viewBox="0 0 24 24"
@@ -306,7 +304,7 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     }
   }
 
-  /* A living Lagoon cover band; the avatar overlaps its lower edge like a profile photo. */
+  /* A living Blue sky cover band (SkyGradient); the avatar overlaps its lower edge like a profile photo. */
   .cover {
     position: absolute;
     z-index: -1;
@@ -341,11 +339,14 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     display: none;
   }
 
+  /* The avatar overlaps the band by about a third, so the name sits clear of the band's edge. */
   .identity {
     display: flex;
     gap: var(--space-4);
     align-items: flex-end;
-    margin-block-start: calc(var(--cover) - var(--avatar) / 2 - var(--hero-card-pad));
+    margin-block-start: calc(
+      var(--cover) - var(--avatar) / 2 - var(--hero-card-pad) + var(--space-4)
+    );
   }
 
   .avatar {

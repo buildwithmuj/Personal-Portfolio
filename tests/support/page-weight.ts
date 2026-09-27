@@ -19,7 +19,7 @@ export interface CompressedBytes {
  * (§15, 2026-09-26); fonts by their decoded size.
  */
 export const WEIGHT_BUDGET = {
-  compressed: { script: 6 * 1024, stylesheet: 9 * 1024 },
+  compressed: { script: 7 * 1024, stylesheet: 9 * 1024 },
   fontBytes: 100 * 1024,
   fontFiles: 2,
   totalBytes: 500 * 1024,

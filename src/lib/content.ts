@@ -35,6 +35,13 @@ export async function getExperience(): Promise<CollectionEntry<'experience'>['da
     .toSorted((a, b) => b.start.localeCompare(a.start));
 }
 
+/** Qualifications, newest first. */
+export async function getEducation(): Promise<CollectionEntry<'education'>['data'][]> {
+  return (await getCollection('education'))
+    .map((entry) => entry.data)
+    .toSorted((a, b) => b.start.localeCompare(a.start));
+}
+
 export async function getSkills(): Promise<CollectionEntry<'skills'>['data']> {
   const entry = await getEntry('skills', 'main');
   if (!entry) throw new Error('src/content/skills.yaml must define a `main` entry');
