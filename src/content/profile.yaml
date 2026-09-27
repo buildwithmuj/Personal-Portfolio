@@ -69,6 +69,12 @@ main:
     experience:
       heading: Experience & skills
       intro: Over ten years in consulting and automation delivery, and the tools I use.
+    education:
+      heading: Education
+      intro: The degree and diploma behind the consulting.
+    languages:
+      heading: Languages & interests
+      intro: Four languages, and what keeps me going outside work.
     contact:
       heading: Let's work together
       intro: Hiring, or have a process that needs untangling? Book a call or send me an email.

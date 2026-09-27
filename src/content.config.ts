@@ -49,6 +49,9 @@ const profile = defineCollection({
       method: sectionCopy,
       testimonials: sectionCopy,
       experience: sectionCopy,
+      // The CV page's Education and Languages & interests sections.
+      education: sectionCopy,
+      languages: sectionCopy,
       contact: sectionCopy,
     }),
     email: z.email(),

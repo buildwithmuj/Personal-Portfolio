@@ -103,7 +103,12 @@ const cvDate = monthYear.format(profile.cvUpdated);
     </div>
   </Shell>
 
-  <Shell id="cv-education" heading="Education" collapsible="open">
+  <Shell
+    id="cv-education"
+    heading={profile.sections.education.heading}
+    intro={profile.sections.education.intro}
+    collapsible="open"
+  >
     <ol class="card timeline" role="list">
       {education.map((entry) => (
         <li>
@@ -117,7 +122,12 @@ const cvDate = monthYear.format(profile.cvUpdated);
     </ol>
   </Shell>
 
-  <Shell id="cv-languages" heading="Languages & outside work" collapsible="open">
+  <Shell
+    id="cv-languages"
+    heading={profile.sections.languages.heading}
+    intro={profile.sections.languages.intro}
+    collapsible="open"
+  >
     <div class="pair">
       <section class="card" aria-labelledby="cv-languages-list">
         <h3 id="cv-languages-list">Languages</h3>
@@ -130,8 +140,8 @@ const cvDate = monthYear.format(profile.cvUpdated);
           ))}
         </dl>
       </section>
-      <section class="card" aria-labelledby="cv-outside-work">
-        <h3 id="cv-outside-work">Outside work</h3>
+      <section class="card" aria-labelledby="cv-interests">
+        <h3 id="cv-interests">Interests</h3>
         <ul class="checks" role="list">
           {profile.outsideWork.map(({ activity, start }) => (
             <li>

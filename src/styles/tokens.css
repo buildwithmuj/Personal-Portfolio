@@ -39,7 +39,6 @@
   --watch-shadow: rgb(15 23 42 / 28%);
   --color-on-accent-track: rgb(255 255 255 / 30%);
   --color-key-edge: #d3d6df;
-  --color-glow: rgb(102 153 230 / 12%);
   --color-particle: rgb(102 153 230 / 38%);
   --color-rain: rgb(31 63 122 / 30%);
   --color-sun: rgb(128 179 255 / 30%);
@@ -52,6 +51,10 @@
 
   /* Cover images take the sky's hue and keep their own light and shade (global.css .sky-grade) */
   --color-sky-grade: #2661ba;
+
+  /* The Skills chips (Skills.astro): pale sky, and a sky edge for certifications; navy text, 9:1 */
+  --color-chip: #e6f2ff;
+  --color-chip-edge: #b3d9ff;
 
   /* Contact's sky band (global.css .shell-sky): solid behind the heading, fading into the grey */
   --sky-band: 200px;

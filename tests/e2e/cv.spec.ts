@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const sections = ['Experience', 'Skills & certifications', 'Education', 'Languages & outside work'];
+const sections = ['Experience', 'Skills & certifications', 'Education', 'Languages & interests'];
 
 // The CV page carries the CV's sections, each with the home page's open/close toggle.
 test('every CV section starts open and can be collapsed', async ({ page }) => {
@@ -26,6 +26,6 @@ test('each role lists its highlights, and education and languages are filled in'
   }
   const education = page.getByRole('region', { name: 'Education' });
   await expect(education.getByRole('listitem')).not.toHaveCount(0);
-  const languages = page.getByRole('region', { name: 'Languages & outside work' });
+  const languages = page.getByRole('region', { name: 'Languages & interests' });
   await expect(languages.getByRole('listitem')).not.toHaveCount(0);
 });

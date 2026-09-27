@@ -72,14 +72,16 @@ test('the About statement fills to full colour as it scrolls into view', async (
     .toBe('--statement');
 });
 
-// The Skills section: every skill is a keycap and every certification a badge, straight from the CV.
-test('the Skills section shows each skill as a key and each certification as a badge', async ({
+// The Skills section: every skill and every certification is a flat chip, straight from the CV.
+test('the Skills section shows each skill, then each certification, as a chip', async ({
   page,
 }) => {
   await page.goto('/');
   const skills = page.getByRole('region', { name: sectionHeading('skills') });
-  await expect(skills.locator('.key')).toHaveText(yamlList('src/content/skills.yaml', 'skills'));
-  await expect(skills.locator('.badge')).toHaveText(
+  await expect(skills.locator('.chip.skill')).toHaveText(
+    yamlList('src/content/skills.yaml', 'skills'),
+  );
+  await expect(skills.locator('.chip.cert')).toHaveText(
     yamlList('src/content/skills.yaml', 'certifications'),
   );
 });
@@ -90,14 +92,4 @@ test('the About card lists the traits as pills that settle in place', async ({ p
   await traits.scrollIntoViewIfNeeded();
   await expect(traits.locator('li')).toHaveText(yamlList('src/content/profile.yaml', 'traits'));
   await expect(traits.locator('li').last()).toHaveCSS('transform', 'none');
-});
-
-test('a soft light follows the pointer across a section frame', async ({ page }) => {
-  await page.goto('/');
-  const skills = page.locator('#skills');
-  await skills.scrollIntoViewIfNeeded();
-  const box = await skills.boundingBox();
-  if (!box) throw new Error('#skills has no box');
-  await page.mouse.move(box.x + 120, box.y + 60);
-  await expect(skills).toHaveAttribute('style', /--glow-x: 120px/);
 });
