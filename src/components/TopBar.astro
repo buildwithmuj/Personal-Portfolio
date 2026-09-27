@@ -191,18 +191,66 @@ const nav = [
     margin-block-end: calc(-1 * var(--bar-height));
     padding: var(--space-3) var(--space-4) var(--space-3) var(--button-pad-x);
     border-radius: var(--radius-card);
-    background: var(--color-nav);
-    backdrop-filter: blur(12px);
   }
 
-  /* A strip in the page colour fills the gap above the bar, so nothing shows through it. */
+  /*
+   * A strip in the page colour, from the top of the window to the bar's lower edge and past the
+   * cards' edges, sits behind the bar: sections scrolling up disappear under it, and nothing shows
+   * around the bar's rounded corners. At the top of the page it only covers what is page colour
+   * anyway, around the hero's frame.
+   */
   .top-bar::before {
     position: absolute;
-    inset-inline: calc(-1 * var(--gutter));
-    inset-block-end: 100%;
-    height: var(--bar-offset);
+    z-index: -1;
+    inset: calc(-1 * var(--bar-offset)) calc(-1 * var(--gutter)) 0;
     background: var(--color-page);
     content: '';
+  }
+
+  /*
+   * The bar's own surface, over the strip: the grey of the section frames it sits in at the top.
+   * There it is the top of the hero's frame, so its lower corners are square and it joins the frame
+   * cleanly; as the page scrolls they round off, and the bar floats as a pill. Browsers without
+   * scroll timelines keep the square corners.
+   */
+  .top-bar::after {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    border-radius: inherit;
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+    background: var(--color-shell);
+    content: '';
+  }
+
+  @keyframes bar-float {
+    to {
+      border-end-start-radius: var(--radius-card);
+      border-end-end-radius: var(--radius-card);
+    }
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .top-bar::after {
+      animation: bar-float linear both;
+    }
+
+    /* Own rule, more specific: the shorthand can't reset the timeline (see ScrollTop). */
+    :global(body) .top-bar::after {
+      animation-timeline: scroll(root);
+      animation-range: 0 var(--bar-offset);
+    }
+  }
+
+  /* It follows the scroll, not the clock, so pausing animations leaves it running (global.css). */
+  :global(.motion-paused) .top-bar::after {
+    animation-play-state: running !important;
+  }
+
+  /* With the phone menu open its panel hangs below the bar, so the corners stay square. */
+  .top-bar:has(.menu[open])::after {
+    animation: none;
   }
 
   .where {
@@ -314,7 +362,6 @@ const nav = [
     .top-bar:has(.menu[open]) {
       border-end-start-radius: 0;
       border-end-end-radius: 0;
-      background: var(--color-shell);
     }
 
     .wide-only {

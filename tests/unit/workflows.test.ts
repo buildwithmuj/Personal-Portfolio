@@ -34,7 +34,10 @@ describe('GitHub Actions hardening (spec §7)', () => {
     });
 
     it(`${name} checks out without persisting credentials`, () => {
-      assert.match(text, /persist-credentials: false/);
+      const checkouts = text.match(/uses: actions\/checkout@/g)?.length ?? 0;
+      assert.ok(checkouts > 0);
+      // Every checkout, in every job.
+      assert.equal(text.match(/^\s+persist-credentials: false$/gm)?.length ?? 0, checkouts);
     });
   }
 });
@@ -52,6 +55,73 @@ describe('Branch model (spec §8): work on dev, release on main', () => {
     const targets = dependabot.match(/^ {4}target-branch: dev$/gm)?.length ?? 0;
     assert.ok(ecosystems > 0);
     assert.equal(targets, ecosystems);
+  });
+});
+
+/** A workflow's jobs by id, each with the text of its block. */
+function jobsOf(workflow: string): Map<string, string> {
+  const start = workflow.indexOf('\njobs:\n');
+  assert.notEqual(start, -1, 'no jobs: section');
+  const jobs = new Map<string, string>();
+  let current = '';
+  for (const line of workflow.slice(start + '\njobs:\n'.length).split('\n')) {
+    current = /^ {2}([\w-]+):$/.exec(line)?.[1] ?? current;
+    if (current) jobs.set(current, `${jobs.get(current) ?? ''}${line}\n`);
+  }
+  return jobs;
+}
+
+describe('ci.yml runs its checks in parallel jobs behind one required check, ci', () => {
+  const ci = workflows.find((w) => w.name === 'ci.yml')?.text ?? '';
+  const jobs = jobsOf(ci);
+  const gate = jobs.get('ci') ?? '';
+  const others = [...jobs.keys()].filter((id) => id !== 'ci');
+
+  it('keeps the names the main ruleset and pages.yml wait for', () => {
+    assert.match(ci, /^name: ci$/m);
+    assert.match(gate, /^ {4}name: ci$/m);
+    assert.equal(ci.match(/^ {4}name: ci$/gm)?.length, 1, 'only the gate job is named ci');
+  });
+
+  it('the ci job needs every other job, always runs, and fails unless they all succeeded', () => {
+    assert.ok(others.length > 0);
+    const needs = /^ {4}needs: \[(.+)\]$/m.exec(gate)?.[1]?.split(', ') ?? [];
+    assert.deepEqual(needs.sort(), others.sort());
+    // A skipped required check counts as passed, so the gate must never be skipped.
+    assert.match(gate, /^ {4}if: always\(\)$/m);
+    assert.ok(gate.includes("RESULTS: ${{ join(needs.*.result, ' ') }}"));
+    assert.ok(gate.includes('if [ "$result" != success ]; then'));
+  });
+
+  it('still runs every check', () => {
+    const runs = [...ci.matchAll(/^\s*(?:-\s*)?run: (.+)$/gm)].map((match) => match[1]);
+    for (const command of [
+      'pnpm audit --audit-level=high',
+      'pnpm format:check',
+      'pnpm lint',
+      'pnpm check',
+      'pnpm test',
+      'pnpm build',
+      'pnpm test:perf',
+    ]) {
+      assert.ok(runs.includes(command), command);
+    }
+    assert.ok(ci.includes('PAGES_BASE: /Personal-Portfolio'));
+    assert.match(ci, /uses: lycheeverse\/lychee-action@/);
+  });
+
+  it('runs every project in test:e2e in the e2e browser matrix', () => {
+    const { scripts } = JSON.parse(readFileSync('package.json', 'utf8')) as {
+      scripts: Record<string, string>;
+    };
+    const projects = [...(scripts['test:e2e'] ?? '').matchAll(/--project=(\w+)/g)].map(
+      (match) => match[1],
+    );
+    const e2e = jobs.get('e2e') ?? '';
+    const browsers = /^ {8}browser: \[(.+)\]$/m.exec(e2e)?.[1]?.split(', ') ?? [];
+    assert.ok(projects.length > 0);
+    assert.deepEqual(browsers.sort(), projects.sort());
+    assert.ok(e2e.includes('run: pnpm exec playwright test --project="$BROWSER"'));
   });
 });
 

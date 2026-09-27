@@ -22,15 +22,20 @@
   --color-avatar-text: #fff;
   --color-blob-1: rgb(102 153 230 / 75%);
   --color-blob-2: rgb(128 179 255 / 65%);
-  --gradient-avatar-1: linear-gradient(135deg, #2661ba, #1f3f7a);
-  --gradient-avatar-2: linear-gradient(135deg, #1f3f7a, #2661ba);
-  --gradient-avatar-3: linear-gradient(135deg, #2a55a0, #2661ba);
-  --gradient-avatar-4: linear-gradient(135deg, #2661ba, #1a3566);
+
+  /*
+   * Testimonial avatars: four flat colours from the Blue sky palette, two deep blues under white
+   * initials (6:1 and up) and two lighter skies under navy ones (4.8:1 and up).
+   */
+  --color-avatar-1: #2661ba;
+  --color-avatar-2: #1f3f7a;
+  --color-avatar-3: #80b3ff;
+  --color-avatar-4: #cfe4ff;
+  --color-avatar-text-light: #1f3f7a;
   --gradient-stat: linear-gradient(135deg, #4a7fd6, #1f3f7a);
   --color-inverse: #0a0a0a;
   --color-on-inverse: #fff;
   --color-hairline: #e3e4ea;
-  --color-nav: rgb(242 243 245 / 80%);
   --color-focus: #2661ba;
   --color-grid-line: rgb(102 153 230 / 9%);
   --watch-metal-light: #d4d6de;
