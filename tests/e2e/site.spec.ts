@@ -64,6 +64,16 @@ test('no source code leaks into the rendered page', async ({ page }) => {
   }
 });
 
+// A slow or hanging Open-Meteo must not keep the page busy: the browser gives up after 5 seconds and
+// keeps the build-time reading. (CI's runners met exactly this, and every networkidle wait timed out.)
+test('a hanging weather request is abandoned, and the page settles', async ({ page }) => {
+  await page.route('https://api.open-meteo.com/**', () => {
+    // Never answer.
+  });
+  await page.goto('/');
+  await page.waitForLoadState('networkidle', { timeout: 15_000 });
+});
+
 // Open-Meteo's CC BY 4.0 licence asks for a credit wherever its weather data appears.
 test('the footer credits Open-Meteo for the weather data', async ({ page }) => {
   for (const path of ['/', '/cv']) {

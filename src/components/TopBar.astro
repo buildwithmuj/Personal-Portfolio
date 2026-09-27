@@ -128,7 +128,8 @@ const nav = [
 
   // Live weather (see the privacy notice): the build-time reading is refreshed from Open-Meteo in
   // the visitor's browser, at most every 15 minutes per tab, so the top bar and the hero's scene
-  // show London as it is now. A failed request keeps the build-time reading.
+  // show London as it is now. A failed request, or one still waiting after 5 seconds, keeps the
+  // build-time reading.
   const where = document.querySelector<HTMLElement>('.top-bar .where');
   const latitude = Number(where?.dataset['lat']);
   const longitude = Number(where?.dataset['lon']);
@@ -152,7 +153,7 @@ const nav = [
     if (saved && Date.now() - saved.at < 15 * 60 * 1000) {
       showWeather(saved.weather);
     } else {
-      fetch(weatherUrl(latitude, longitude))
+      fetch(weatherUrl(latitude, longitude), { signal: AbortSignal.timeout(5000) })
         .then((response) => response.json())
         .then((data) => {
           const weather = parseWeather(data);
