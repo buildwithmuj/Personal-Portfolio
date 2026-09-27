@@ -39,6 +39,17 @@ test('the All work page lists every case study', async ({ page }) => {
   await expect(labels).toHaveCount(8);
 });
 
+// Every case study ends by offering the next one, and a thin bar tracks how far the story is read.
+test('a case study offers the next one and shows reading progress', async ({ page }) => {
+  await page.goto('/work/healthcare-automation');
+  const next = page.getByRole('navigation', { name: 'Next case study' });
+  await expect(next.getByRole('link')).toHaveAttribute(
+    'href',
+    /^\/work\/(?!healthcare-automation)/,
+  );
+  await expect(page.locator('.read-progress')).toHaveAttribute('aria-hidden', 'true');
+});
+
 test('a case study shows its details and MDX components', async ({ page }) => {
   await page.goto('/work/this-site');
   await expect(page.locator('.case-study .label')).toHaveText('Personal project · In progress');

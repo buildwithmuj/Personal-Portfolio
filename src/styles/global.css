@@ -60,6 +60,20 @@ a {
   outline-offset: 3px;
 }
 
+/*
+ * Pages cross-fade into each other (cross-document view transitions, no script), while the
+ * top bar holds still (TopBar.astro names it). Off under reduced motion.
+ */
+@view-transition {
+  navigation: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}
+
 .container {
   width: min(100% - 2 * var(--gutter), var(--page-max-width));
   margin-inline: auto;

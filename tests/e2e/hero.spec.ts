@@ -74,17 +74,43 @@ test('the top bar links to each part of the home page, in order', async ({ page 
   ]);
 });
 
-// Five links, the weather and four icons only fit from 768px; narrower, the bar uses its menu.
+// The clock, five centred links and the weather only fit from 768px; narrower, the bar uses its
+// menu. The links sit in the middle, clear of the clock and the weather.
 for (const width of [770, 960, 1280]) {
-  test(`at ${width}px the top bar fits its links and icons`, async ({ page }) => {
+  test(`at ${width}px the top bar fits its links between the clock and the weather`, async ({
+    page,
+  }) => {
     await page.setViewportSize({ width, height: 800 });
     await page.goto('/');
     const bar = await page.locator('.top-bar').boundingBox();
-    const icons = await page.locator('.top-bar > .socials').boundingBox();
-    if (!bar || !icons) throw new Error('top bar not laid out');
-    expect(icons.x + icons.width).toBeLessThanOrEqual(bar.x + bar.width);
+    const clock = await page.locator('.top-bar live-clock').boundingBox();
+    const links = await page.locator('.top-bar .links').boundingBox();
+    const weather = await page.locator('.top-bar .where').boundingBox();
+    if (!bar || !clock || !links || !weather) throw new Error('top bar not laid out');
+    expect(clock.x + clock.width).toBeLessThanOrEqual(links.x);
+    expect(links.x + links.width).toBeLessThanOrEqual(weather.x);
+    expect(weather.x + weather.width).toBeLessThanOrEqual(bar.x + bar.width);
   });
 }
+
+// The hero says whether the owner is open to work, and the About card signs off with an initial and
+// surname (decorative, so hidden from screen readers, who already have the name).
+test('the hero shows availability and the About card is signed', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.hero .availability')).toHaveText(/\S/);
+  const signature = page.locator('#about .signature');
+  await expect(signature).toHaveText('M. Shah');
+  await expect(signature).toHaveAttribute('aria-hidden', 'true');
+});
+
+// The social links sit in the hero's sky band, each named for screen readers.
+test('the hero sky band holds the social links', async ({ page }) => {
+  await page.goto('/');
+  const links = page.locator('.hero .band-socials a');
+  await expect(links).toHaveCount(4);
+  await expect(links.first()).toHaveAccessibleName(/on X$/);
+  await expect(page.locator('.top-bar > .socials')).toHaveCount(0);
+});
 
 // WCAG 2.2.2: the moving parts (sector strip, role line, weather, rotations) can be paused, and the
 // choice holds on the next page load.

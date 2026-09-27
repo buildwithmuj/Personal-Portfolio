@@ -50,6 +50,8 @@
   --color-cloud: rgb(31 63 122 / 10%);
   --color-fog: rgb(102 153 230 / 16%);
   --color-flash: rgb(128 179 255 / 18%);
+  --color-available: #1f9d63;
+  --color-available-glow: rgb(31 157 99 / 45%);
 
   /* The hero band's Blue sky stops (Feral UI export), shown until WebGL paints or without it */
   --gradient-sky: linear-gradient(180deg, #e6f2ff, #b3d9ff, #80b3ff, #6699e6);
@@ -67,6 +69,9 @@
 
   /* Type */
   --font-sans: var(--font-mona);
+
+  /* An editorial italic serif for accent words and the signature (system fonts: the CSP allows only the site's own files) */
+  --font-serif: 'Iowan Old Style', 'Palatino Linotype', palatino, 'Book Antiqua', georgia, serif;
   --text-xs: 0.75rem;
   --text-clock: 0.8125rem;
   --text-sm: 0.875rem;

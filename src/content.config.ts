@@ -23,9 +23,15 @@ const profile = defineCollection({
     titleTagline: z.string().min(1),
     roles: z.array(z.string().min(1)).min(1).max(6),
     headline: z.string().min(1),
+    // The headline's closing words, set in the editorial serif (they must end the headline).
+    headlineAccent: z.string().min(1).optional(),
+    // A short availability line for the hero's pill, e.g. "Open to new roles and projects".
+    availability: z.string().min(1).optional(),
     subline: z.string().min(1),
     about: z.string().min(1),
     interests: z.string().min(1),
+    // What the owner is doing right now, for the About card's Now panel.
+    now: z.array(z.object({ label: z.string().min(1), text: z.string().min(1) })).default([]),
     // For the CV page.
     languages: z.array(z.object({ language: z.string().min(1), level: z.string().min(1) })),
     outsideWork: z.array(

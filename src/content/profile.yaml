@@ -11,6 +11,8 @@ main:
     - Project Manager
     - Product Owner
   headline: I turn messy processes into automation and products people actually use.
+  headlineAccent: people actually use.
+  availability: Open to new roles and projects # DRAFT: Mujtaba to confirm
   subline: >-
     Over ten years untangling complex processes for organisations across the public sector, healthcare,
     education, financial services and telecoms, and building my own products along the way.
@@ -18,6 +20,11 @@ main:
     Hey, I'm Mujtaba Shah, a Senior Intelligent Automation Analyst who turns complex processes into
     automation, data and AI products that save time, cut errors and scale.
   interests: 'Outside work: boxing at Legends MMA, four languages, and building side projects.'
+  # DRAFT: Mujtaba to confirm or rewrite what he is doing right now.
+  now:
+    - { label: Building, text: 'AI-assisted automation at DigiBlu, and this site' }
+    - { label: Learning, text: Agentic AI workflows }
+    - { label: Training, text: Boxing at Legends MMA }
   # For the CV page, from the 2026 CV.
   languages:
     - { language: English, level: Native }
