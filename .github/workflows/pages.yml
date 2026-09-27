@@ -2,15 +2,12 @@ name: pages
 
 # Builds main in production mode and deploys it to GitHub Pages, the live site, at
 # https://buildwithmuj.github.io/Personal-Portfolio/. A push to main goes live only after ci passes on
-# it. The site also rebuilds hourly, so London's weather (fetched at build time) stays current;
-# GitHub pauses schedules after 60 days without repository activity.
+# it. (The weather beside the clock refreshes in visitors' browsers, so no scheduled rebuild.)
 on:
   workflow_run:
     workflows: [ci]
     types: [completed]
     branches: [main]
-  schedule:
-    - cron: '17 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -36,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # The commit ci tested; hourly and manual builds take main whatever the default branch is.
+          # The commit ci tested; manual builds take main whatever the default branch is.
           ref: ${{ github.event.workflow_run.head_sha || 'main' }}
           persist-credentials: false
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0

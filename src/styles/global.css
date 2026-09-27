@@ -122,7 +122,7 @@ a {
   background: var(--color-shell);
 }
 
-/* Under a mouse, a soft indigo light follows the pointer across the frame (Base.astro sets x, y). */
+/* Under a mouse, a soft accent light follows the pointer across the frame (Base.astro sets x, y). */
 @media (hover: hover) and (pointer: fine) {
   .shell:hover {
     background:

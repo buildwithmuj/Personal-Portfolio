@@ -25,14 +25,17 @@ const nav = [
 ---
 
 <header class="top-bar">
-  <p class="where">
+  <p
+    class="where"
+    data-lat={profile.coordinates?.latitude}
+    data-lon={profile.coordinates?.longitude}
+  >
     <LiveClock timeZone={profile.timeZone} />
     <span class="city">{profile.locationLabel}</span>
-    {weather && (
-      <span class="weather">
-        {weather.temperature}°<span class="condition"> {weather.condition}</span>
-      </span>
-    )}
+    <span class="weather" hidden={!weather}>
+      <span data-temp>{weather?.temperature}</span>°
+      <span class="condition">{` ${weather?.condition ?? ''}`}</span>
+    </span>
   </p>
 
   <!-- Desktop: the links and social icons sit in the bar. -->
@@ -121,6 +124,50 @@ const nav = [
 </header>
 
 <script>
+  import { parseWeather, weatherUrl, type Weather } from '../lib/weather.ts';
+
+  // Live weather (see the privacy notice): the build-time reading is refreshed from Open-Meteo in
+  // the visitor's browser, at most every 15 minutes per tab, so the top bar and the hero's scene
+  // show London as it is now. A failed request keeps the build-time reading.
+  const where = document.querySelector<HTMLElement>('.top-bar .where');
+  const latitude = Number(where?.dataset['lat']);
+  const longitude = Number(where?.dataset['lon']);
+  const showWeather = (weather: Weather) => {
+    const box = where?.querySelector<HTMLElement>('.weather');
+    const temperature = box?.querySelector('[data-temp]');
+    const condition = box?.querySelector('.condition');
+    if (!box || !temperature || !condition) return;
+    temperature.textContent = String(weather.temperature);
+    condition.textContent = ` ${weather.condition}`;
+    box.hidden = false;
+    document.querySelector('.hero')?.setAttribute('data-weather', weather.scene);
+  };
+  if (where?.dataset['lat'] && Number.isFinite(latitude) && Number.isFinite(longitude)) {
+    let saved: { at: number; weather: Weather } | undefined;
+    try {
+      saved = JSON.parse(sessionStorage.getItem('weather') ?? 'null') ?? undefined;
+    } catch {
+      // Storage can be blocked; fetch instead.
+    }
+    if (saved && Date.now() - saved.at < 15 * 60 * 1000) {
+      showWeather(saved.weather);
+    } else {
+      fetch(weatherUrl(latitude, longitude))
+        .then((response) => response.json())
+        .then((data) => {
+          const weather = parseWeather(data);
+          if (!weather) return;
+          showWeather(weather);
+          try {
+            sessionStorage.setItem('weather', JSON.stringify({ at: Date.now(), weather }));
+          } catch {
+            // Storage can be blocked; the next page asks again.
+          }
+        })
+        .catch(() => undefined);
+    }
+  }
+
   // Close the phone menu when one of its links is followed, so the section isn't hidden behind it.
   for (const link of document.querySelectorAll<HTMLAnchorElement>('.top-bar .panel a')) {
     link.addEventListener('click', () => {

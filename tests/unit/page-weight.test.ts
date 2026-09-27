@@ -56,6 +56,11 @@ describe('checkPageWeight (spec §4, floors 2 and 3)', () => {
     assert.deepEqual(failures, ['third-party request: https://cdn.example.net/x.js']);
   });
 
+  it('allows the live weather request to Open-Meteo, and nothing else from outside', () => {
+    const weather = res('fetch', 300, 'https://api.open-meteo.com/v1/forecast?latitude=51.5');
+    assert.deepEqual(checkPageWeight([weather], origin), []);
+  });
+
   it('measures compressed size file by file', () => {
     const rule = '.card { padding: 32px; border-radius: 24px; } ';
     assert.ok(compressedSize([rule.repeat(200)]) < rule.length * 200 * 0.1);

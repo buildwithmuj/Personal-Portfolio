@@ -58,7 +58,7 @@ describe('Branch model (spec §8): work on dev, release on main', () => {
 describe('Production on GitHub Pages (spec §15, 2026-09-26)', () => {
   const pages = workflows.find((w) => w.name === 'pages.yml')?.text ?? '';
 
-  it('deploys main only, after ci passes, plus hourly and manual rebuilds', () => {
+  it('deploys main only, after ci passes, or when run by hand', () => {
     assert.ok(
       pages.includes(
         '  workflow_run:\n    workflows: [ci]\n    types: [completed]\n    branches: [main]\n',
@@ -69,6 +69,7 @@ describe('Production on GitHub Pages (spec §15, 2026-09-26)', () => {
       pages.includes('github.event.workflow_run.head_repository.full_name == github.repository'),
     );
     assert.doesNotMatch(pages, /^ {2}push:/m);
+    assert.doesNotMatch(pages, /^ {2}schedule:/m);
     assert.ok(pages.includes("ref: ${{ github.event.workflow_run.head_sha || 'main' }}"));
   });
 

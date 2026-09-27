@@ -25,6 +25,9 @@ export const WEIGHT_BUDGET = {
   totalBytes: 500 * 1024,
 } as const;
 
+/** Other origins a page may contact: Open-Meteo, for the live weather (foundation spec §15). */
+export const ALLOWED_ORIGINS: readonly string[] = ['https://api.open-meteo.com'];
+
 /** Brotli-compressed size of each text, summed: each file travels as its own response. */
 export function compressedSize(texts: readonly string[]): number {
   return texts.reduce((sum, text) => sum + brotliCompressSync(text).length, 0);
@@ -51,9 +54,12 @@ export function checkPageWeight(
   const total = resources.reduce((sum, r) => sum + r.bytes, 0);
   if (total > WEIGHT_BUDGET.totalBytes)
     failures.push(`total: ${total} B > ${WEIGHT_BUDGET.totalBytes} B`);
-  // Floor 3: nothing may come from another origin.
+  // Floor 3: nothing may come from another origin, except the live weather (spec §15).
   for (const r of resources) {
-    if (new URL(r.url).origin !== origin) failures.push(`third-party request: ${r.url}`);
+    const from = new URL(r.url).origin;
+    if (from !== origin && !ALLOWED_ORIGINS.includes(from)) {
+      failures.push(`third-party request: ${r.url}`);
+    }
   }
   return failures;
 }

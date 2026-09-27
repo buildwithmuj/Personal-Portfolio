@@ -79,6 +79,8 @@ export default defineConfig({
         "form-action 'none'",
         // The Cal.com booking frame, created only when the visitor opens the panel (content spec §5.8).
         'frame-src https://cal.com https://app.cal.com',
+        // Live London weather, fetched by the top bar (privacy notice; foundation spec §15).
+        "connect-src 'self' https://api.open-meteo.com",
       ],
     },
   },

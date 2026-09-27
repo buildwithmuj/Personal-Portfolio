@@ -5,44 +5,44 @@
 :root {
   color-scheme: light;
 
-  /* Colour */
+  /* Colour: the Lagoon palette (the owner's Feral UI gradient), deep lagoon blue as the accent */
   --color-page: #fff;
   --color-shell: #f3f4f6;
   --color-surface: #fff;
   --color-text: #0a0a0a;
   --color-text-muted: #4a4f54;
-  --color-accent: #4f46e5;
-  --color-accent-hover: #4338ca;
-  --color-accent-light: #a5b4fc;
+  --color-accent: #0b6f8e;
+  --color-accent-hover: #274a78;
+  --color-accent-light: #5ce3e6;
   --color-on-accent: #fff;
-  --color-accent-glow: rgb(79 70 229 / 14%);
+  --color-accent-glow: rgb(15 156 194 / 14%);
   --color-avatar-text: #fff;
-  --color-blob-1: rgb(79 70 229 / 75%);
-  --color-blob-2: rgb(139 92 246 / 65%);
-  --gradient-avatar-1: linear-gradient(135deg, #4f46e5, #7c3aed);
-  --gradient-avatar-2: linear-gradient(135deg, #1d4ed8, #4f46e5);
-  --gradient-avatar-3: linear-gradient(135deg, #7c3aed, #be185d);
-  --gradient-avatar-4: linear-gradient(135deg, #0369a1, #4338ca);
-  --gradient-stat: linear-gradient(135deg, #4f46e5, #8b5cf6);
+  --color-blob-1: rgb(15 156 194 / 75%);
+  --color-blob-2: rgb(92 227 230 / 65%);
+  --gradient-avatar-1: linear-gradient(135deg, #0b6f8e, #274a78);
+  --gradient-avatar-2: linear-gradient(135deg, #274a78, #0b6f8e);
+  --gradient-avatar-3: linear-gradient(135deg, #1b5f86, #0b6f8e);
+  --gradient-avatar-4: linear-gradient(135deg, #0b6f8e, #1b3f66);
+  --gradient-stat: linear-gradient(135deg, #0f9cc2, #274a78);
   --color-inverse: #0a0a0a;
   --color-on-inverse: #fff;
   --color-hairline: #e3e4ea;
   --color-nav: rgb(242 243 245 / 80%);
-  --color-focus: #4f46e5;
-  --color-grid-line: rgb(79 70 229 / 9%);
+  --color-focus: #0b6f8e;
+  --color-grid-line: rgb(15 156 194 / 9%);
   --watch-metal-light: #d4d6de;
   --watch-metal-dark: #45474f;
   --watch-glare: rgb(255 255 255 / 16%);
   --watch-shadow: rgb(15 23 42 / 28%);
   --color-on-accent-track: rgb(255 255 255 / 30%);
   --color-key-edge: #d3d6df;
-  --color-glow: rgb(79 70 229 / 12%);
-  --color-particle: rgb(79 70 229 / 35%);
-  --color-rain: rgb(79 70 229 / 30%);
-  --color-sun: rgb(79 70 229 / 22%);
-  --color-cloud: rgb(79 70 229 / 11%);
-  --color-fog: rgb(99 102 241 / 16%);
-  --color-flash: rgb(79 70 229 / 10%);
+  --color-glow: rgb(15 156 194 / 12%);
+  --color-particle: rgb(15 156 194 / 38%);
+  --color-rain: rgb(39 74 120 / 30%);
+  --color-sun: rgb(92 227 230 / 30%);
+  --color-cloud: rgb(39 74 120 / 10%);
+  --color-fog: rgb(15 156 194 / 16%);
+  --color-flash: rgb(92 227 230 / 18%);
 
   /* Type */
   --font-sans: var(--font-mona);
@@ -102,7 +102,7 @@
 
   /* Elevation */
   --shadow-primary:
-    inset 0 1px 3px 0 rgb(255 255 255 / 30%), 0 0 0 1px #3730a3, 0 1.5px 3px 0 rgb(55 48 163 / 14%),
+    inset 0 1px 3px 0 rgb(255 255 255 / 30%), 0 0 0 1px #1b4f6b, 0 1.5px 3px 0 rgb(27 79 107 / 14%),
     0 4px 4px 0 rgb(31 31 31 / 7%), 0 12px 6px 0 rgb(31 31 31 / 4%), 0 16px 8px 0 rgb(31 31 31 / 1%);
   --shadow-secondary:
     inset 0 2px 2px 0 #fff, 0 12px 12px -6px rgb(41 41 41 / 4%), 0 6px 6px -3px rgb(41 41 41 / 4%),
