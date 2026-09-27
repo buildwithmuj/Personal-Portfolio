@@ -60,6 +60,7 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     </p>
     <ProofStrip label={profile.proof.label} items={profile.proof.items} />
     <SkyGradient class="cover" />
+    <div class="weather" aria-hidden="true"></div>
     <button class="motion-toggle" type="button" aria-pressed="false" hidden>
       <svg
         viewBox="0 0 24 24"
@@ -150,9 +151,21 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
   }
 
   /*
-   * An ambient layer behind the card's content that follows London's weather when the site last
-   * built (src/lib/weather.ts). Each pattern repeats every tile, so moving the layer by one tile
-   * loops seamlessly. Everything holds still under reduced motion.
+   * The weather layer: it starts at the sky band's lower edge, so the weather seems to fall out of
+   * the sky onto the card, and it clips the moving pattern drawn by its ::after.
+   */
+  .weather {
+    position: absolute;
+    z-index: -1;
+    inset: var(--cover) 0 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  /*
+   * An ambient pattern that follows London's live weather (src/lib/weather.ts and the top bar).
+   * Each pattern repeats every tile, so moving the layer by one tile loops seamlessly. Everything
+   * holds still under reduced motion.
    *   clear:   specks of light drift up under a brighter, slowly breathing glow
    *   cloud:   soft clouds drift across
    *   fog:     a low haze slides slowly back and forth
@@ -160,7 +173,7 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
    *   snow:    flakes fall slowly
    * Without weather (the fetch failed), the specks drift on their own.
    */
-  .hero::after {
+  .weather::after {
     position: absolute;
     z-index: -1;
     inset: 0 0 -240px;
@@ -178,7 +191,7 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     transform-origin: 85% 10%;
   }
 
-  .hero[data-weather='cloud']::after {
+  .hero[data-weather='cloud'] .weather::after {
     inset: 0 -640px 0 0;
     background-image:
       radial-gradient(160px 60px at 25% 30%, var(--color-cloud), transparent),
@@ -187,7 +200,7 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     background-size: 640px 100%;
   }
 
-  .hero[data-weather='fog']::after {
+  .hero[data-weather='fog'] .weather::after {
     inset: 0 -15%;
     background-image:
       radial-gradient(50% 22% at 30% 75%, var(--color-fog), transparent),
@@ -196,7 +209,8 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     background-size: auto;
   }
 
-  .hero:is([data-weather='drizzle'], [data-weather='rain'], [data-weather='storm'])::after {
+  .hero:is([data-weather='drizzle'], [data-weather='rain'], [data-weather='storm'])
+    .weather::after {
     inset: -120px -10% 0;
     background-image:
       radial-gradient(1px 14px at 30% 20%, var(--color-rain), transparent),
@@ -206,11 +220,11 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     rotate: 8deg;
   }
 
-  .hero[data-weather='drizzle']::after {
+  .hero[data-weather='drizzle'] .weather::after {
     background-size: 160px 120px;
   }
 
-  .hero[data-weather='snow']::after {
+  .hero[data-weather='snow'] .weather::after {
     inset: -200px 0 0;
     background-image:
       radial-gradient(3px 3px at 20% 30%, var(--color-particle), transparent),
@@ -271,7 +285,7 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .hero::after {
+    .weather::after {
       animation: hero-drift 40s linear infinite;
     }
 
@@ -283,23 +297,23 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
       animation: hero-flash 9s linear infinite;
     }
 
-    .hero[data-weather='cloud']::after {
+    .hero[data-weather='cloud'] .weather::after {
       animation: hero-clouds 80s linear infinite;
     }
 
-    .hero[data-weather='fog']::after {
+    .hero[data-weather='fog'] .weather::after {
       animation: hero-haze 18s ease-in-out infinite alternate;
     }
 
-    .hero:is([data-weather='rain'], [data-weather='storm'])::after {
+    .hero:is([data-weather='rain'], [data-weather='storm']) .weather::after {
       animation: hero-rain 700ms linear infinite;
     }
 
-    .hero[data-weather='drizzle']::after {
+    .hero[data-weather='drizzle'] .weather::after {
       animation: hero-rain 1.4s linear infinite;
     }
 
-    .hero[data-weather='snow']::after {
+    .hero[data-weather='snow'] .weather::after {
       animation: hero-snow 14s linear infinite;
     }
   }
@@ -410,6 +424,11 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
 
   .hero > :nth-child(6) {
     animation-delay: 400ms;
+  }
+
+  /* The weather layer stays put while the card's content rises in. */
+  .hero > .weather {
+    animation: none;
   }
 
   .headline .w > span {
