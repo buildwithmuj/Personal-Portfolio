@@ -252,9 +252,15 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     }
   }
 
+  /*
+   * The rain layer is tilted (rotate: 8deg), so it must fall along its own tilted axis: transform
+   * applies inside the rotation, where one 120px step is exactly one tile of the pattern. (Moving it
+   * with translate, straight down the page, missed the tile by ~17px sideways, and the drops jumped
+   * each time the loop restarted.)
+   */
   @keyframes hero-rain {
     to {
-      translate: 0 120px;
+      transform: translateY(120px);
     }
   }
 
