@@ -20,11 +20,12 @@ main:
     Hey, I'm Mujtaba Shah, a Senior Intelligent Automation Analyst who turns complex processes into
     automation, data and AI products that save time, cut errors and scale.
   interests: 'Outside work: boxing at Legends MMA, four languages, and building side projects.'
-  # DRAFT: Mujtaba to confirm or rewrite what he is doing right now.
+  # DRAFT: Mujtaba to confirm or rewrite what's happening right now (and bump nowUpdated).
   now:
     - { label: Building, text: 'AI-assisted automation at DigiBlu, and this site' }
     - { label: Learning, text: Agentic AI workflows }
     - { label: Training, text: Boxing at Legends MMA }
+  nowUpdated: 2026-09-27
   # For the CV page, from the 2026 CV.
   languages:
     - { language: English, level: Native }

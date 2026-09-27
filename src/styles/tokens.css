@@ -63,9 +63,30 @@
   --color-chip: #e6f2ff;
   --color-chip-edge: #b3d9ff;
 
+  /* The About card's Now panel (About.astro): a Blue sky glow rising from its foot, frosted tiles */
+  --gradient-now-glow: radial-gradient(
+    90% 120% at 50% 100%,
+    #6699e6,
+    #80b3ff 35%,
+    #b3d9ff 60%,
+    #e6f2ff 85%
+  );
+  --color-frost: rgb(255 255 255 / 78%);
+
   /* Contact's sky band (global.css .shell-sky): solid behind the heading, fading into the grey */
   --sky-band: 200px;
   --mask-fade-down: linear-gradient(180deg, #000 55%, transparent);
+
+  /*
+   * The neck joining each section shell to the next (global.css): as tall as the gap, and cut away
+   * on both sides by half-circles, so it narrows to the gap's width in the middle.
+   */
+  --neck-r: calc(var(--shell-gap) / 2);
+  --mask-neck:
+    radial-gradient(circle at 0 50%, transparent var(--neck-r), #000 calc(var(--neck-r) + 0.5px))
+      left / 50% 100% no-repeat,
+    radial-gradient(circle at 100% 50%, transparent var(--neck-r), #000 calc(var(--neck-r) + 0.5px))
+      right / 50% 100% no-repeat;
 
   /* Type */
   --font-sans: var(--font-mona);
@@ -104,7 +125,8 @@
   --measure: 65ch;
   --bar-height: 64px;
   --bar-offset: 18px;
-  --shell-gap: 10px;
+  --shell-gap: 40px;
+  --shell-gap-tight: 10px;
   --shell-pad-top: 50px;
   --shell-pad: 32px;
   --inset: 2px;

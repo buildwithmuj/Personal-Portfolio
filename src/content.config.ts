@@ -32,6 +32,8 @@ const profile = defineCollection({
     interests: z.string().min(1),
     // What the owner is doing right now, for the About card's Now panel.
     now: z.array(z.object({ label: z.string().min(1), text: z.string().min(1) })).default([]),
+    // When the Now panel was last brought up to date, shown on it as a month and year.
+    nowUpdated: z.coerce.date().optional(),
     // For the CV page.
     languages: z.array(z.object({ language: z.string().min(1), level: z.string().min(1) })),
     outsideWork: z.array(

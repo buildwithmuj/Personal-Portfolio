@@ -34,8 +34,14 @@ const accentFrom =
       {profile.avatar && (
         <img class="avatar" src={withBase(profile.avatar)} alt="" width="90" height="90" />
       )}
-      <div>
+      <div class="who">
         <h1 id="hero-name">{profile.name}</h1>
+        {profile.availability && (
+          <p class="availability">
+            <span class="available-dot" aria-hidden="true"></span>
+            {profile.availability}
+          </p>
+        )}
         <p class="roles">
           <span class="visually-hidden">{rolesSentence}</span>
           <role-rotator
@@ -70,12 +76,6 @@ const accentFrom =
     <ProofStrip label={profile.proof.label} items={profile.proof.items} />
     <SkyGradient class="cover" />
     <div class="weather" aria-hidden="true"></div>
-    {profile.availability && (
-      <p class="availability">
-        <span class="available-dot" aria-hidden="true"></span>
-        {profile.availability}
-      </p>
-    )}
     <ul class="band-socials" role="list">
       {profile.socials.map((social) => (
         <li>
@@ -389,13 +389,11 @@ const accentFrom =
   }
 
   /*
-   * An availability pill at the band's top left (bottom right on phones), with a softly
-   * pulsing dot that holds still under reduced motion or the pause button.
+   * An availability pill level with the name at the card's right edge (on phones, where the row is
+   * too narrow, at the band's bottom right), with a softly pulsing dot that holds still under
+   * reduced motion or the pause button.
    */
   .availability {
-    position: absolute;
-    inset-block-start: var(--space-4);
-    inset-inline-start: var(--space-4);
     display: flex;
     gap: var(--space-2);
     align-items: center;
@@ -457,12 +455,23 @@ const accentFrom =
 
   /* The avatar overlaps the band by about a third, so the name sits clear of the band's edge. */
   .identity {
+    position: relative;
     display: flex;
     gap: var(--space-4);
     align-items: flex-end;
     margin-block-start: calc(
       var(--cover) - var(--avatar) / 2 - var(--hero-card-pad) + var(--space-4)
     );
+  }
+
+  /* The name and the availability pill share the first row; the role line runs below both. */
+  .who {
+    display: grid;
+    flex: 1;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0 var(--space-4);
+    align-items: center;
+    min-width: 0;
   }
 
   .avatar {
@@ -478,6 +487,7 @@ const accentFrom =
   }
 
   .roles {
+    grid-column: 1 / -1;
     height: 1.5em;
     overflow: hidden;
     color: var(--color-text-muted);
@@ -572,13 +582,31 @@ const accentFrom =
   }
 
   @media (width < 40rem) {
+    /* A taller band: the pill gets a row of its own, the social links sit a little lower. */
     .hero {
-      --cover: 112px;
+      --cover: 136px;
     }
 
+    .band-socials {
+      inset-block-start: calc(var(--cover) * 0.56);
+    }
+
+    /* As in the reference, the pill sits 12px in from the card's top right (from the identity row). */
     .availability {
-      inset-block-start: calc(var(--cover) - 38px);
-      inset-inline: auto var(--space-3);
+      position: absolute;
+      inset-block-start: calc(var(--avatar) / 2 - var(--cover) - var(--space-1));
+      inset-inline-end: calc(var(--space-3) - var(--hero-card-pad));
+    }
+
+    /* With the pill out of the row, the name and role line take its full width. */
+    .who {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* The pause button moves to the top left to make room. */
+    .motion-toggle {
+      inset-block-start: var(--space-3);
+      inset-inline: var(--space-3) auto;
     }
 
     .actions {

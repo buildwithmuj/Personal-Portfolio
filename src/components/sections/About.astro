@@ -10,9 +10,12 @@ interface Props {
 }
 
 const { profile } = Astro.props;
-// The signature reads as an initial and surname, e.g. "M. Shah".
-const [first = '', ...rest] = profile.name.split(' ');
-const signature = `${first.charAt(0)}. ${rest.at(-1) ?? ''}`;
+const nowUpdated = profile.nowUpdated;
+const nowDate =
+  nowUpdated &&
+  new Intl.DateTimeFormat('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(
+    nowUpdated,
+  );
 ---
 
 <Shell id="about" labelledBy="about-heading" inset>
@@ -46,17 +49,17 @@ const signature = `${first.charAt(0)}. ${rest.at(-1) ?? ''}`;
         </li>
       </ul>
       {/*
-        The signature: an initial and surname in the editorial italic over a drawn flourish, which
-        writes itself on as the card scrolls into view. A stand-in until the owner's own signature is
-        traced to SVG.
+        The signature: one flowing stroke (a sweeping loop, a sharp peak, quick humps and a long
+        trailing tail) that the pen draws on as the card scrolls into view. Decorative: the name is
+        already in the statement. An original in the style the owner chose, until theirs is traced.
       */}
       <p class="signature" data-reveal="sign" aria-hidden="true">
-        <span>
-          {signature}
-          <svg class="flourish" viewBox="0 0 160 14" preserveAspectRatio="none" focusable="false">
-            <path d="M3 9C35 3 70 13 104 7s42-3 53 2"></path>
-          </svg>
-        </span>
+        <svg viewBox="0 0 320 80" focusable="false">
+          <path
+            pathLength="1"
+            d="M12 70C40 66 95 26 118 12C108 22 70 50 58 60C50 66 64 70 92 58C112 48 136 22 146 10C142 28 138 50 140 66C146 52 156 44 162 48C168 52 164 62 168 64C172 54 182 46 188 50C194 54 190 62 196 62C206 58 214 36 216 22C214 36 210 54 212 64C218 54 228 48 234 54C238 60 236 62 244 60C262 58 290 60 314 56"
+          ></path>
+        </svg>
       </p>
     </div>
     <Stats stats={profile.stats} />
@@ -69,10 +72,30 @@ const signature = `${first.charAt(0)}. ${rest.at(-1) ?? ''}`;
     )}
     {profile.now.length > 0 && (
       <section class="now" aria-labelledby="now-heading">
-        <h3 id="now-heading" class="now-label">
-          <span class="now-dot" aria-hidden="true"></span>
-          Right now
-        </h3>
+        <div class="now-card">
+          <p class="now-tags" aria-hidden="true">
+            {profile.now.map(({ label }, index) => (
+              <>
+                {index > 0 && <span class="now-sep">•</span>}
+                {label}
+              </>
+            ))}
+          </p>
+          <h3 id="now-heading">Right now</h3>
+          <p class="now-meta">
+            {nowUpdated && (
+              <span>
+                <span class="now-dot" aria-hidden="true"></span>
+                <span>
+                  Updated <time datetime={nowUpdated.toISOString().slice(0, 10)}>{nowDate}</time>
+                </span>
+              </span>
+            )}
+            <a class="now-link" href="#contact">
+              Say hello
+            </a>
+          </p>
+        </div>
         <dl>
           {profile.now.map(({ label, text }) => (
             <div>
@@ -98,7 +121,7 @@ const signature = `${first.charAt(0)}. ${rest.at(-1) ?? ''}`;
     line-height: var(--leading-normal);
   }
 
-  /* The contact links, with the signature at the far end of the row (below them on phones). */
+  /* The contact links, with the signature at the far end of the row (above them on phones). */
   .sign-row {
     display: flex;
     flex-wrap: wrap;
@@ -113,67 +136,17 @@ const signature = `${first.charAt(0)}. ${rest.at(-1) ?? ''}`;
     margin: 0 0 0 auto;
   }
 
-  .signature span {
-    display: inline-grid;
-    color: var(--color-accent-hover);
-    font-family: var(--font-serif);
-    font-size: 32px;
-    font-style: italic;
-    letter-spacing: 0.01em;
-    line-height: 1.1;
-    rotate: -3deg;
-  }
-
-  .flourish {
-    width: 100%;
-    height: 12px;
+  .signature svg {
+    display: block;
+    width: 210px;
+    height: auto;
+    overflow: visible;
     fill: none;
-    stroke: currentcolor;
+    stroke: var(--color-accent-hover);
     stroke-linecap: round;
-    stroke-width: 1.4;
-  }
-
-  /* What the owner is doing right now: three short lines on a pale sky panel. */
-  .now {
-    display: grid;
-    gap: var(--space-3);
-    margin-block-start: var(--space-6);
-    padding: var(--space-4) var(--space-6);
-    border-radius: 16px;
-    background: var(--color-chip);
-  }
-
-  .now-label {
-    display: flex;
-    gap: var(--space-2);
-    align-items: center;
-    color: var(--color-accent-hover);
-    font-size: var(--text-sm);
-  }
-
-  .now-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--color-accent);
-  }
-
-  .now dl {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-3) var(--space-6);
-    margin: 0;
-  }
-
-  .now dt {
-    color: var(--color-text-muted);
-    font-size: var(--text-xs);
-  }
-
-  .now dd {
-    margin: 0;
-    font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
+    stroke-linejoin: round;
+    stroke-width: 2;
+    stroke-dasharray: 1;
   }
 
   .statement {
@@ -216,6 +189,107 @@ const signature = `${first.charAt(0)}. ${rest.at(-1) ?? ''}`;
 
   .contact-row a:hover {
     text-decoration: underline;
+  }
+
+  /*
+   * What the owner is doing right now: a white card holding the title, set in a panel whose Blue
+   * sky glow rises from its foot, with the three items on frosted tiles over the glow.
+   */
+  .now {
+    display: grid;
+    margin-block-start: var(--space-6);
+    padding: 4px;
+    border-radius: var(--radius-card);
+    background: var(--gradient-now-glow);
+  }
+
+  .now-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 168px;
+    padding: var(--space-4) var(--space-6);
+    border-radius: calc(var(--radius-card) - 4px);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-secondary);
+  }
+
+  .now-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  /* The title sits low in the card, like a label on a lightbox. */
+  .now h3 {
+    margin-block: auto 6px;
+    padding-block-start: var(--space-6);
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+  }
+
+  .now-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    align-items: center;
+    justify-content: space-between;
+    max-width: none;
+    margin: 0;
+    font-size: var(--text-sm);
+  }
+
+  .now-meta > span {
+    display: inline-flex;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .now-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-accent);
+  }
+
+  .now-link {
+    margin-inline-start: auto;
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  .now-link:hover {
+    color: var(--color-text);
+    text-decoration: underline;
+  }
+
+  .now dl {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
+    margin: 0;
+    padding: var(--space-8) var(--space-4) var(--space-4);
+  }
+
+  .now dl > div {
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-image);
+    background: var(--color-frost);
+  }
+
+  .now dt {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .now dd {
+    margin: 0;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
   }
 
   /*
@@ -352,13 +426,13 @@ const signature = `${first.charAt(0)}. ${rest.at(-1) ?? ''}`;
   }
 
   /* The signature's write-on, kept after the pause rules above (the linter's specificity order). */
-  :global(.reveal-ready) .signature span {
-    clip-path: inset(0 100% 0 0);
+  :global(.reveal-ready) .signature path {
+    stroke-dashoffset: 1;
   }
 
-  :global(.reveal-ready) .signature.in span {
-    clip-path: inset(0);
-    transition: clip-path 1.6s var(--ease-out) 400ms;
+  :global(.reveal-ready) .signature.in path {
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 2.2s var(--ease-standard) 300ms;
   }
 
   @media (width < 40rem) {
@@ -366,8 +440,17 @@ const signature = `${first.charAt(0)}. ${rest.at(-1) ?? ''}`;
       padding: 40px 24px 36px;
     }
 
+    /* On phones the signature sits under the statement, above the links. */
     .sign-row {
+      flex-direction: column;
+      gap: var(--space-6);
+      align-items: flex-start;
       margin-block-end: var(--space-8);
+    }
+
+    .signature {
+      order: -1;
+      margin: 0;
     }
 
     .now dl {

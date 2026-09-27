@@ -136,13 +136,47 @@ a {
 }
 
 .shell {
+  position: relative;
   padding: var(--shell-pad-top) var(--shell-pad) var(--shell-pad);
   border-radius: var(--radius-shell);
   background: var(--color-shell);
 }
 
+/*
+ * The grey shells join up like links in a chain: a neck in the shell's grey bridges each gap to
+ * the next shell, with concave sides (tokens.css --mask-neck). It overlaps each shell by a pixel so
+ * no hairline shows at the joins. The hero stands apart, the inset About card runs straight into
+ * the next shell (below), and the sky-crowned Contact closes the page on its own.
+ */
+.stack > .shell:not(.shell-hero, .shell-inset):has(~ .shell:not(.shell-sky))::after {
+  position: absolute;
+  inset-block-start: calc(100% - 1px);
+  inset-inline-start: 50%;
+  width: calc(var(--shell-gap) * 2);
+  height: calc(var(--shell-gap) + 2px);
+  translate: -50% 0;
+  background: var(--color-shell);
+  content: '';
+  mask: var(--mask-neck);
+}
+
 .shell-inset {
   padding: var(--inset);
+}
+
+/*
+ * As in the Portfolik reference, an inset card (About) flows into the shell after it: no gap, and
+ * square where they meet, so the two read as one grey panel with the card at its head.
+ */
+.stack > .shell-inset:has(+ .shell) {
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.stack > .shell-inset + .shell {
+  margin-block-start: calc(-1 * var(--shell-gap));
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
 }
 
 /*
@@ -165,7 +199,9 @@ a {
   mask-image: var(--mask-fade-down);
 }
 
+/* The hero keeps the reference's tight gap to the About card below, not the chain's wider one. */
 .stack > .shell-hero:first-child {
+  margin-block-end: calc(var(--shell-gap-tight) - var(--shell-gap));
   padding: calc(var(--bar-height) + var(--inset)) var(--inset) var(--inset);
 }
 

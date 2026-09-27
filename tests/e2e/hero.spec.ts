@@ -93,14 +93,23 @@ for (const width of [770, 960, 1280]) {
   });
 }
 
-// The hero says whether the owner is open to work, and the About card signs off with an initial and
-// surname (decorative, so hidden from screen readers, who already have the name).
+// The hero says whether the owner is open to work, and the About card is signed.
 test('the hero shows availability and the About card is signed', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.hero .availability')).toHaveText(/\S/);
+  // One drawn stroke (decorative, so hidden from screen readers, who already have the name).
   const signature = page.locator('#about .signature');
-  await expect(signature).toHaveText('M. Shah');
+  await expect(signature.locator('svg path')).toHaveCount(1);
   await expect(signature).toHaveAttribute('aria-hidden', 'true');
+});
+
+// The About card's Right now panel says what the owner is up to, since when, and invites a hello.
+test('the About card says what is happening right now, and since when', async ({ page }) => {
+  await page.goto('/');
+  const now = page.getByRole('region', { name: 'Right now' });
+  await expect(now.locator('dt').first()).toBeVisible();
+  await expect(now.locator('time')).toHaveAttribute('datetime', /^\d{4}-\d{2}-\d{2}$/);
+  await expect(now.getByRole('link', { name: 'Say hello' })).toHaveAttribute('href', '#contact');
 });
 
 // The social links sit in the hero's sky band, each named for screen readers.
