@@ -12,7 +12,7 @@ main:
     - Product Owner
   headline: I turn messy processes into automation and products people actually use.
   headlineAccent: people actually use.
-  availability: Open to new roles and projects # DRAFT: Mujtaba to confirm
+  availability: Open to new roles and projects
   # On phones the pill reads "Open to new roles", its last word rotating through these.
   availabilityShort: { lead: Open to new, words: [roles, projects] }
   subline: >-
@@ -41,10 +41,11 @@ main:
       }
     - { stack: Learning, time: '20:30', task: Design principles and GitHub, via YouTube }
     - { stack: Learning, time: '21:30', task: Tips and show pieces from the community on X }
-  # DRAFT answers for "Interview me", drawn from the CV, skills and method; Mujtaba to rewrite them
-  # in Mujtaba's own words. While draft is true the section shows only in preview builds.
+  # Answers for "Interview me", drawn from the CV, skills and method, and live since v1.1.0. They
+  # were drafted for Mujtaba, so rewrite them in his own words: the section signs them "not an AI".
+  # Set draft back to true to show the section only in preview builds.
   interview:
-    draft: true
+    draft: false
     questions:
       - question: What role are you after?
         answer: >-

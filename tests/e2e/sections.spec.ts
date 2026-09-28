@@ -65,8 +65,10 @@ test('About runs straight into Selected work, as one panel', async ({ page }) =>
     const about = document.getElementById('about');
     const work = document.getElementById('work');
     if (!about || !work) return null;
+    const gap = work.getBoundingClientRect().top - about.getBoundingClientRect().bottom;
     return {
-      gap: work.getBoundingClientRect().top - about.getBoundingClientRect().bottom,
+      // Firefox lands the two edges a hair apart (0.00006px) from layout rounding.
+      gap: Math.round(Math.abs(gap) * 100) / 100,
       aboutFoot: getComputedStyle(about).borderEndStartRadius,
       workHead: getComputedStyle(work).borderStartStartRadius,
     };
