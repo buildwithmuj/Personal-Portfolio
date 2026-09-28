@@ -3,7 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import { withBase } from '../../lib/paths.ts';
 import { socialLabels } from '../../lib/social.ts';
 import BookingPanel from '../BookingPanel.astro';
-import CopyEmail from '../CopyEmail.astro';
+import Icon from '../Icon.astro';
 import Shell from '../Shell.astro';
 import SocialIcon from '../SocialIcon.astro';
 
@@ -16,8 +16,8 @@ const { profile } = Astro.props;
 
 {/*
   Let's work together, invitation first: under the sky, a card that leads with the call (the
-  availability, a big "Let's talk it through." and the booking button), then one quiet line with
-  the email and its copy button, the CV and the social links.
+  availability, a big "Let's talk it through.", the booking button and a "Drop an email" button
+  beside it), then one quiet line with the CV and the social links.
 */}
 <Shell
   id="contact"
@@ -35,16 +35,16 @@ const { profile } = Astro.props;
     <p class="big">
       Let's talk it <em>through.</em>
     </p>
-    <BookingPanel url={profile.bookingUrl} name={profile.name} />
-    <p class="meta">
-      A 30-minute call, booked in a couple of clicks. Rather write? My email's below.
-    </p>
+    <div class="actions">
+      <BookingPanel url={profile.bookingUrl} name={profile.name} />
+      <a class="btn btn-secondary mail" href={`mailto:${profile.email}`}>
+        <Icon name="send-mail" size={22} class="fly" />
+        Drop an email
+      </a>
+    </div>
+    <p class="meta">A 30-minute call, booked in a couple of clicks.</p>
   </div>
   <div class="details" data-reveal="rise">
-    <p class="email">
-      <a href={`mailto:${profile.email}`}>{profile.email}</a>
-      <CopyEmail email={profile.email} />
-    </p>
     <a class="cv" href={withBase('/cv')}>
       View CV
     </a>
@@ -104,13 +104,40 @@ const { profile } = Astro.props;
     font-family: var(--font-serif);
   }
 
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: flex-start;
+    justify-self: stretch;
+  }
+
+  /* Open, the calendar takes the whole row, and the email button moves beneath it. */
+  .actions > :global(booking-panel:has(details[open])) {
+    flex-basis: 100%;
+  }
+
+  /* Shaped like the booking button, in white, with an envelope that flies forward on hover. */
+  .mail {
+    min-height: 44px;
+    border-radius: var(--radius-pill);
+  }
+
+  .fly {
+    transition: translate var(--duration-base) var(--ease-standard);
+  }
+
+  .mail:hover .fly {
+    translate: 3px 0;
+  }
+
   .meta {
     margin: 0;
     color: var(--color-text-muted);
     font-size: var(--text-sm);
   }
 
-  /* The quiet line: email and its copy button, the CV, the social links. */
+  /* The quiet line: the CV and the social links. */
   .details {
     display: flex;
     flex-wrap: wrap;
@@ -119,22 +146,11 @@ const { profile } = Astro.props;
     margin-block-start: var(--space-6);
   }
 
-  .email {
-    display: flex;
-    gap: var(--space-2);
-    align-items: center;
-    min-width: 0;
-    margin: 0;
-    overflow-wrap: anywhere;
-  }
-
-  .email a,
   .cv {
     color: var(--color-text);
     text-decoration: none;
   }
 
-  .email a:hover,
   .cv:hover {
     text-decoration: underline;
   }
@@ -165,6 +181,11 @@ const { profile } = Astro.props;
   @media (width < 40rem) {
     .invite {
       padding: 24px 22px;
+    }
+
+    /* On phones the two buttons stack, each the card's full width. */
+    .actions > :global(*) {
+      flex-basis: 100%;
     }
   }
 </style>
