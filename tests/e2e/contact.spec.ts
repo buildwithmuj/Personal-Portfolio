@@ -34,6 +34,20 @@ test('the contact section offers email, CV, socials and booking', async ({ page 
   await expect(contact.locator('summary')).toHaveText('Book a 30-minute call');
 });
 
+// Invitation first: the call leads, under the availability, and email, CV and socials follow.
+test('the contact section leads with the call', async ({ page }) => {
+  await page.goto('/');
+  const contact = page.locator('#contact');
+  await expect(contact.getByText("Let's talk it through.")).toBeVisible();
+  await expect(contact.getByText(profileValue('availability'))).toBeVisible();
+  const callFirst = await contact.evaluate((section) => {
+    const call = section.querySelector('summary');
+    const email = section.querySelector('a[href^="mailto:"]');
+    return !!call && !!email && !!(call.compareDocumentPosition(email) & 4);
+  });
+  expect(callFirst).toBe(true);
+});
+
 test('the copy button copies the address and announces it', async ({
   page,
   context,

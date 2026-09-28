@@ -5,118 +5,166 @@ import { socialLabels } from '../../lib/social.ts';
 import BookingPanel from '../BookingPanel.astro';
 import CopyEmail from '../CopyEmail.astro';
 import Shell from '../Shell.astro';
-import Icon from '../Icon.astro';
+import SocialIcon from '../SocialIcon.astro';
 
 interface Props {
   profile: CollectionEntry<'profile'>['data'];
 }
 
 const { profile } = Astro.props;
-const [emailUser, emailDomain] = profile.email.split('@');
 ---
 
+{/*
+  Let's work together, invitation first: under the sky, a card that leads with the call (the
+  availability, a big "Let's talk it through." and the booking button), then one quiet line with
+  the email and its copy button, the CV and the social links.
+*/}
 <Shell
   id="contact"
   heading={profile.sections.contact.heading}
   intro={profile.sections.contact.intro}
   sky
 >
-  <div class="fields">
-    <p class="field" data-reveal="rise">
-      <Icon name="mail" size={20} class="field-icon" />
-      <a class="email" href={`mailto:${profile.email}`}>
-        {emailUser}@<wbr />
-        {emailDomain}
-      </a>
+  <div class="invite" data-reveal="rise">
+    {profile.availability && (
+      <p class="availability">
+        <span class="dot" aria-hidden="true"></span>
+        {profile.availability}
+      </p>
+    )}
+    <p class="big">
+      Let's talk it <em>through.</em>
+    </p>
+    <BookingPanel url={profile.bookingUrl} name={profile.name} />
+    <p class="meta">
+      A 30-minute call, booked in a couple of clicks. Rather write? My email's below.
+    </p>
+  </div>
+  <div class="details" data-reveal="rise">
+    <p class="email">
+      <a href={`mailto:${profile.email}`}>{profile.email}</a>
       <CopyEmail email={profile.email} />
     </p>
-    <p class="field" data-reveal="rise">
-      <Icon name="document" size={20} class="field-icon" />
-      <a href={withBase('/cv')}>View CV</a>
-    </p>
-    <div class="field wide" data-reveal="rise">
-      <span class="muted">Elsewhere</span>
-      <ul class="socials" role="list">
-        {profile.socials.map((social) => (
-          <li>
-            <a href={social.url}>{socialLabels[social.platform]}</a>
-          </li>
-        ))}
-      </ul>
-    </div>
-    <div class="wide booking" data-reveal="rise">
-      <BookingPanel url={profile.bookingUrl} name={profile.name} />
-    </div>
+    <a class="cv" href={withBase('/cv')}>
+      View CV
+    </a>
+    <ul class="socials" role="list">
+      {profile.socials.map((social) => (
+        <li>
+          <a class="social" href={social.url} aria-label={socialLabels[social.platform]}>
+            <SocialIcon platform={social.platform} />
+          </a>
+        </li>
+      ))}
+    </ul>
   </div>
 </Shell>
 
 <style>
-  /* Modelled on the reference's contact form: white 52px fields, 20px apart, then a full-width button. */
-  .fields {
+  .invite {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: var(--space-4);
+    justify-items: start;
+    padding: 30px;
+    border-radius: var(--radius-card);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-secondary);
   }
 
-  .field {
+  .availability {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    margin: 0;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-secondary);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-available);
+    box-shadow: 0 0 0 4px var(--color-available-glow);
+  }
+
+  .big {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 2.5rem);
+    letter-spacing: var(--tracking-tight);
+    line-height: 1.1;
+  }
+
+  .big em {
+    color: var(--color-accent);
+    font-family: var(--font-serif);
+  }
+
+  .meta {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  /* The quiet line: email and its copy button, the CV, the social links. */
+  .details {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-2) 10px;
+    gap: var(--space-3) var(--space-6);
     align-items: center;
-    max-width: none;
-    min-height: 52px;
-    padding: 8px 20px;
-    border-radius: var(--radius-image);
-    background: var(--color-surface);
+    margin-block-start: var(--space-6);
   }
 
-  .wide {
-    grid-column: 1 / -1;
+  .email {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
   }
 
-  .field svg {
-    flex-shrink: 0;
-    color: var(--color-accent);
-  }
-
-  .field a {
+  .email a,
+  .cv {
     color: var(--color-text);
     text-decoration: none;
   }
 
-  .field a:hover {
+  .email a:hover,
+  .cv:hover {
     text-decoration: underline;
-  }
-
-  .email {
-    min-width: 0;
-  }
-
-  /* The email line never wraps its copy button onto a second line. */
-  .field:has(.email) {
-    flex-wrap: nowrap;
-    gap: var(--space-2);
-  }
-
-  .muted {
-    color: var(--color-text-muted);
   }
 
   .socials {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2) var(--space-6);
+    gap: var(--space-2);
+    margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .booking {
-    margin-block-start: var(--space-2);
+  .social {
+    display: grid;
+    place-items: center;
+    width: var(--icon-button);
+    height: var(--icon-button);
+    border-radius: var(--radius-icon);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-secondary);
+    color: var(--color-text);
+  }
+
+  .social:hover {
+    color: var(--color-accent);
   }
 
   @media (width < 40rem) {
-    .fields {
-      grid-template-columns: 1fr;
+    .invite {
+      padding: 24px 22px;
     }
   }
 </style>

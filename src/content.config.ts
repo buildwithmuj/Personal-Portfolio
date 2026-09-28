@@ -169,16 +169,25 @@ const caseStudies = defineCollection({
 
 const testimonials = defineCollection({
   loader: file('src/content/testimonials.yaml'),
-  schema: z.object({
-    name: z.string().min(1),
-    role: z.string().min(1),
-    quote: z.string().min(1).max(320),
-    // Where it was given, for the mark in the card's corner: a LinkedIn recommendation, a post on X,
-    // or an email (no mark).
-    source: z.enum(['linkedin', 'x', 'email']).optional(),
-    // Required, so no quote can reach the live site without stating whether it is real.
-    placeholder: z.boolean(),
-  }),
+  schema: z
+    .object({
+      name: z.string().min(1),
+      role: z.string().min(1),
+      quote: z.string().min(1).max(320),
+      // Where it was given, named at the foot of the card: a LinkedIn recommendation, a post on X, or
+      // an email (not named).
+      source: z.enum(['linkedin', 'x', 'email']).optional(),
+      // The recommendation or post itself; with it, the card reads "Verified on LinkedIn" as a link.
+      url: httpsUrl.optional(),
+      // A phrase from the quote to mark with the sky highlighter, word for word.
+      highlight: z.string().min(1).optional(),
+      // Required, so no quote can reach the live site without stating whether it is real.
+      placeholder: z.boolean(),
+    })
+    .refine((data) => !data.highlight || data.quote.includes(data.highlight), {
+      message: 'The highlight must be a phrase from the quote, word for word',
+      path: ['highlight'],
+    }),
 });
 
 const yearMonth = z.string().regex(/^\d{4}-\d{2}$/, 'Use YYYY-MM');

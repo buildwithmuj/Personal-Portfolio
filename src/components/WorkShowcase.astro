@@ -276,9 +276,9 @@ const groups = (['client', 'product'] as const).map((kind) => ({
 
   /*
    * The dot of the card in view grows into a blue pill: each card's position in the row drives its
-   * dot (a scroll-driven animation, where supported; elsewhere the dots simply count the cards). A
-   * snapped card sits right at the edge of its fully-in-view range, so each dot is lit from halfway
-   * through its card's arrival to halfway through its leaving.
+   * dot (a scroll-driven animation; a browser without them plays it in no time, and the dots simply
+   * count the cards). A snapped card sits right at the edge of its fully-in-view range, so each dot
+   * is lit from halfway through its card's arrival to halfway through its leaving.
    */
   @keyframes dot-on {
     from,
@@ -289,47 +289,45 @@ const groups = (['client', 'product'] as const).map((kind) => ({
   }
 
   @media (width < 40rem) and (prefers-reduced-motion: no-preference) {
-    @supports (animation-timeline: view()) {
-      .tile:nth-child(1) {
-        view-timeline: --tile-1 inline;
-      }
+    .tile:nth-child(1) {
+      view-timeline: --tile-1 inline;
+    }
 
-      .tile:nth-child(2) {
-        view-timeline: --tile-2 inline;
-      }
+    .tile:nth-child(2) {
+      view-timeline: --tile-2 inline;
+    }
 
-      .tile:nth-child(3) {
-        view-timeline: --tile-3 inline;
-      }
+    .tile:nth-child(3) {
+      view-timeline: --tile-3 inline;
+    }
 
-      .tile:nth-child(4) {
-        view-timeline: --tile-4 inline;
-      }
+    .tile:nth-child(4) {
+      view-timeline: --tile-4 inline;
+    }
 
-      .dots span {
-        animation: dot-on linear;
-      }
+    .dots span {
+      animation: dot-on linear;
+    }
 
-      /* Each timeline in a rule of its own, so the minifier can't fold it into the shorthand. */
-      .dots span:nth-child(1) {
-        animation-timeline: --tile-1;
-        animation-range: entry 55% exit 50%;
-      }
+    /* Each timeline in a rule of its own, so the minifier can't fold it into the shorthand. */
+    .dots span:nth-child(1) {
+      animation-timeline: --tile-1;
+      animation-range: entry 55% exit 50%;
+    }
 
-      .dots span:nth-child(2) {
-        animation-timeline: --tile-2;
-        animation-range: entry 55% exit 50%;
-      }
+    .dots span:nth-child(2) {
+      animation-timeline: --tile-2;
+      animation-range: entry 55% exit 50%;
+    }
 
-      .dots span:nth-child(3) {
-        animation-timeline: --tile-3;
-        animation-range: entry 55% exit 50%;
-      }
+    .dots span:nth-child(3) {
+      animation-timeline: --tile-3;
+      animation-range: entry 55% exit 50%;
+    }
 
-      .dots span:nth-child(4) {
-        animation-timeline: --tile-4;
-        animation-range: entry 55% exit 50%;
-      }
+    .dots span:nth-child(4) {
+      animation-timeline: --tile-4;
+      animation-range: entry 55% exit 50%;
     }
   }
 </style>

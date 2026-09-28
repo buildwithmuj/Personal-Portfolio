@@ -23,8 +23,6 @@
   --color-on-accent: #fff;
   --color-accent-glow: rgb(102 153 230 / 14%);
   --color-avatar-text: #fff;
-  --color-blob-1: rgb(102 153 230 / 75%);
-  --color-blob-2: rgb(128 179 255 / 65%);
 
   /*
    * Testimonial avatars: four flat colours from the Blue sky palette, two deep blues under white
@@ -36,9 +34,15 @@
   --color-avatar-4: #cfe4ff;
   --color-avatar-text-light: #1f3f7a;
 
-  /* The About stats (Stats.astro): a navy wash that deepens the live sky under white text */
+  /* The About stats (Stats.astro) and the typical day's header: white text on the live sky */
   --stats-wash: linear-gradient(180deg, rgb(29 74 146 / 22%), rgb(29 74 146 / 42%));
   --stats-text-shadow: 0 1px 12px rgb(12 36 84 / 45%);
+  --sky-text-wash: linear-gradient(
+    100deg,
+    rgb(29 74 146 / 55%),
+    rgb(29 74 146 / 20%) 45%,
+    transparent 70%
+  );
 
   /* Selected work (WorkShowcase.astro): a navy fade over a cover, under white text */
   --gradient-cover-fade: linear-gradient(180deg, transparent 30%, rgb(12 36 84 / 80%));
@@ -52,7 +56,6 @@
   --watch-glare: rgb(255 255 255 / 16%);
   --watch-shadow: rgb(15 23 42 / 28%);
   --color-on-accent-track: rgb(255 255 255 / 30%);
-  --color-key-edge: #d3d6df;
   --color-available: #1f9d63;
   --color-available-glow: rgb(31 157 99 / 45%);
 
@@ -66,14 +69,7 @@
   --color-chip: #e6f2ff;
   --color-chip-edge: #b3d9ff;
 
-  /* The About card's Now panel (About.astro): a Blue sky glow rising from its foot, frosted tiles */
-  --gradient-now-glow: radial-gradient(
-    90% 120% at 50% 100%,
-    #6699e6,
-    #80b3ff 35%,
-    #b3d9ff 60%,
-    #e6f2ff 85%
-  );
+  /* Frosted white, for pills and chips over the sky or a cover */
   --color-frost: rgb(255 255 255 / 78%);
 
   /* Contact's sky band (global.css .shell-sky): solid behind the heading, fading into the grey */

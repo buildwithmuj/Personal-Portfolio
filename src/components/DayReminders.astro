@@ -168,6 +168,25 @@ const { tasks, place, timeZone } = Astro.props;
     inset: 0;
   }
 
+  /*
+   * White on the live sky, with the soft navy shadow the About stats use, over a navy wash on the
+   * text's side that fades out towards the count: the sky can drift pale, and without WebGL its
+   * fallback gradient is pale at the top.
+   */
+  .rem-head::after {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: var(--sky-text-wash);
+    content: '';
+  }
+
+  .rem-app,
+  .rem-clock {
+    color: var(--color-on-accent);
+    text-shadow: var(--stats-text-shadow);
+  }
+
   .rem-app {
     margin: 0;
     font-weight: var(--weight-medium);
@@ -175,7 +194,6 @@ const { tasks, place, timeZone } = Astro.props;
 
   .rem-clock {
     margin: 2px 0 0;
-    color: var(--color-accent-hover);
     font-size: var(--text-sm);
     font-variant-numeric: tabular-nums;
   }
