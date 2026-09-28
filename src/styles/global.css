@@ -276,6 +276,32 @@ a {
   display: none;
 }
 
+/*
+ * Sections open as they arrive: on the home page's chain (.stack), each collapsible section is
+ * closed below its heading until it scrolls into view, then slides open and stays open (Shell.astro
+ * adds .is-open, then .is-settled once the slide is done, when its content may spill over the
+ * edges again). Only with the scroll reveals, so never without JavaScript or under reduced motion;
+ * focus inside opens a section at once, and a collapsed one ([hidden]) stays collapsed.
+ */
+.reveal-ready .stack > .shell > .shell-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 800ms var(--ease-out);
+}
+
+.reveal-ready .stack > .shell > .shell-body > .shell-body-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.reveal-ready .stack > :is(.is-open, :focus-within) > .shell-body {
+  grid-template-rows: 1fr;
+}
+
+.reveal-ready .stack > .is-settled > .shell-body > .shell-body-inner {
+  overflow: visible;
+}
+
 /* On phones the switch drops below the heading, and the toggle stays beside the title. */
 @media (width < 40rem) {
   .section-head {

@@ -186,11 +186,18 @@ test('with animations paused, entrances still finish and only loops are held', a
 
   // Bring every scroll reveal on screen for at least one rendered frame, so the reveal observer sees
   // it even on a slow machine, then list what the pause holds. Reveals in a hidden tab (the other
-  // side of the Work switch) can't scroll into view; skip them.
+  // side of the Work switch) can't scroll into view; skip them. A reveal inside a section that is
+  // still sliding open is clipped until the slide is done, so wait for its section to settle first.
   await page.evaluate(async () => {
     const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
     for (const element of document.querySelectorAll('[data-reveal]')) {
       if (element.getClientRects().length === 0) continue;
+      element.scrollIntoView({ block: 'center' });
+      await frame();
+      await frame();
+      const section = element.closest('.stack > .shell');
+      if (!section?.querySelector(':scope > .shell-body')) continue;
+      while (!section.classList.contains('is-settled')) await frame();
       element.scrollIntoView({ block: 'center' });
       await frame();
       await frame();

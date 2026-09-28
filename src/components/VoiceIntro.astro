@@ -110,6 +110,14 @@ const { src } = Astro.props;
 </script>
 
 <style>
+  /*
+   * A custom element is inline by default, which would wrap the button in a line of text, taller
+   * than the button, and lift it a couple of pixels above View CV beside it.
+   */
+  voice-intro {
+    display: flex;
+  }
+
   button {
     display: inline-flex;
     gap: var(--space-2);

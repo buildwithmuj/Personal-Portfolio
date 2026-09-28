@@ -1,6 +1,4 @@
 ---
-import Icon from './Icon.astro';
-
 interface Props {
   email: string;
 }
@@ -10,8 +8,37 @@ const { email } = Astro.props;
 
 <copy-email data-email={email}>
   <button type="button" hidden>
-    <Icon name="copy" size={17} class="copy-icon" />
-    <Icon name="done" size={17} class="done-icon" />
+    <svg
+      class="copy-icon"
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <rect x="8" y="8" width="12" height="12" rx="2"></rect>
+      <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path>
+    </svg>
+    <svg
+      class="done-icon"
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="m5 12.5 4.5 4.5L19 7.5"></path>
+    </svg>
     <span class="visually-hidden">Copy email address</span>
   </button>
   <span class="visually-hidden" role="status"></span>

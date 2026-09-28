@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator } from '@playwright/test';
 import { profileValue, sectionHeading, yamlList, yamlValues } from '../support/content.ts';
 
 // Long sections can be collapsed with a round toggle (named after the section, announcing whether
@@ -7,6 +7,8 @@ test('Selected work starts open and can be hidden', async ({ page }) => {
   await page.goto('/');
   const toggle = page.getByRole('button', { name: sectionHeading('work'), exact: true });
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  // It slides open as it scrolls into view (below).
+  await page.locator('#work').scrollIntoViewIfNeeded();
   await expect(page.locator('#work-body')).toBeVisible();
   await toggle.click();
   await expect(page.locator('#work-body')).toBeHidden();
@@ -30,6 +32,28 @@ test.describe('without JavaScript', () => {
     await expect(page.locator('#skills .collapse')).toBeHidden();
     await expect(page.locator('#work .collapse')).toBeHidden();
     await expect(page.locator('#skills-body')).toBeVisible();
+  });
+});
+
+// On the home page, a collapsible section is closed below its heading until it scrolls into view,
+// then slides open and stays open.
+test('sections open as they scroll into view', async ({ page }) => {
+  await page.goto('/');
+  const body = page.locator('#skills-body');
+  const height = async () => (await body.boundingBox())?.height ?? 0;
+  expect(await height()).toBe(0);
+  await page.locator('#skills').scrollIntoViewIfNeeded();
+  await expect.poll(height).toBeGreaterThan(100);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect.poll(height).toBeGreaterThan(100);
+});
+
+test.describe('under reduced motion', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test('every section is open from the start', async ({ page }) => {
+    await page.goto('/');
+    expect((await page.locator('#skills-body').boundingBox())?.height).toBeGreaterThan(100);
   });
 });
 
@@ -59,13 +83,13 @@ test('the back-to-top ring closes at the end of the page', async ({ page }) => {
     !supported,
     'This browser has no CSS scroll timeline, so the ring shows only its track',
   );
-  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
   const ring = page.locator('.to-top .done');
-  await expect(ring).toBeVisible();
+  // Sections open as they arrive, so the page grows at the bottom: keep going to the end.
   await expect
-    .poll(async () =>
-      parseFloat(await ring.evaluate((el) => getComputedStyle(el).strokeDashoffset)),
-    )
+    .poll(async () => {
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      return parseFloat(await ring.evaluate((el) => getComputedStyle(el).strokeDashoffset));
+    })
     .toBeLessThan(1);
 });
 
@@ -85,6 +109,20 @@ test('the About statement opens in full colour and fills the rest as it scrolls 
   await expect
     .poll(async () => rest.evaluate((el) => getComputedStyle(el).animationTimeline))
     .toBe('--statement');
+});
+
+// Play my intro and View CV sit on one line: their icons share a centre.
+test('the About row lines up Play my intro with View CV', async ({ page }) => {
+  await page.goto('/');
+  const row = page.locator('#about .contact-row');
+  const play = row.locator('voice-intro .play');
+  await expect(play).toBeVisible();
+  const cv = row.locator('li', { has: page.getByRole('link', { name: 'View CV' }) }).locator('svg');
+  const centre = async (icon: Locator) => {
+    const box = await icon.boundingBox();
+    return box ? box.y + box.height / 2 : Number.NaN;
+  };
+  expect(Math.abs((await centre(play)) - (await centre(cv)))).toBeLessThan(0.5);
 });
 
 // The About stats: one band of the live Blue sky, each number over its label, from the profile.
