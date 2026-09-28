@@ -1,4 +1,4 @@
-import { expect, test, type Locator } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { profileValue, sectionHeading, yamlList, yamlValues } from '../support/content.ts';
 
 // Long sections can be collapsed with a round toggle (named after the section, announcing whether
@@ -135,16 +135,52 @@ test('the About stats sit on one band of the live sky', async ({ page }) => {
   );
 });
 
-// The Skills section: every skill and every certification is a flat chip, straight from the CV.
-test('the Skills section shows each skill, then each certification, as a chip', async ({
-  page,
-}) => {
+// The Toolkit (the Skills section): the tools as app icons, the skills as a list and the
+// certifications as credential cards, straight from skills.yaml, one group at a time.
+const SKILLS = 'src/content/skills.yaml';
+// One group shows at a time; the others fade out but stay readable to screen readers, so what
+// counts is each group's opacity.
+const opacity = (page: Page, group: string) => () =>
+  page
+    .locator(`#skills .panel[data-panel="${group}"]`)
+    .evaluate((panel) => getComputedStyle(panel).opacity);
+
+test('the Toolkit shows each tool, skill and certification', async ({ page }) => {
   await page.goto('/');
-  const skills = page.getByRole('region', { name: sectionHeading('skills') });
-  await expect(skills.locator('.chip.skill')).toHaveText(
-    yamlList('src/content/skills.yaml', 'skills'),
-  );
-  await expect(skills.locator('.chip.cert')).toHaveText(
-    yamlList('src/content/skills.yaml', 'certifications'),
-  );
+  const toolkit = page.getByRole('region', { name: sectionHeading('skills') });
+  for (const key of ['name', 'logo', 'title', 'issuer']) {
+    expect(yamlValues(SKILLS, key)).not.toEqual([]);
+  }
+  await expect(toolkit.locator('.tool-name')).toHaveText(yamlValues(SKILLS, 'name'));
+  await expect(toolkit.locator('.tool img')).toHaveCount(yamlValues(SKILLS, 'logo').length);
+  await expect(toolkit.locator('.skill')).toHaveText(yamlList(SKILLS, 'skills'));
+  await expect(toolkit.locator('.cert-title')).toHaveText(yamlValues(SKILLS, 'title'));
+  await expect(toolkit.locator('.issuer')).toHaveText(yamlValues(SKILLS, 'issuer'));
+});
+
+// It turns to the next group every three seconds on its own, until the visitor picks one.
+test('the Toolkit turns from group to group until one is picked', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#skills').scrollIntoViewIfNeeded();
+  await page.mouse.move(0, 0);
+  for (const group of ['tools', 'skills', 'certifications', 'tools']) {
+    await expect.poll(opacity(page, group), { timeout: 5000 }).toBe('1');
+  }
+  await page.locator('#skills .switch').getByText('Skills', { exact: true }).click();
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(4000);
+  expect(await opacity(page, 'skills')()).toBe('1');
+  expect(await opacity(page, 'tools')()).toBe('0');
+  expect(await opacity(page, 'certifications')()).toBe('0');
+});
+
+test.describe('the Toolkit under reduced motion', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test('holds still on the tools', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForTimeout(3500);
+    expect(await opacity(page, 'tools')()).toBe('1');
+    expect(await opacity(page, 'skills')()).toBe('0');
+  });
 });

@@ -69,7 +69,7 @@ test('the top bar links to each part of the home page, in order', async ({ page 
     'Home',
     'About',
     'Work',
-    'Skills',
+    'Toolkit',
     'Contact',
   ]);
 });

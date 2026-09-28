@@ -1,6 +1,9 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { withBase } from '../../lib/paths.ts';
+import Icon from '../Icon.astro';
 import Shell from '../Shell.astro';
+import Switch from '../Switch.astro';
 
 interface Props {
   skills: CollectionEntry<'skills'>['data'];
@@ -9,60 +12,289 @@ interface Props {
 }
 
 const { skills, heading, intro } = Astro.props;
+const groups = [
+  { value: 'tools', label: 'Tools' },
+  { value: 'skills', label: 'Skills' },
+  { value: 'certifications', label: 'Certifications' },
+];
 ---
 
+{/*
+  The Toolkit: the tools as app icons (each logo in its brand colours), the skills as a tidy list,
+  the certifications as credential cards. One group shows at a time in one card, turning to the
+  next every three seconds (in CSS, below) until the visitor picks one with the switch.
+*/}
 <Shell id="skills" heading={heading} intro={intro} collapsible="open" icon="skills">
-  <div class="card" data-reveal="rise">
-    <h3 class="label">Skills</h3>
-    <ul class="chips" role="list">
-      {skills.skills.map((skill) => (
-        <li class="chip skill">{skill}</li>
-      ))}
-    </ul>
-    <h3 class="label">Certifications</h3>
-    <ul class="chips" role="list">
-      {skills.certifications.map((certification) => (
-        <li class="chip cert">{certification}</li>
-      ))}
-    </ul>
+  <Switch slot="actions" name="toolkit-group" label="Show" options={groups} start={null} />
+  <div class="card toolkit" data-reveal="rise">
+    <div class="panel" data-panel="tools">
+      <h3 class="visually-hidden">Tools</h3>
+      <ul class="tools" role="list">
+        {skills.tools.map((tool) => (
+          <li class="tool">
+            <span class="tool-icon">
+              <img src={withBase(tool.logo)} alt="" width="34" height="34" loading="lazy" />
+            </span>
+            <span class="tool-name">{tool.name}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+    <div class="panel" data-panel="skills">
+      <h3 class="visually-hidden">Skills</h3>
+      <ul class="skills" role="list">
+        {skills.skills.map((skill) => (
+          <li class="skill">{skill}</li>
+        ))}
+      </ul>
+    </div>
+    <div class="panel" data-panel="certifications">
+      <h3 class="visually-hidden">Certifications</h3>
+      <ul class="certs" role="list">
+        {skills.certifications.map((certification) => (
+          <li class="cert">
+            <span class="seal">
+              <Icon name="skills" size={18} />
+            </span>
+            <span class="cert-text">
+              <span class="cert-title">{certification.title}</span>
+              <span class="issuer">{certification.issuer}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
   </div>
 </Shell>
 
 <style>
   /*
-   * Skills and certifications as flat, soft sky chips in two short groups: pale sky for skills,
-   * white with a sky edge for certifications. No shading or motion beyond the section's rise.
+   * The three groups share one cell of the card, so it holds the tallest group's height and never
+   * jumps. The groups not showing are transparent rather than hidden, so screen readers still read
+   * every group, in order.
    */
-  .label {
-    margin-block-end: var(--space-3);
+  .toolkit {
+    display: grid;
   }
 
-  .chips + .label {
-    margin-block-start: var(--space-6);
+  .panel {
+    grid-area: 1 / 1;
+    opacity: 0;
+    pointer-events: none;
   }
 
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
+  /* Tools: app icons, each logo on a white rounded tile, its name beneath. */
+  .tools,
+  .skills,
+  .certs {
+    margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .chip {
-    padding: 7px 14px;
-    border-radius: var(--radius-pill);
-    color: var(--color-accent-hover);
-    font-size: var(--text-sm);
+  .tools {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+    gap: var(--space-4) var(--space-3);
+  }
+
+  .tool {
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+  }
+
+  .tool-icon {
+    display: grid;
+    place-items: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-secondary);
+  }
+
+  .tool-icon img {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+  }
+
+  .tool-name {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
     font-weight: var(--weight-medium);
+    text-align: center;
+  }
+
+  /* Skills: two short columns, each with a small sky mark like a status light. */
+  .skills {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px var(--space-6);
   }
 
   .skill {
-    background: var(--color-chip);
+    position: relative;
+    padding-inline-start: 22px;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-snug);
+  }
+
+  .skill::before {
+    position: absolute;
+    inset-block-start: 0.3em;
+    inset-inline-start: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: var(--color-chip-edge);
+    box-shadow: inset 0 0 0 3px var(--color-chip);
+    content: '';
+  }
+
+  /* Certifications: credential cards, a seal beside the certificate and who issued it. */
+  .certs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 
   .cert {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    padding: 12px 14px;
+    border-radius: 16px;
     background: var(--color-surface);
-    box-shadow: inset 0 0 0 1px var(--color-chip-edge);
+    box-shadow: var(--shadow-secondary);
+  }
+
+  .seal {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-chip);
+    color: var(--color-accent);
+  }
+
+  .cert-text {
+    display: grid;
+    gap: 2px;
+  }
+
+  .cert-title {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-snug);
+  }
+
+  .issuer {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  /*
+   * On its own, the card turns to the next group every three seconds (a nine-second loop, each
+   * group a third of it), and the switch's tabs light up in step. Hovering or focusing the section
+   * pauses it, as does the footer's pause (global.css); picking a group stops it on that group.
+   */
+  @keyframes toolkit-turn {
+    0% {
+      opacity: 0;
+    }
+
+    4%,
+    30% {
+      opacity: 1;
+    }
+
+    33.3%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes toolkit-tab {
+    0%,
+    33.3% {
+      background: var(--color-accent);
+      color: var(--color-on-accent);
+    }
+
+    33.4%,
+    100% {
+      background: transparent;
+      color: var(--color-text-muted);
+    }
+  }
+
+  .panel,
+  :global(#skills .switch span) {
+    animation: toolkit-turn 9s infinite both;
+  }
+
+  :global(#skills .switch span) {
+    animation-name: toolkit-tab;
+  }
+
+  /*
+   * Each later group starts part-way round the loop, rather than after a delay: waiting out a delay,
+   * a tab would sit in its lit first frame.
+   */
+  .panel[data-panel='skills'],
+  :global(#skills .switch label:nth-of-type(2) span) {
+    animation-delay: -6s;
+  }
+
+  .panel[data-panel='certifications'],
+  :global(#skills .switch label:nth-of-type(3) span) {
+    animation-delay: -3s;
+  }
+
+  :global(#skills:is(:hover, :focus-within)) .panel,
+  :global(#skills:is(:hover, :focus-within) .switch span) {
+    animation-play-state: paused;
+  }
+
+  /* A picked group stays; the rest stay out of sight. */
+  :global(#skills:has(input:checked)) .panel,
+  :global(#skills:has(input:checked) .switch span) {
+    animation: none;
+  }
+
+  :global(#skills:has(input[value='tools']:checked)) .panel[data-panel='tools'],
+  :global(#skills:has(input[value='skills']:checked)) .panel[data-panel='skills'],
+  :global(#skills:has(input[value='certifications']:checked)) .panel[data-panel='certifications'] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Under reduced motion the card holds still on the tools, until another group is picked. */
+  @media (prefers-reduced-motion: reduce) {
+    .panel,
+    :global(#skills .switch span) {
+      animation-name: none;
+    }
+
+    :global(#skills:not(:has(input:checked))) .panel[data-panel='tools'] {
+      opacity: 1;
+    }
+
+    :global(#skills:not(:has(input:checked)) .switch label:first-of-type span) {
+      background: var(--color-accent);
+      color: var(--color-on-accent);
+    }
+  }
+
+  @media (width < 40rem) {
+    .skills,
+    .certs {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 </style>

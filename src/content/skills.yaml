@@ -1,4 +1,4 @@
-# Skills and certifications (content spec §5.7), from the CV and LinkedIn.
+# The Toolkit (content spec §5.7): skills, tools and certifications, from the CV and LinkedIn.
 main:
   intro: The methods, tools and credentials I bring.
   skills:
@@ -15,8 +15,25 @@ main:
     - Stakeholder management
     - Technical writing (SOPs)
     - Agile methods (Scrum and Kanban)
+  # The home page's tools, each logo in its brand colours (public/tools/, CC0 from SVG Logos and
+  # Simple Icons; Kimi and OpenAI's marks are black by their own brand guides).
+  tools:
+    - name: Claude
+      logo: /tools/claude.svg
+    - name: ChatGPT
+      logo: /tools/chatgpt.svg
+    - name: Kimi
+      logo: /tools/kimi.svg
+    - name: Jira
+      logo: /tools/jira.svg
+    - name: Power BI
+      logo: /tools/power-bi.svg
   certifications:
-    - Certified ScrumMaster (CSM)
-    - Professional Scrum Product Owner (PSPO I)
-    - Microsoft Power BI Data Analyst Associate
-    - 'AI Fluency: Framework & Foundations'
+    - title: Certified ScrumMaster (CSM)
+      issuer: Scrum Alliance
+    - title: Professional Scrum Product Owner (PSPO I)
+      issuer: Scrum.org
+    - title: Microsoft Power BI Data Analyst Associate
+      issuer: Microsoft
+    - title: 'AI Fluency: Framework & Foundations'
+      issuer: Anthropic

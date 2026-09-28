@@ -211,9 +211,18 @@ const skills = defineCollection({
   schema: z.object({
     intro: z.string().min(1),
     skills: z.array(z.string().min(1)).min(1),
-    // Listed on the CV page only; the home page's Skills keycaps stay at the main list.
+    // Listed on the CV page only; the home page's Toolkit keeps to the main list.
     cvOnly: z.array(z.string().min(1)).default([]),
-    certifications: z.array(z.string().min(1)),
+    // The home page's tools: a name and a logo in public/tools/.
+    tools: z
+      .array(
+        z.object({
+          name: z.string().min(1),
+          logo: z.string().regex(/^\/tools\/[a-z0-9-]+\.svg$/, 'An SVG in public/tools/'),
+        }),
+      )
+      .default([]),
+    certifications: z.array(z.object({ title: z.string().min(1), issuer: z.string().min(1) })),
   }),
 });
 
