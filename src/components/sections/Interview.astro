@@ -1,0 +1,188 @@
+---
+import { withBase } from '../../lib/paths.ts';
+import Shell from '../Shell.astro';
+
+interface Props {
+  heading: string;
+  intro: string;
+  questions: { question: string; answer: string }[];
+  name: string;
+  avatar?: string | undefined;
+}
+
+const { heading, intro, questions, name, avatar } = Astro.props;
+const firstName = name.split(' ')[0];
+---
+
+{/*
+  Interview me: the questions the owner is asked most, as pills. Picking one plays it out like a
+  chat, the question as the visitor's bubble and the owner's own answer beside their photo. The
+  pills are native radio buttons, so it works without JavaScript; without :has(), every answer
+  simply shows in turn.
+*/}
+<Shell id="interview" heading={heading} intro={intro}>
+  <div class="interview">
+    <fieldset class="asks">
+      <legend class="visually-hidden">Pick a question</legend>
+      {questions.map(({ question }, index) => (
+        <label>
+          <input class="visually-hidden" type="radio" name="ask" checked={index === 0} />
+          <span>{question}</span>
+        </label>
+      ))}
+    </fieldset>
+    <ol class="answers" role="list">
+      {questions.map(({ question, answer }) => (
+        <li>
+          <p class="asked">{question}</p>
+          <div class="reply">
+            {avatar && <img src={withBase(avatar)} alt="" width="32" height="32" />}
+            <p>
+              <span class="visually-hidden">{firstName}: </span>
+              {answer}
+            </p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+</Shell>
+
+<style>
+  .interview {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  /* Browsers give a fieldset a min-content minimum width; reset it so the pills can wrap. */
+  .asks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  label {
+    position: relative;
+    cursor: pointer;
+  }
+
+  label span {
+    display: block;
+    padding: 8px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-secondary);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+  }
+
+  label:hover span {
+    color: var(--color-text);
+  }
+
+  input:checked + span {
+    background: var(--color-accent);
+    box-shadow: none;
+    color: var(--color-on-accent);
+  }
+
+  input:focus-visible + span {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  .answers {
+    display: grid;
+    gap: var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .answers li {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  /* The visitor's question, right-aligned; the owner's reply, left, beside their photo. */
+  .asked {
+    justify-self: end;
+    max-width: 80%;
+    margin: 0;
+    padding: 10px 16px;
+    border-radius: 18px 18px 4px;
+    background: var(--color-chip);
+    color: var(--color-accent-hover);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+  }
+
+  .reply {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-end;
+  }
+
+  .reply img {
+    flex: none;
+    border-radius: 50%;
+    background: var(--gradient-sky);
+  }
+
+  .reply p {
+    margin: 0;
+    padding: 14px 18px;
+    border-radius: 18px 18px 18px 4px;
+    background: var(--color-surface);
+    line-height: var(--leading-body);
+  }
+
+  @keyframes bubble-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  /* One answer at a time, the one whose pill is picked: the question pops in, then the reply. */
+  @supports selector(:has(*)) {
+    .answers li {
+      display: none;
+    }
+
+    .interview:has(label:nth-of-type(1) input:checked) li:nth-child(1),
+    .interview:has(label:nth-of-type(2) input:checked) li:nth-child(2),
+    .interview:has(label:nth-of-type(3) input:checked) li:nth-child(3),
+    .interview:has(label:nth-of-type(4) input:checked) li:nth-child(4),
+    .interview:has(label:nth-of-type(5) input:checked) li:nth-child(5),
+    .interview:has(label:nth-of-type(6) input:checked) li:nth-child(6),
+    .interview:has(label:nth-of-type(7) input:checked) li:nth-child(7),
+    .interview:has(label:nth-of-type(8) input:checked) li:nth-child(8) {
+      display: grid;
+    }
+
+    .answers li > * {
+      animation: bubble-in 400ms var(--ease-out) both;
+    }
+
+    .answers .reply {
+      animation-delay: 300ms;
+    }
+  }
+
+  /* The bubbles are one-off entrances, so they finish even with animations paused. */
+  :global(.motion-paused) .answers li > * {
+    animation-play-state: running !important;
+  }
+
+  @media (width < 40rem) {
+    .asked {
+      max-width: 90%;
+    }
+  }
+</style>

@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { withBase } from '../../lib/paths.ts';
+import DayReminders from '../DayReminders.astro';
 import Shell from '../Shell.astro';
 import Stats from '../Stats.astro';
 import VoiceIntro from '../VoiceIntro.astro';
@@ -10,12 +11,6 @@ interface Props {
 }
 
 const { profile } = Astro.props;
-const nowUpdated = profile.nowUpdated;
-const nowDate =
-  nowUpdated &&
-  new Intl.DateTimeFormat('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(
-    nowUpdated,
-  );
 ---
 
 <Shell id="about" labelledBy="about-heading" inset>
@@ -26,85 +21,36 @@ const nowDate =
     <p class="statement">
       <span>{profile.about}</span>
     </p>
-    <div class="sign-row">
-      <ul class="contact-row" role="list">
-        {profile.voiceIntro && <VoiceIntro src={withBase(profile.voiceIntro)} />}
-        <li>
-          <svg
-            viewBox="0 0 24 24"
-            width="18"
-            height="18"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path d="M7 3h7l5 5v13H7z"></path>
-            <path d="M14 3v5h5M10 13h6M10 17h6"></path>
-          </svg>
-          <a href={withBase('/cv')}>View CV</a>
-        </li>
-      </ul>
-      {/*
-        The signature: one flowing stroke (a sweeping loop, a sharp peak, quick humps and a long
-        trailing tail) that the pen draws on as the card scrolls into view. Decorative: the name is
-        already in the statement. An original in the style the owner chose, until theirs is traced.
-      */}
-      <p class="signature" data-reveal="sign" aria-hidden="true">
-        <svg viewBox="0 0 320 80" focusable="false">
-          <path
-            pathLength="1"
-            d="M12 70C40 66 95 26 118 12C108 22 70 50 58 60C50 66 64 70 92 58C112 48 136 22 146 10C142 28 138 50 140 66C146 52 156 44 162 48C168 52 164 62 168 64C172 54 182 46 188 50C194 54 190 62 196 62C206 58 214 36 216 22C214 36 210 54 212 64C218 54 228 48 234 54C238 60 236 62 244 60C262 58 290 60 314 56"
-          ></path>
+    <ul class="contact-row" role="list">
+      {profile.voiceIntro && <VoiceIntro src={withBase(profile.voiceIntro)} />}
+      <li>
+        <svg
+          viewBox="0 0 24 24"
+          width="18"
+          height="18"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M7 3h7l5 5v13H7z"></path>
+          <path d="M14 3v5h5M10 13h6M10 17h6"></path>
         </svg>
-      </p>
-    </div>
+        <a href={withBase('/cv')}>View CV</a>
+      </li>
+    </ul>
     <Stats stats={profile.stats} />
-    {profile.traits.length > 0 && (
-      <ul class="traits" role="list" aria-label="A few words about me" data-reveal="drop">
-        {profile.traits.map((trait) => (
-          <li>{trait}</li>
-        ))}
-      </ul>
-    )}
-    {profile.now.length > 0 && (
-      <section class="now" aria-labelledby="now-heading">
-        <div class="now-card">
-          <p class="now-tags" aria-hidden="true">
-            {profile.now.map(({ label }, index) => (
-              <>
-                {index > 0 && <span class="now-sep">•</span>}
-                {label}
-              </>
-            ))}
-          </p>
-          <h3 id="now-heading">Right now</h3>
-          <p class="now-meta">
-            {nowUpdated && (
-              <span>
-                <span class="now-dot" aria-hidden="true"></span>
-                <span>
-                  Updated <time datetime={nowUpdated.toISOString().slice(0, 10)}>{nowDate}</time>
-                </span>
-              </span>
-            )}
-            <a class="now-link" href="#contact">
-              Say hello
-            </a>
-          </p>
-        </div>
-        <dl>
-          {profile.now.map(({ label, text }) => (
-            <div>
-              <dt>{label}</dt>
-              <dd>{text}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
+    {profile.day.length > 0 && (
+      <div class="day">
+        <DayReminders
+          tasks={profile.day}
+          place={profile.locationLabel}
+          timeZone={profile.timeZone}
+        />
+      </div>
     )}
   </div>
 </Shell>
@@ -113,40 +59,13 @@ const nowDate =
   /* Measured from the reference's "About my self." card at 1440px. */
   .about {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     padding: var(--shell-pad-top) 40px 46px;
   }
 
   .label {
     font-size: var(--text-base);
     line-height: var(--leading-normal);
-  }
-
-  /* The contact links, with the signature at the far end of the row (above them on phones). */
-  .sign-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-4) var(--space-8);
-    align-items: center;
-    justify-content: space-between;
-    margin-block-end: 60px;
-  }
-
-  /* The signature writes itself on as the card scrolls into view. */
-  .signature {
-    margin: 0 0 0 auto;
-  }
-
-  .signature svg {
-    display: block;
-    width: 210px;
-    height: auto;
-    overflow: visible;
-    fill: none;
-    stroke: var(--color-accent-hover);
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 2;
-    stroke-dasharray: 1;
   }
 
   .statement {
@@ -163,7 +82,7 @@ const nowDate =
     flex-wrap: wrap;
     gap: var(--space-3) 20px;
     align-items: center;
-    margin: 0;
+    margin: 0 0 60px;
     padding: 0;
     list-style: none;
   }
@@ -191,111 +110,17 @@ const nowDate =
     text-decoration: underline;
   }
 
-  /*
-   * What the owner is doing right now: a white card holding the title, set in a panel whose Blue
-   * sky glow rises from its foot, with the three items on frosted tiles over the glow.
-   */
-  .now {
-    display: grid;
-    margin-block-start: var(--space-6);
-    padding: 4px;
-    border-radius: var(--radius-card);
-    background: var(--gradient-now-glow);
-  }
-
-  .now-card {
-    display: flex;
-    flex-direction: column;
-    min-height: 168px;
-    padding: var(--space-4) var(--space-6);
-    border-radius: calc(var(--radius-card) - 4px);
-    background: var(--color-surface);
-    box-shadow: var(--shadow-secondary);
-  }
-
-  .now-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin: 0;
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
-  }
-
-  /* The title sits low in the card, like a label on a lightbox. */
-  .now h3 {
-    margin-block: auto 6px;
-    padding-block-start: var(--space-6);
-    font-size: var(--text-2xl);
-    font-weight: var(--weight-medium);
-    letter-spacing: var(--tracking-tight);
-    line-height: var(--leading-tight);
-  }
-
-  .now-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2) var(--space-4);
-    align-items: center;
-    justify-content: space-between;
-    max-width: none;
-    margin: 0;
-    font-size: var(--text-sm);
-  }
-
-  .now-meta > span {
-    display: inline-flex;
-    gap: var(--space-2);
-    align-items: center;
-  }
-
-  .now-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--color-accent);
-  }
-
-  .now-link {
-    margin-inline-start: auto;
-    color: var(--color-text-muted);
-    text-decoration: none;
-  }
-
-  .now-link:hover {
-    color: var(--color-text);
-    text-decoration: underline;
-  }
-
-  .now dl {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-2);
-    margin: 0;
-    padding: var(--space-8) var(--space-4) var(--space-4);
-  }
-
-  .now dl > div {
-    padding: var(--space-3) var(--space-4);
-    border-radius: var(--radius-image);
-    background: var(--color-frost);
-  }
-
-  .now dt {
-    color: var(--color-text-muted);
-    font-size: var(--text-xs);
-  }
-
-  .now dd {
-    margin: 0;
-    font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
+  /* The typical day (DayReminders), under the stats. */
+  .day {
+    margin-block-start: var(--space-8);
   }
 
   /*
-   * The statement fills from muted to full colour in reading order as it scrolls into view. The
-   * gradient spans the whole inline text, so it runs line by line. Without scroll-driven animation
-   * support, or with reduced motion, the text is simply full colour.
+   * The statement reads itself in: it starts a light grey and fills to full colour in reading order
+   * as it scrolls up the screen, from the lower middle (below where it sits on load, even on a tall
+   * screen) to the upper third, about as fast as it's read. The gradient spans the whole inline
+   * text, so it runs line by line. Without scroll-driven animation support, or with reduced motion,
+   * the text is simply full colour.
    */
   @keyframes fill {
     from {
@@ -320,7 +145,7 @@ const nowDate =
       .statement span {
         background:
           linear-gradient(var(--color-text), var(--color-text)) 0 0 / 0% 100% no-repeat,
-          linear-gradient(var(--color-text-muted), var(--color-text-muted));
+          linear-gradient(var(--color-text-unread), var(--color-text-unread));
         background-clip: text;
         color: transparent;
         animation: fill linear both;
@@ -329,110 +154,14 @@ const nowDate =
       /* In a rule of its own, so the minifier can't fold it into the shorthand (see ScrollTop). */
       .about .statement span {
         animation-timeline: --statement;
-        animation-range: cover 15% contain 35%;
+        animation-range: cover 40% cover 75%;
       }
     }
   }
 
-  /*
-   * The softer side: pills that fall into a tray at the foot of the card as it scrolls into view,
-   * tilted, then settle with a small bounce. The tray clips them while they wait above it. Without
-   * scroll reveals (no JavaScript, or reduced motion) they simply sit in place.
-   */
-  .traits {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin-block-start: var(--space-4);
-    padding: var(--space-8) 0 var(--space-1);
-    overflow: hidden;
-    list-style: none;
-  }
-
-  .traits li {
-    padding: 6px 14px;
-    border-radius: var(--radius-pill);
-    background: var(--color-shell);
-    font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
-  }
-
-  @keyframes pill-drop {
-    0% {
-      transform: translateY(-140px) rotate(var(--tilt));
-    }
-
-    70% {
-      transform: translateY(4px) rotate(calc(var(--tilt) * -0.25));
-    }
-
-    100% {
-      transform: none;
-    }
-  }
-
-  .traits li:nth-child(odd) {
-    --tilt: -9deg;
-  }
-
-  .traits li:nth-child(even) {
-    --tilt: 11deg;
-  }
-
-  .traits li:nth-child(2) {
-    --d: 80ms;
-  }
-
-  .traits li:nth-child(3) {
-    --d: 160ms;
-  }
-
-  .traits li:nth-child(4) {
-    --d: 240ms;
-  }
-
-  .traits li:nth-child(5) {
-    --d: 320ms;
-  }
-
-  .traits li:nth-child(6) {
-    --d: 400ms;
-  }
-
-  .traits li:nth-child(7) {
-    --d: 480ms;
-  }
-
-  .traits li:nth-child(n + 8) {
-    --d: 560ms;
-  }
-
-  :global(.reveal-ready) .traits li {
-    transform: translateY(-140px);
-  }
-
-  :global(.reveal-ready) .traits.in li {
-    transform: none;
-    animation: pill-drop 900ms cubic-bezier(0.3, 1.2, 0.5, 1) var(--d, 0ms) backwards;
-  }
-
-  /*
-   * With animations paused, which holds only loops (global.css), the pills still drop into place
-   * and the statement still fills as it scrolls.
-   */
-  :global(.motion-paused) .traits.in li,
+  /* With animations paused, which holds only loops (global.css), the statement still fills. */
   :global(.motion-paused) .statement span {
     animation-play-state: running !important;
-  }
-
-  /* The signature's write-on, kept after the pause rules above (the linter's specificity order). */
-  :global(.reveal-ready) .signature path {
-    stroke-dashoffset: 1;
-  }
-
-  :global(.reveal-ready) .signature.in path {
-    stroke-dashoffset: 0;
-    transition: stroke-dashoffset 2.2s var(--ease-standard) 300ms;
   }
 
   @media (width < 40rem) {
@@ -440,21 +169,8 @@ const nowDate =
       padding: 40px 24px 36px;
     }
 
-    /* On phones the signature sits under the statement, above the links. */
-    .sign-row {
-      flex-direction: column;
-      gap: var(--space-6);
-      align-items: flex-start;
+    .contact-row {
       margin-block-end: var(--space-8);
-    }
-
-    .signature {
-      order: -1;
-      margin: 0;
-    }
-
-    .now dl {
-      grid-template-columns: minmax(0, 1fr);
     }
   }
 </style>

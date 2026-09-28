@@ -2,17 +2,7 @@ import { expect, test } from '@playwright/test';
 import { sectionHeading, yamlList } from '../support/content.ts';
 
 // Long sections can be collapsed with a round toggle (named after the section, announcing whether
-// it's expanded); How I work starts collapsed, the others start open.
-test('How I work starts collapsed and opens with its toggle', async ({ page }) => {
-  await page.goto('/');
-  const toggle = page.getByRole('button', { name: sectionHeading('method'), exact: true });
-  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-  await expect(page.locator('#method-body')).toBeHidden();
-  await toggle.click();
-  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-  await expect(page.locator('#method-body')).toBeVisible();
-});
-
+// it's expanded).
 test('Selected work starts open and can be hidden', async ({ page }) => {
   await page.goto('/');
   const toggle = page.getByRole('button', { name: sectionHeading('work'), exact: true });
@@ -26,10 +16,10 @@ test('Selected work starts open and can be hidden', async ({ page }) => {
 
 test('clicking a collapsible section title toggles it too', async ({ page }) => {
   await page.goto('/');
-  await page.locator('#method .section-title').click();
-  await expect(page.locator('#method-body')).toBeVisible();
-  await page.locator('#method h2').click();
-  await expect(page.locator('#method-body')).toBeHidden();
+  await page.locator('#skills .section-title').click();
+  await expect(page.locator('#skills-body')).toBeHidden();
+  await page.locator('#skills h2').click();
+  await expect(page.locator('#skills-body')).toBeVisible();
 });
 
 test.describe('without JavaScript', () => {
@@ -37,10 +27,27 @@ test.describe('without JavaScript', () => {
 
   test('every section stays open and no toggle shows', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('#method .collapse')).toBeHidden();
+    await expect(page.locator('#skills .collapse')).toBeHidden();
     await expect(page.locator('#work .collapse')).toBeHidden();
-    await expect(page.locator('#method-body')).toBeVisible();
+    await expect(page.locator('#skills-body')).toBeVisible();
   });
+});
+
+// As in the Portfolik reference, the About card runs straight into Selected work as one grey panel
+// (no gap, square where they meet), even with a section's script between them in the page.
+test('About runs straight into Selected work, as one panel', async ({ page }) => {
+  await page.goto('/');
+  const edges = await page.evaluate(() => {
+    const about = document.getElementById('about');
+    const work = document.getElementById('work');
+    if (!about || !work) return null;
+    return {
+      gap: work.getBoundingClientRect().top - about.getBoundingClientRect().bottom,
+      aboutFoot: getComputedStyle(about).borderEndStartRadius,
+      workHead: getComputedStyle(work).borderStartStartRadius,
+    };
+  });
+  expect(edges).toEqual({ gap: 0, aboutFoot: '0px', workHead: '0px' });
 });
 
 // Scroll-linked effects. The minifier once folded their timelines into the animation shorthand,
@@ -84,12 +91,4 @@ test('the Skills section shows each skill, then each certification, as a chip', 
   await expect(skills.locator('.chip.cert')).toHaveText(
     yamlList('src/content/skills.yaml', 'certifications'),
   );
-});
-
-test('the About card lists the traits as pills that settle in place', async ({ page }) => {
-  await page.goto('/');
-  const traits = page.getByRole('list', { name: 'A few words about me' });
-  await traits.scrollIntoViewIfNeeded();
-  await expect(traits.locator('li')).toHaveText(yamlList('src/content/profile.yaml', 'traits'));
-  await expect(traits.locator('li').last()).toHaveCSS('transform', 'none');
 });

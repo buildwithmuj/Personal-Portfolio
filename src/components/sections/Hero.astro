@@ -2,7 +2,6 @@
 import type { CollectionEntry } from 'astro:content';
 import { withBase } from '../../lib/paths.ts';
 import { socialLabels } from '../../lib/social.ts';
-import { currentWeather } from '../../lib/weather.ts';
 import ProofStrip from '../ProofStrip.astro';
 import Shell from '../Shell.astro';
 import SkyGradient from '../SkyGradient.astro';
@@ -13,10 +12,6 @@ interface Props {
 }
 
 const { profile } = Astro.props;
-// The ambient layer plays a scene for London's weather when the site last built.
-const weather =
-  profile.coordinates &&
-  (await currentWeather(profile.coordinates.latitude, profile.coordinates.longitude));
 // Screen readers get every role once, as a sentence; the visible line cycles through them.
 const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).format(profile.roles);
 // The headline's closing words (profile.headlineAccent) are set in the editorial serif.
@@ -31,10 +26,19 @@ const short = profile.availabilityShort;
 const longestWord = short?.words.reduce((longest, word) =>
   word.length > longest.length ? word : longest,
 );
+// The workflow line-art in the sky band: five tangled lines run into the social links, as into an
+// automation, and leave as clean parallel lines (a 1000 × 200 box, stretched to the band).
+const flow = [
+  'M0 150C80 150 110 30 200 45S320 160 400 92H600C650 92 660 60 710 60H1000',
+  'M0 30C70 30 120 170 210 150S330 40 400 96H600C650 96 660 80 710 80H1000',
+  'M0 185C90 185 100 80 190 110S300 20 400 100H1000',
+  'M0 95C60 95 140 190 230 140S320 60 400 104H600C650 104 660 120 710 120H1000',
+  'M0 10C100 10 90 120 180 90S340 180 400 108H600C650 108 660 140 710 140H1000',
+];
 ---
 
 <Shell id="top" labelledBy="hero-name" hero>
-  <div class="card hero" data-weather={weather?.scene ?? 'none'}>
+  <div class="card hero">
     <div class="identity">
       {profile.avatar && (
         <div class="avatar">
@@ -92,7 +96,20 @@ const longestWord = short?.words.reduce((longest, word) =>
     </p>
     <ProofStrip label={profile.proof.label} items={profile.proof.items} />
     <SkyGradient class="cover" />
-    <div class="weather" aria-hidden="true"></div>
+    <svg
+      class="flow"
+      viewBox="0 0 1000 200"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {flow.map((d) => (
+        <path d={d} pathLength="1" />
+      ))}
+      {flow.map((d) => (
+        <path class="pulse" d={d} pathLength="1" />
+      ))}
+    </svg>
     <ul class="band-socials" role="list">
       {profile.socials.map((social) => (
         <li>
@@ -158,186 +175,80 @@ const longestWord = short?.words.reduce((longest, word) =>
     content: '';
   }
 
-  /*
-   * The weather layer: it starts at the sky band's lower edge, so the weather seems to fall out of
-   * the sky onto the card, and it clips the moving pattern drawn by its ::after.
-   */
-  .weather {
-    position: absolute;
-    z-index: -1;
-    inset: var(--cover) 0 0;
-    overflow: hidden;
-    pointer-events: none;
-  }
-
-  /*
-   * An ambient pattern that follows London's live weather (src/lib/weather.ts and the top bar).
-   * Each pattern repeats every tile, so moving the layer by one tile loops seamlessly. Everything
-   * holds still under reduced motion.
-   *   clear:   specks of light drift up under a brighter, slowly breathing glow
-   *   cloud:   soft clouds drift across
-   *   fog:     a low haze slides slowly back and forth
-   *   drizzle: light, sparse rain; rain: rain; storm: rain with a faint flash now and then
-   *   snow:    flakes fall slowly
-   * Without weather (the fetch failed), the specks drift on their own.
-   */
-  .weather::after {
-    position: absolute;
-    z-index: -1;
-    inset: 0 0 -240px;
-    background-image:
-      radial-gradient(2px 2px at 20% 30%, var(--color-particle), transparent),
-      radial-gradient(1.5px 1.5px at 70% 60%, var(--color-particle), transparent),
-      radial-gradient(2.5px 2.5px at 45% 85%, var(--color-particle), transparent);
-    background-size: 240px 240px;
-    content: '';
-    pointer-events: none;
-  }
-
-  .hero[data-weather='clear']::before {
-    background: radial-gradient(70% 80% at 85% 10%, var(--color-sun), transparent 70%);
-    transform-origin: 85% 10%;
-  }
-
-  .hero[data-weather='cloud'] .weather::after {
-    inset: 0 -640px 0 0;
-    background-image:
-      radial-gradient(160px 60px at 25% 30%, var(--color-cloud), transparent),
-      radial-gradient(220px 80px at 70% 55%, var(--color-cloud), transparent),
-      radial-gradient(140px 50px at 45% 85%, var(--color-cloud), transparent);
-    background-size: 640px 100%;
-  }
-
-  .hero[data-weather='fog'] .weather::after {
-    inset: 0 -15%;
-    background-image:
-      radial-gradient(50% 22% at 30% 75%, var(--color-fog), transparent),
-      radial-gradient(45% 18% at 70% 55%, var(--color-fog), transparent),
-      radial-gradient(60% 20% at 50% 95%, var(--color-fog), transparent);
-    background-size: auto;
-  }
-
-  .hero:is([data-weather='drizzle'], [data-weather='rain'], [data-weather='storm'])
-    .weather::after {
-    inset: -120px -10% 0;
-    background-image:
-      radial-gradient(1px 14px at 30% 20%, var(--color-rain), transparent),
-      radial-gradient(1px 10px at 75% 60%, var(--color-rain), transparent),
-      radial-gradient(1px 12px at 55% 90%, var(--color-rain), transparent);
-    background-size: 90px 120px;
-    rotate: 8deg;
-  }
-
-  .hero[data-weather='drizzle'] .weather::after {
-    background-size: 160px 120px;
-  }
-
-  .hero[data-weather='snow'] .weather::after {
-    inset: -200px 0 0;
-    background-image:
-      radial-gradient(3px 3px at 20% 30%, var(--color-particle), transparent),
-      radial-gradient(2px 2px at 65% 55%, var(--color-particle), transparent),
-      radial-gradient(2.5px 2.5px at 40% 80%, var(--color-particle), transparent),
-      radial-gradient(2px 2px at 85% 15%, var(--color-particle), transparent);
-    background-size: 200px 200px;
-  }
-
-  @keyframes hero-drift {
-    to {
-      translate: 0 -240px;
-    }
-  }
-
-  @keyframes hero-clouds {
-    to {
-      translate: -640px 0;
-    }
-  }
-
-  @keyframes hero-haze {
-    to {
-      translate: 12% 0;
-    }
-  }
-
-  /*
-   * The rain layer is tilted (rotate: 8deg), so it must fall along its own tilted axis: transform
-   * applies inside the rotation, where one 120px step is exactly one tile of the pattern. (Moving it
-   * with translate, straight down the page, missed the tile by ~17px sideways, and the drops jumped
-   * each time the loop restarted.)
-   */
-  @keyframes hero-rain {
-    to {
-      transform: translateY(120px);
-    }
-  }
-
-  @keyframes hero-snow {
-    to {
-      translate: 0 200px;
-    }
-  }
-
-  @keyframes hero-sun {
-    to {
-      scale: 1.1;
-    }
-  }
-
-  @keyframes hero-flash {
-    0%,
-    90%,
-    94%,
-    100% {
-      background-color: transparent;
-    }
-
-    91%,
-    93% {
-      background-color: var(--color-flash);
-    }
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .weather::after {
-      animation: hero-drift 40s linear infinite;
-    }
-
-    .hero[data-weather='clear']::before {
-      animation: hero-sun 6s ease-in-out infinite alternate;
-    }
-
-    .hero[data-weather='storm']::before {
-      animation: hero-flash 9s linear infinite;
-    }
-
-    .hero[data-weather='cloud'] .weather::after {
-      animation: hero-clouds 80s linear infinite;
-    }
-
-    .hero[data-weather='fog'] .weather::after {
-      animation: hero-haze 18s ease-in-out infinite alternate;
-    }
-
-    .hero:is([data-weather='rain'], [data-weather='storm']) .weather::after {
-      animation: hero-rain 700ms linear infinite;
-    }
-
-    .hero[data-weather='drizzle'] .weather::after {
-      animation: hero-rain 1.4s linear infinite;
-    }
-
-    .hero[data-weather='snow'] .weather::after {
-      animation: hero-snow 14s linear infinite;
-    }
-  }
-
   /* A living Blue sky cover band (SkyGradient); the avatar overlaps its lower edge like a profile photo. */
   .cover {
     position: absolute;
     z-index: -1;
     inset: 0 0 auto;
     height: var(--cover);
+  }
+
+  /*
+   * The workflow line-art over the sky: white hairlines draw themselves in once, then a light runs
+   * along each now and then, from the tangle through the social links and out along the clean side.
+   */
+  .flow {
+    position: absolute;
+    z-index: -1;
+    inset: 0 0 auto;
+    width: 100%;
+    height: var(--cover);
+    fill: none;
+    stroke: var(--color-flow);
+    stroke-linecap: round;
+    stroke-width: 1.2;
+    pointer-events: none;
+  }
+
+  .flow path {
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 1;
+    animation: flow-draw 2s var(--ease-out) 300ms both;
+  }
+
+  .flow .pulse {
+    stroke: var(--color-flow-pulse);
+    stroke-width: 2;
+    stroke-dasharray: 0.06 1.2;
+    stroke-dashoffset: 0.06;
+    animation: flow-pulse 4.5s linear 2.4s infinite;
+  }
+
+  .flow .pulse:nth-of-type(7) {
+    animation-delay: 3.8s;
+  }
+
+  .flow .pulse:nth-of-type(8) {
+    animation-delay: 5s;
+  }
+
+  .flow .pulse:nth-of-type(9) {
+    animation-delay: 3.2s;
+  }
+
+  .flow .pulse:nth-of-type(10) {
+    animation-delay: 5.7s;
+  }
+
+  @keyframes flow-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes flow-pulse {
+    to {
+      stroke-dashoffset: -1;
+    }
+  }
+
+  /* The drawing-in is a one-off entrance, so it finishes even with animations paused. */
+  :global(.motion-paused) .flow path:not(.pulse) {
+    animation-play-state: running !important;
   }
 
   /* The social links, centred in the sky band. */
@@ -530,8 +441,8 @@ const longestWord = short?.words.reduce((longest, word) =>
     animation-delay: 400ms;
   }
 
-  /* The weather layer stays put while the card's content rises in. */
-  .hero > .weather {
+  /* The sky band and its line-art are there from the first frame; only the content rises in. */
+  .hero > :is(.cover, .flow) {
     animation: none;
   }
 

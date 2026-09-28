@@ -2,19 +2,14 @@
 import About from '../components/sections/About.astro';
 import Contact from '../components/sections/Contact.astro';
 import Hero from '../components/sections/Hero.astro';
-import Method from '../components/sections/Method.astro';
+import Interview from '../components/sections/Interview.astro';
 import SelectedWork from '../components/sections/SelectedWork.astro';
 import Skills from '../components/sections/Skills.astro';
 import Testimonials from '../components/sections/Testimonials.astro';
 import Base from '../layouts/Base.astro';
 import { featuredStudies } from '../lib/case-studies.ts';
-import {
-  getCaseStudies,
-  getMethod,
-  getProfile,
-  getSkills,
-  getTestimonials,
-} from '../lib/content.ts';
+import { getCaseStudies, getProfile, getSkills, getTestimonials } from '../lib/content.ts';
+import { isProduction } from '../lib/mode.ts';
 import { withBase } from '../lib/paths.ts';
 import { personJsonLd } from '../lib/structured-data.ts';
 
@@ -30,8 +25,11 @@ const structuredData = personJsonLd({
 });
 const featured = featuredStudies(await getCaseStudies());
 const skills = await getSkills();
-const method = await getMethod();
 const testimonials = await getTestimonials();
+// Draft interview answers show only in preview builds, never on the live site.
+const interview =
+  profile.interview && (!profile.interview.draft || !isProduction) ? profile.interview : null;
+const interviewCopy = profile.sections.interview;
 ---
 
 <Base structuredData={structuredData}>
@@ -49,11 +47,15 @@ const testimonials = await getTestimonials();
     heading={profile.sections.skills.heading}
     intro={profile.sections.skills.intro}
   />
-  <Method
-    steps={method}
-    heading={profile.sections.method.heading}
-    intro={profile.sections.method.intro}
-  />
+  {interview && interviewCopy && (
+    <Interview
+      heading={interviewCopy.heading}
+      intro={interviewCopy.intro}
+      questions={interview.questions}
+      name={profile.name}
+      avatar={profile.avatar}
+    />
+  )}
   {testimonials.length > 0 && (
     <Testimonials
       testimonials={testimonials}

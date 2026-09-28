@@ -31,7 +31,7 @@ test('the hero headline reads exactly as written', async ({ page }) => {
 
 test('section headings read exactly as written', async ({ page }) => {
   await page.goto('/');
-  for (const section of ['work', 'method', 'contact']) {
+  for (const section of ['work', 'skills', 'contact']) {
     await expect(page.getByRole('region', { name: sectionHeading(section) })).toBeVisible();
   }
 });
@@ -93,14 +93,10 @@ for (const width of [770, 960, 1280]) {
   });
 }
 
-// The hero says whether the owner is open to work, and the About card is signed.
-test('the hero shows availability and the About card is signed', async ({ page }) => {
+// The hero says whether the owner is open to work.
+test('the hero shows availability', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.hero .availability')).toHaveText(/\S/);
-  // One drawn stroke (decorative, so hidden from screen readers, who already have the name).
-  const signature = page.locator('#about .signature');
-  await expect(signature.locator('svg path')).toHaveCount(1);
-  await expect(signature).toHaveAttribute('aria-hidden', 'true');
 });
 
 // Wide screens show the whole availability line. Phones show a shorter one whose last word rotates
@@ -121,13 +117,31 @@ test('the availability pill shortens on phones and rotates its last word', async
   await expect(word).not.toHaveText(first, { timeout: 6000 });
 });
 
-// The About card's Right now panel says what the owner is up to, since when, and invites a hello.
-test('the About card says what is happening right now, and since when', async ({ page }) => {
+// The About card's typical day ticks itself off on London time: every task before the one under
+// way is done, and the rest are still to come. (The scrolling list is drawn twice; screen readers
+// and this test read the first copy.)
+test('the About card ticks off a typical day on London time', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-09-28T13:00:00Z')); // 14:00 in London
   await page.goto('/');
-  const now = page.getByRole('region', { name: 'Right now' });
-  await expect(now.locator('dt').first()).toBeVisible();
-  await expect(now.locator('time')).toHaveAttribute('datetime', /^\d{4}-\d{2}-\d{2}$/);
-  await expect(now.getByRole('link', { name: 'Say hello' })).toHaveAttribute('href', '#contact');
+  const day = page.getByRole('article', { name: 'Tasks for today' });
+  await expect(day.locator('[data-local-time]')).toHaveText('14:00');
+  await expect(day.locator('li:not([aria-hidden])[data-state="now"]')).toHaveCount(1);
+  const tasks = await day
+    .locator('li:not([aria-hidden])[data-time]')
+    .evaluateAll((items) =>
+      items.map((item) => [
+        (item as HTMLElement).dataset['time'],
+        (item as HTMLElement).dataset['state'],
+      ]),
+    );
+  const current = tasks.find(([, state]) => state === 'now')?.[0] ?? '';
+  expect(current <= '14:00').toBe(true);
+  for (const [time, state] of tasks) {
+    if (time === current) continue;
+    expect(state).toBe((time ?? '') < current ? 'done' : '');
+  }
+  await expect(day).toContainText(/\d+ of \d+ done/);
+  await expect(day.getByRole('link', { name: "Let's talk" })).toHaveAttribute('href', '#contact');
 });
 
 // The social links sit in the hero's sky band, each named for screen readers.

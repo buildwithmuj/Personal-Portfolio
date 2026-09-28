@@ -7,13 +7,8 @@ import { describe, it } from 'node:test';
 const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.yaml', '.yml', '.txt', '.svg', '.json', '']);
 const PHONE = /(?:\+44\s?7\d{3}|\b07\d{3})[\s-]?\d{3}[\s-]?\d{3}\b/;
 // SHA-256 of former clients' names, lowercase (content spec §10). The plaintext is never committed.
-const CLIENT_HASHES = new Set([
-  '02190e51b3183e1f494511b02b14caac60dc38ccab12dc1a7d52b139d30140af',
-  '71f566aba763fb7636f03bfeb321c6d4934d4a6d5cb777c49b1c1595260c573b',
-  '6a780680a34fd0aa53c10e46252470b940cd921dda653718fc7b31ba05ec1db8',
-  'e79afbc118f62c69ce6955da55396a49f466eddb05bdaf2e4e15c3e93c715131',
-  '900d1c1837bc980eeda481243f7aaf495a9f8b4059eba50a3a52eb6ed8ddd32f',
-]);
+// Clients the owner has cleared to name (the hero's logo strip, 2026-09-28) are no longer listed.
+const CLIENT_HASHES = new Set(['02190e51b3183e1f494511b02b14caac60dc38ccab12dc1a7d52b139d30140af']);
 
 const sha256 = (text: string) => createHash('sha256').update(text).digest('hex');
 

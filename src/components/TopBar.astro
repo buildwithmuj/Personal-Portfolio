@@ -46,10 +46,47 @@ const nav = [
   >
     <span class="city">{profile.locationLabel}</span>
     <span class="weather" hidden={!weather}>
-      <span data-temp>{weather?.temperature}</span>°
-      <span class="condition">{` ${weather?.condition ?? ''}`}</span>
+      <svg
+        class="weather-icon"
+        viewBox="0 0 24 24"
+        width="16"
+        height="16"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <use href={`#weather-${weather?.scene ?? 'cloud'}`}></use>
+      </svg>
+      <span>
+        <span data-temp>{weather?.temperature}</span>°
+      </span>
+      <span class="condition">{weather?.condition}</span>
     </span>
   </p>
+  <!-- The weather icons (line icons after Lucide, ISC licence); the weather shows the one for now. -->
+  <svg class="weather-icons" aria-hidden="true" focusable="false">
+    <symbol id="weather-clear" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="4"></circle>
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+    </symbol>
+    <symbol id="weather-cloud" viewBox="0 0 24 24">
+      <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
+    </symbol>
+    <symbol id="weather-fog" viewBox="0 0 24 24">
+      <path d="M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24M16 17H7M17 21H9"></path>
+    </symbol>
+    <symbol id="weather-drizzle" viewBox="0 0 24 24">
+      <path d="M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24M8 19v1M8 14v1M16 19v1M16 14v1M12 21v1M12 16v1"></path>
+    </symbol>
+    <symbol id="weather-rain" viewBox="0 0 24 24">
+      <path d="M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24M16 14v6M8 14v6M12 16v6"></path>
+    </symbol>
+    <symbol id="weather-storm" viewBox="0 0 24 24">
+      <path d="M6 16.33A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.97M13 12l-3 5h4l-3 5"></path>
+    </symbol>
+    <symbol id="weather-snow" viewBox="0 0 24 24">
+      <path d="M4 14.9A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.24M8 15h.01M8 19h.01M12 17h.01M12 21h.01M16 15h.01M16 19h.01"></path>
+    </symbol>
+  </svg>
 
   <!-- Phones: a menu button opens the same links in a panel, as in the reference. -->
   <details class="menu">
@@ -116,7 +153,7 @@ const nav = [
   import { parseWeather, weatherUrl, type Weather } from '../lib/weather.ts';
 
   // Live weather (see the privacy notice): the build-time reading is refreshed from Open-Meteo in
-  // the visitor's browser, at most every 15 minutes per tab, so the top bar and the hero's scene
+  // the visitor's browser, at most every 15 minutes per tab, so the top bar's temperature and icon
   // show London as it is now. A failed request, or one still waiting after 5 seconds, keeps the
   // build-time reading.
   const where = document.querySelector<HTMLElement>('.top-bar .where');
@@ -128,9 +165,9 @@ const nav = [
     const condition = box?.querySelector('.condition');
     if (!box || !temperature || !condition) return;
     temperature.textContent = String(weather.temperature);
-    condition.textContent = ` ${weather.condition}`;
+    condition.textContent = weather.condition;
+    box.querySelector('use')?.setAttribute('href', `#weather-${weather.scene}`);
     box.hidden = false;
-    document.querySelector('.hero')?.setAttribute('data-weather', weather.scene);
   };
   if (where?.dataset['lat'] && Number.isFinite(latitude) && Number.isFinite(longitude)) {
     let saved: { at: number; weather: Weather } | undefined;
@@ -267,9 +304,27 @@ const nav = [
     letter-spacing: normal;
   }
 
-  /* London's weather when the site last built; phones show just the temperature. */
+  /* London's weather: an icon for the conditions, the temperature, and (on wide screens) a word. */
   .weather {
+    display: inline-flex;
+    gap: 5px;
+    align-items: center;
     margin-inline-start: calc(-1 * var(--space-1));
+  }
+
+  .weather-icon {
+    flex: none;
+    fill: none;
+    stroke: var(--color-accent);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+
+  .weather-icons {
+    position: absolute;
+    width: 0;
+    height: 0;
   }
 
   .links,

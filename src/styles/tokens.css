@@ -14,6 +14,9 @@
   --color-surface: #fff;
   --color-text: #0a0a0a;
   --color-text-muted: #4a4f54;
+
+  /* About's statement before it's read: it fills to full ink as it scrolls up the screen */
+  --color-text-unread: #c4c7cd;
   --color-accent: #2661ba;
   --color-accent-hover: #1f3f7a;
   --color-accent-light: #80b3ff;
@@ -44,12 +47,6 @@
   --watch-shadow: rgb(15 23 42 / 28%);
   --color-on-accent-track: rgb(255 255 255 / 30%);
   --color-key-edge: #d3d6df;
-  --color-particle: rgb(102 153 230 / 38%);
-  --color-rain: rgb(31 63 122 / 30%);
-  --color-sun: rgb(128 179 255 / 30%);
-  --color-cloud: rgb(31 63 122 / 10%);
-  --color-fog: rgb(102 153 230 / 16%);
-  --color-flash: rgb(128 179 255 / 18%);
   --color-available: #1f9d63;
   --color-available-glow: rgb(31 157 99 / 45%);
 
@@ -87,6 +84,10 @@
       left / 50% 100% no-repeat,
     radial-gradient(circle at 100% 50%, transparent var(--neck-r), #000 calc(var(--neck-r) + 0.5px))
       right / 50% 100% no-repeat;
+
+  /* The hero band's workflow line-art (Hero.astro .flow): white hairlines, and the pulses along them */
+  --color-flow: rgb(255 255 255 / 55%);
+  --color-flow-pulse: #fff;
 
   /* Type */
   --font-sans: var(--font-mona);

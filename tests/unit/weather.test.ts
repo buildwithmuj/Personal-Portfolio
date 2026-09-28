@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import { describeWeather, parseWeather, weatherUrl } from '../../src/lib/weather.ts';
 
 describe('describeWeather (WMO codes from Open-Meteo)', () => {
-  it('gives each kind of weather its hero scene', () => {
+  it('gives each kind of weather its icon in the top bar', () => {
     assert.deepEqual(describeWeather(0), { condition: 'Clear', scene: 'clear' });
     assert.deepEqual(describeWeather(2), { condition: 'Partly cloudy', scene: 'cloud' });
     assert.deepEqual(describeWeather(3), { condition: 'Overcast', scene: 'cloud' });

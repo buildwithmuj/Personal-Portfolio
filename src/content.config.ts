@@ -34,16 +34,52 @@ const profile = defineCollection({
     subline: z.string().min(1),
     about: z.string().min(1),
     interests: z.string().min(1),
-    // What the owner is doing right now, for the About card's Now panel.
-    now: z.array(z.object({ label: z.string().min(1), text: z.string().min(1) })).default([]),
-    // When the Now panel was last brought up to date, shown on it as a month and year.
-    nowUpdated: z.coerce.date().optional(),
+    // A typical weekday for the About card's board: tasks in stacks (e.g. Morning, Building,
+    // Learning), each at a local time (HH:MM); the board ticks them off as the owner's day goes.
+    day: z
+      .array(
+        z.object({
+          stack: z.string().min(1),
+          time: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, 'A 24-hour time, e.g. "08:30"'),
+          task: z.string().min(1),
+        }),
+      )
+      .default([]),
+    // "Interview me": questions with the owner's own answers, including how they work (it replaced
+    // the How I work section). A draft shows only in preview builds. Interview.astro shows up to 8.
+    interview: z
+      .object({
+        draft: z.boolean().default(true),
+        questions: z
+          .array(z.object({ question: z.string().min(1), answer: z.string().min(1) }))
+          .min(1)
+          .max(8),
+      })
+      .optional(),
     // For the CV page.
     languages: z.array(z.object({ language: z.string().min(1), level: z.string().min(1) })),
     outsideWork: z.array(
       z.object({ activity: z.string().min(1), start: z.string().regex(/^\d{4}-\d{2}$/) }),
     ),
-    proof: z.object({ label: z.string().min(1), items: z.array(z.string().min(1)).min(1) }),
+    // The hero's logo strip: clients the owner has worked with (cleared to name, 2026-09-28), each
+    // with a logo in public/clients/ when there is one (a navy PNG, 84px tall), or shown by name.
+    proof: z.object({
+      label: z.string().min(1),
+      items: z
+        .array(
+          z.object({
+            name: z.string().min(1),
+            logo: z
+              .string()
+              .regex(/^\/[\w./-]+\.png$/, 'A root-relative path to a PNG in public/')
+              .optional(),
+            // An optical nudge for a logo that reads heavier (below 1) or lighter (above 1) than
+            // its neighbours at the same size.
+            scale: z.number().min(0.5).max(1.5).optional(),
+          }),
+        )
+        .min(1),
+    }),
     stats: z
       .array(
         z.object({
@@ -53,13 +89,11 @@ const profile = defineCollection({
       )
       .min(1)
       .max(4),
-    // Short personality words for the About card's pills.
-    traits: z.array(z.string().min(1).max(24)).max(12).default([]),
     sections: z.object({
       work: sectionCopy,
       skills: sectionCopy,
-      method: sectionCopy,
       testimonials: sectionCopy,
+      interview: sectionCopy.optional(),
       experience: sectionCopy,
       // The CV page's Education and Languages & interests sections.
       education: sectionCopy,
@@ -133,17 +167,6 @@ const caseStudies = defineCollection({
       }),
 });
 
-const method = defineCollection({
-  loader: file('src/content/method.yaml'),
-  schema: z.object({
-    track: z.enum(['process', 'product']),
-    order: z.number().int(),
-    title: z.string().min(1),
-    description: z.string().min(1),
-    tags: z.array(z.string().min(1)).min(1),
-  }),
-});
-
 const testimonials = defineCollection({
   loader: file('src/content/testimonials.yaml'),
   schema: z.object({
@@ -202,7 +225,6 @@ const pages = defineCollection({
 export const collections = {
   profile,
   caseStudies,
-  method,
   testimonials,
   experience,
   education,

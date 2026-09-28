@@ -166,17 +166,25 @@ a {
 
 /*
  * As in the Portfolik reference, an inset card (About) flows into the shell after it: no gap, and
- * square where they meet, so the two read as one grey panel with the card at its head.
+ * square where they meet, so the two read as one grey panel with the card at its head. A section's
+ * own script can sit between the two in the page, so the next shell is found with `~`, and the
+ * shells after it get their usual gap and corners back.
  */
-.stack > .shell-inset:has(+ .shell) {
+.stack > .shell-inset:has(~ .shell) {
   border-end-start-radius: 0;
   border-end-end-radius: 0;
 }
 
-.stack > .shell-inset + .shell {
+.stack > .shell-inset ~ .shell {
   margin-block-start: calc(-1 * var(--shell-gap));
   border-start-start-radius: 0;
   border-start-end-radius: 0;
+}
+
+.stack > .shell-inset ~ .shell ~ .shell {
+  margin-block-start: 0;
+  border-start-start-radius: var(--radius-shell);
+  border-start-end-radius: var(--radius-shell);
 }
 
 /*
