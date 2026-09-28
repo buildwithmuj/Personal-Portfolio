@@ -39,6 +39,9 @@
   /* The About stats (Stats.astro): a navy wash that deepens the live sky under white text */
   --stats-wash: linear-gradient(180deg, rgb(29 74 146 / 22%), rgb(29 74 146 / 42%));
   --stats-text-shadow: 0 1px 12px rgb(12 36 84 / 45%);
+
+  /* Selected work (WorkShowcase.astro): a navy fade over a cover, under white text */
+  --gradient-cover-fade: linear-gradient(180deg, transparent 30%, rgb(12 36 84 / 80%));
   --color-inverse: #0a0a0a;
   --color-on-inverse: #fff;
   --color-hairline: #e3e4ea;

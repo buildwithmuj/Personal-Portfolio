@@ -25,13 +25,20 @@ const statusLabels: Record<CaseStudyStatus, string> = {
   retired: 'Retired',
 };
 
-/** "Client work · <sector>" or "Personal project · <status>" (content spec §5.4). */
-export function caseStudyLabel(data: {
+interface Labelled {
   kind: 'client' | 'product';
   sector?: string | undefined;
   status?: CaseStudyStatus | undefined;
-}): string {
+}
+
+/** A client project's sector or a personal project's status, e.g. "Healthcare" or "Live". */
+export function caseStudyDetail(data: Labelled): string {
+  return (data.kind === 'client' ? data.sector : data.status && statusLabels[data.status]) ?? '';
+}
+
+/** "Client work · <sector>" or "Personal project · <status>" (content spec §5.4). */
+export function caseStudyLabel(data: Labelled): string {
   const kind = data.kind === 'client' ? 'Client work' : 'Personal project';
-  const detail = data.kind === 'client' ? data.sector : data.status && statusLabels[data.status];
+  const detail = caseStudyDetail(data);
   return detail ? `${kind} · ${detail}` : kind;
 }

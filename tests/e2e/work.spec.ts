@@ -17,19 +17,56 @@ test('the home page links to each case study', async ({ page }) => {
   await expect(page.getByRole('region', { name: WORK })).toBeVisible();
 });
 
+// Each tile's first chip is a client project's sector, or a personal project's status.
+const STATUSES = ['Live', 'In progress', 'Retired'];
+
 test('the switch shows four client or four personal projects', async ({ page }) => {
   await page.goto('/');
   const work = page.locator('#work');
-  const labels = work.locator('.card-label:visible');
-  await expect(labels).toHaveCount(4);
-  for (const label of await labels.allTextContents()) expect(label).toMatch(/^Client work · /);
+  await work.scrollIntoViewIfNeeded();
+  const details = work.locator('.tile:visible .chips span:first-child');
+  await expect(details).toHaveCount(4);
+  for (const detail of await details.allTextContents()) expect(STATUSES).not.toContain(detail);
   await work.getByText('Personal projects', { exact: true }).click();
-  await expect(labels).toHaveCount(4);
-  for (const label of await labels.allTextContents()) expect(label).toMatch(/^Personal project · /);
+  await expect(details).toHaveCount(4);
+  for (const detail of await details.allTextContents()) expect(STATUSES).toContain(detail);
   await expect(work.getByRole('link', { name: 'View all', exact: true })).toHaveAttribute(
     'href',
     '/projects',
   );
+});
+
+// On desktop, Selected work is a bento grid: the featured project spans two columns and two rows.
+test('Selected work is a bento grid on desktop', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#work').scrollIntoViewIfNeeded();
+  const tiles = page.locator('#work .showcase[data-kind="client"] .tile');
+  await expect(tiles).toHaveCount(4);
+  const feature = await tiles.nth(0).boundingBox();
+  const next = await tiles.nth(1).boundingBox();
+  expect(feature?.width).toBeGreaterThan((next?.width ?? 0) * 1.8);
+  expect(feature?.height).toBeGreaterThan((next?.height ?? 0) * 1.8);
+});
+
+// On phones, the same tiles are a swipe deck: a row that snaps card by card, inside the page.
+test.describe('on a phone', () => {
+  test.use({ viewport: { width: 375, height: 812 } });
+
+  test('Selected work is a swipe deck', async ({ page }) => {
+    await page.goto('/');
+    const deck = page.locator('#work .showcase[data-kind="client"] .tiles');
+    await deck.scrollIntoViewIfNeeded();
+    const layout = await deck.evaluate((element) => ({
+      overflow: getComputedStyle(element).overflowX,
+      snap: getComputedStyle(element).scrollSnapType,
+      scrolls: element.scrollWidth > element.clientWidth,
+    }));
+    expect(layout).toEqual({ overflow: 'auto', snap: 'x mandatory', scrolls: true });
+    const pageFits = await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    );
+    expect(pageFits).toBe(true);
+  });
 });
 
 test('the All work page lists every case study', async ({ page }) => {

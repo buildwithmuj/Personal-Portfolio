@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  caseStudyDetail,
   caseStudyLabel,
   featuredStudies,
   visibleStudies,
@@ -65,5 +66,17 @@ describe('caseStudyLabel (content spec §5.4)', () => {
 
   it('falls back to the kind alone', () => {
     assert.equal(caseStudyLabel({ kind: 'client' }), 'Client work');
+  });
+});
+
+// The detail alone, for the Selected work tiles' chips: the sector, or the status.
+describe('caseStudyDetail', () => {
+  it('gives client work its sector and personal projects their status', () => {
+    assert.equal(caseStudyDetail({ kind: 'client', sector: 'Healthcare' }), 'Healthcare');
+    assert.equal(caseStudyDetail({ kind: 'product', status: 'in-progress' }), 'In progress');
+  });
+
+  it('is empty when there is no detail', () => {
+    assert.equal(caseStudyDetail({ kind: 'product' }), '');
   });
 });
