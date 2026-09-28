@@ -126,7 +126,7 @@ main:
       intro: From people I've worked with.
     interview:
       heading: Interview me
-      intro: The questions I'm asked most, answered by me, not an AI. Pick one.
+      intro: "Ask me anything. There's no AI here: these are my own answers."
     experience:
       heading: Experience & skills
       intro: Over ten years in consulting and automation delivery, and the tools I use.
