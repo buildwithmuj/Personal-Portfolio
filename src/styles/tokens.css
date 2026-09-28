@@ -35,7 +35,10 @@
   --color-avatar-3: #80b3ff;
   --color-avatar-4: #cfe4ff;
   --color-avatar-text-light: #1f3f7a;
-  --gradient-stat: linear-gradient(135deg, #4a7fd6, #1f3f7a);
+
+  /* The About stats (Stats.astro): a navy wash that deepens the live sky under white text */
+  --stats-wash: linear-gradient(180deg, rgb(29 74 146 / 22%), rgb(29 74 146 / 42%));
+  --stats-text-shadow: 0 1px 12px rgb(12 36 84 / 45%);
   --color-inverse: #0a0a0a;
   --color-on-inverse: #fff;
   --color-hairline: #e3e4ea;

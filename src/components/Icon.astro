@@ -1,0 +1,23 @@
+---
+import { ICONS, ICON_VIEWBOX, type IconName } from '../lib/icons.ts';
+
+interface Props {
+  name: IconName;
+  size?: number;
+  class?: string;
+}
+
+const { name, size = 20, class: className } = Astro.props;
+---
+
+{/* A Framework7 icon (src/lib/icons.ts), in the current colour; decorative. */}
+<svg
+  class:list={['icon', className]}
+  viewBox={ICON_VIEWBOX}
+  width={size}
+  height={size}
+  fill="currentColor"
+  aria-hidden="true"
+  focusable="false"
+  set:html={ICONS[name]}
+/>

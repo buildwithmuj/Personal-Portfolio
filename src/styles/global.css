@@ -339,6 +339,11 @@ a {
   color: var(--color-on-inverse);
 }
 
+/* Interface icons (Icon.astro): a fixed size, never squeezed in a row. */
+.icon {
+  flex: none;
+}
+
 /* Buttons */
 .btn {
   display: inline-flex;

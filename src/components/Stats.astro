@@ -1,36 +1,31 @@
 ---
+import SkyGradient from './SkyGradient.astro';
+
 interface Props {
   stats: { value: string; label: string }[];
 }
 
 const { stats } = Astro.props;
-// Each tile's small picture is chosen by its place in the list (profile.stats): years of
-// experience, sectors, case studies, own products.
-const amount = (value: string) => Number(/^\d+/.exec(value)?.[0] ?? 0);
 ---
 
 {/*
-  The About stats as widget tiles: each number counts up the first time it's seen, over its label
-  and a small picture of what it counts (a run of bars for the years, a dot per sector, a stack of
-  case studies, an app icon per product).
+  The About stats on one band of the hero's living Blue sky, like an instrument panel: white
+  numbers, each over its label, that count up the first time they're seen. A navy wash deepens the
+  sky under the text.
 */}
-<ul class="tiles" role="list">
-  {stats.map(({ value, label }, index) => (
-    <li class="tile" data-reveal="rise">
-      <span class="tile-num" data-count>
-        {value}
-      </span>
-      <span class="tile-label">{label}</span>
-      <span class="tile-visual" aria-hidden="true">
-        {index === 0 &&
-          Array.from({ length: Math.min(12, amount(value)) }, () => <i class="bar" />)}
-        {index === 1 && Array.from({ length: Math.min(8, amount(value)) }, () => <i class="dot" />)}
-        {index === 2 && Array.from({ length: 3 }, () => <i class="sheet" />)}
-        {index === 3 && Array.from({ length: Math.min(4, amount(value)) }, () => <i class="app" />)}
-      </span>
-    </li>
-  ))}
-</ul>
+<div class="stats" data-reveal="rise">
+  <SkyGradient class="stats-sky" scale={0.5} />
+  <ul class="cells" role="list">
+    {stats.map(({ value, label }) => (
+      <li>
+        <span class="stat-num" data-count>
+          {value}
+        </span>
+        <span class="stat-label">{label}</span>
+      </li>
+    ))}
+  </ul>
+</div>
 
 <script>
   // Counts each stat up from zero the first time it's seen; the HTML always holds the final value.
@@ -67,107 +62,60 @@ const amount = (value: string) => Number(/^\d+/.exec(value)?.[0] ?? 0);
 </script>
 
 <style>
-  .tiles {
+  .stats {
+    position: relative;
+    overflow: hidden;
+    border-radius: 24px;
+    isolation: isolate;
+  }
+
+  .stats-sky,
+  .stats::after {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+  }
+
+  /* After the sky in paint order, so it lies over the sky and under the text. */
+  .stats::after {
+    background: var(--stats-wash);
+    content: '';
+  }
+
+  .cells {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--space-3);
     margin: 0;
-    padding: 0;
+    padding: 22px 0;
     list-style: none;
   }
 
-  .tile {
+  .cells li {
     display: grid;
-    grid-template-rows: auto auto 1fr;
+    align-content: start;
     gap: 4px;
-    min-height: 150px;
-    padding: 16px 16px 14px;
-    border-radius: 22px;
-    background: var(--color-shell);
-    box-shadow: inset 0 0 0 1px var(--color-surface);
+    padding-inline: 22px;
+    color: var(--color-on-accent);
+    text-shadow: var(--stats-text-shadow);
   }
 
-  /* The number in a sky-to-navy blend. */
-  .tile-num {
-    background: var(--gradient-stat);
-    background-clip: text;
-    color: transparent;
-    font-size: var(--text-2xl);
+  .stat-num {
+    font-size: 2.25rem;
     font-weight: var(--weight-medium);
     letter-spacing: var(--tracking-tight);
-    line-height: 1.1;
+    line-height: 1.05;
   }
 
-  .tile-label {
-    color: var(--color-text-muted);
-    font-size: var(--text-xs);
+  .stat-label {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
     line-height: var(--leading-snug);
   }
 
-  .tile-visual {
-    display: flex;
-    gap: 4px;
-    align-items: flex-end;
-    align-self: end;
-    min-height: 34px;
-  }
-
-  .bar {
-    flex: 1;
-    max-width: 8px;
-    height: 34px;
-    border-radius: 3px;
-    background: var(--color-accent-light);
-  }
-
-  .bar:nth-child(odd) {
-    height: 22px;
-  }
-
-  .bar:last-child {
-    background: var(--color-accent);
-  }
-
-  .dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: var(--color-accent);
-  }
-
-  .dot:nth-child(even) {
-    background: var(--color-accent-light);
-  }
-
-  .sheet {
-    width: 28px;
-    height: 34px;
-    margin-inline-end: -16px;
-    border: 1px solid var(--color-chip-edge);
-    border-radius: 6px;
-    background: var(--color-surface);
-    box-shadow: 0 2px 6px -2px var(--color-accent-glow);
-  }
-
-  .sheet:last-child {
-    background: var(--color-chip);
-  }
-
-  .app {
-    width: 32px;
-    height: 32px;
-    border-radius: 9px;
-    background: var(--gradient-sky);
-    box-shadow: inset 0 0 0 1px var(--color-surface);
-  }
-
   @media (width < 40rem) {
-    .tiles {
+    .cells {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .tile {
-      min-height: 132px;
+      gap: var(--space-4) 0;
     }
   }
 </style>

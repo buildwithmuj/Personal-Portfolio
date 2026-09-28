@@ -11,13 +11,7 @@ interface Props {
 const { skills, heading, intro } = Astro.props;
 ---
 
-<Shell
-  id="skills"
-  heading={heading}
-  intro={intro}
-  collapsible="open"
-  icon="M6 5h8a3 3 0 0 1 0 6H6a3 3 0 0 1 0-6zM10 13h8a3 3 0 0 1 0 6h-8a3 3 0 0 1 0-6z"
->
+<Shell id="skills" heading={heading} intro={intro} collapsible="open" icon="skills">
   <div class="card" data-reveal="rise">
     <h3 class="label">Skills</h3>
     <ul class="chips" role="list">

@@ -1,5 +1,6 @@
 ---
 import { withBase } from '../lib/paths.ts';
+import Icon from './Icon.astro';
 interface Props {
   name: string;
 }
@@ -15,27 +16,18 @@ const year = new Date().getFullYear();
   <ul role="list">
     <li class="motion" hidden>
       <button class="motion-toggle" type="button" aria-pressed="false">
-        <svg
-          viewBox="0 0 24 24"
-          width="14"
-          height="14"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <path class="when-moving" d="M9 6v12M15 6v12"></path>
-          <path class="when-still" d="M8 5.5v13l10-6.5z"></path>
-        </svg>
+        <Icon name="pause" size={14} class="when-moving" />
+        <Icon name="play" size={14} class="when-still" />
         Pause animations
       </button>
     </li>
     <li>
       <!-- Open-Meteo's free data is licensed CC BY 4.0, which asks for this credit (src/lib/weather.ts). -->
       <a href="https://open-meteo.com/">Weather data by Open-Meteo.com</a>
+    </li>
+    <li>
+      <!-- The interface icons are Framework7 Icons, MIT licence (src/lib/icons.ts). -->
+      <a href="https://framework7.io/icons/">Icons: Framework7</a>
     </li>
     <li>
       <a href={withBase('/privacy')}>Privacy</a>

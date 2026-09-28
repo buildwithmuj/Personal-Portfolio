@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { sectionHeading, yamlList } from '../support/content.ts';
+import { profileValue, sectionHeading, yamlList, yamlValues } from '../support/content.ts';
 
 // Long sections can be collapsed with a round toggle (named after the section, announcing whether
 // it's expanded).
@@ -69,14 +69,32 @@ test('the back-to-top ring closes at the end of the page', async ({ page }) => {
     .toBeLessThan(1);
 });
 
-test('the About statement fills to full colour as it scrolls into view', async ({ page }) => {
+// The greeting, up to the owner's job title, is in full colour from the start; the rest of the
+// statement reads itself in as it scrolls up the screen.
+test('the About statement opens in full colour and fills the rest as it scrolls into view', async ({
+  page,
+}) => {
   await page.goto('/');
+  const lead = page.locator('.statement .lead');
+  await expect(lead).toHaveText(new RegExp(`^Hey, .*${profileValue('jobTitle')}$`));
+  await expect(lead).toHaveCSS('color', 'rgb(10, 10, 10)');
+  await expect(lead).toHaveCSS('animation-name', 'none');
   const supported = await page.evaluate(() => CSS.supports('animation-timeline: view()'));
   test.skip(!supported, 'This browser has no CSS view timeline, so the statement is plain text');
-  const span = page.locator('.statement span');
+  const rest = page.locator('.statement .rest');
   await expect
-    .poll(async () => span.evaluate((el) => getComputedStyle(el).animationTimeline))
+    .poll(async () => rest.evaluate((el) => getComputedStyle(el).animationTimeline))
     .toBe('--statement');
+});
+
+// The About stats: one band of the live Blue sky, each number over its label, from the profile.
+test('the About stats sit on one band of the live sky', async ({ page }) => {
+  await page.goto('/');
+  const stats = page.locator('#about .stats');
+  await expect(stats.locator('sky-gradient')).toHaveCount(1);
+  await expect(stats.locator('.stat-num')).toHaveText(
+    yamlValues('src/content/profile.yaml', 'value'),
+  );
 });
 
 // The Skills section: every skill and every certification is a flat chip, straight from the CV.

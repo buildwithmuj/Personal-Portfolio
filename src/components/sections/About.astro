@@ -5,12 +5,19 @@ import DayReminders from '../DayReminders.astro';
 import Shell from '../Shell.astro';
 import Stats from '../Stats.astro';
 import VoiceIntro from '../VoiceIntro.astro';
+import Icon from '../Icon.astro';
 
 interface Props {
   profile: CollectionEntry<'profile'>['data'];
 }
 
 const { profile } = Astro.props;
+// The statement's greeting, up to the owner's job title, shows in full from the start; the rest
+// reads itself in. If the title isn't in the statement, all of it reads itself in.
+const titleEnd = profile.about.indexOf(profile.jobTitle);
+const split = titleEnd < 0 ? 0 : titleEnd + profile.jobTitle.length;
+const lead = profile.about.slice(0, split);
+const rest = profile.about.slice(split);
 ---
 
 <Shell id="about" labelledBy="about-heading" inset>
@@ -19,26 +26,13 @@ const { profile } = Astro.props;
       About me
     </h2>
     <p class="statement">
-      <span>{profile.about}</span>
+      {lead && <span class="lead">{lead}</span>}
+      <span class="rest">{rest}</span>
     </p>
     <ul class="contact-row" role="list">
       {profile.voiceIntro && <VoiceIntro src={withBase(profile.voiceIntro)} />}
       <li>
-        <svg
-          viewBox="0 0 24 24"
-          width="18"
-          height="18"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <path d="M7 3h7l5 5v13H7z"></path>
-          <path d="M14 3v5h5M10 13h6M10 17h6"></path>
-        </svg>
+        <Icon name="document" size={20} class="row-icon" />
         <a href={withBase('/cv')}>View CV</a>
       </li>
     </ul>
@@ -116,11 +110,11 @@ const { profile } = Astro.props;
   }
 
   /*
-   * The statement reads itself in: it starts a light grey and fills to full colour in reading order
-   * as it scrolls up the screen, from the lower middle (below where it sits on load, even on a tall
-   * screen) to the upper third, about as fast as it's read. The gradient spans the whole inline
-   * text, so it runs line by line. Without scroll-driven animation support, or with reduced motion,
-   * the text is simply full colour.
+   * The statement reads itself in: after the greeting, which is full colour from the start, it starts
+   * a light grey and fills to full colour in reading order as it scrolls up the screen, from the
+   * lower middle (just below where it sits on load, even on a tall screen) over a short stretch of
+   * scrolling. The gradient spans the whole inline text, so it runs line by line. Without
+   * scroll-driven animation support, or with reduced motion, the text is simply full colour.
    */
   @keyframes fill {
     from {
@@ -142,7 +136,7 @@ const { profile } = Astro.props;
         view-timeline-name: --statement;
       }
 
-      .statement span {
+      .statement .rest {
         background:
           linear-gradient(var(--color-text), var(--color-text)) 0 0 / 0% 100% no-repeat,
           linear-gradient(var(--color-text-unread), var(--color-text-unread));
@@ -152,15 +146,15 @@ const { profile } = Astro.props;
       }
 
       /* In a rule of its own, so the minifier can't fold it into the shorthand (see ScrollTop). */
-      .about .statement span {
+      .about .statement .rest {
         animation-timeline: --statement;
-        animation-range: cover 40% cover 75%;
+        animation-range: cover 40% cover 58%;
       }
     }
   }
 
   /* With animations paused, which holds only loops (global.css), the statement still fills. */
-  :global(.motion-paused) .statement span {
+  :global(.motion-paused) .statement .rest {
     animation-play-state: running !important;
   }
 
