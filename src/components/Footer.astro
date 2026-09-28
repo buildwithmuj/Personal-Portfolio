@@ -13,6 +13,26 @@ const year = new Date().getFullYear();
     Copyright © {year} {name}.
   </p>
   <ul role="list">
+    <li class="motion" hidden>
+      <button class="motion-toggle" type="button" aria-pressed="false">
+        <svg
+          viewBox="0 0 24 24"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path class="when-moving" d="M9 6v12M15 6v12"></path>
+          <path class="when-still" d="M8 5.5v13l10-6.5z"></path>
+        </svg>
+        Pause animations
+      </button>
+    </li>
     <li>
       <!-- Open-Meteo's free data is licensed CC BY 4.0, which asks for this credit (src/lib/weather.ts). -->
       <a href="https://open-meteo.com/">Weather data by Open-Meteo.com</a>
@@ -22,6 +42,29 @@ const year = new Date().getFullYear();
     </li>
   </ul>
 </footer>
+
+<script>
+  // Pause animations (WCAG 2.2.2), on every page: stops every animation and the rotating lines, and
+  // is remembered on this device (Base.astro reapplies it on every page). It needs JavaScript, and
+  // under reduced motion nothing moves, so otherwise the toggle stays hidden.
+  const motion = document.querySelector<HTMLButtonElement>('.motion-toggle');
+  const item = motion?.closest('li');
+  if (motion && item && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const root = document.documentElement;
+    motion.setAttribute('aria-pressed', String(root.classList.contains('motion-paused')));
+    item.hidden = false;
+    motion.addEventListener('click', () => {
+      const paused = root.classList.toggle('motion-paused');
+      motion.setAttribute('aria-pressed', String(paused));
+      try {
+        localStorage.setItem('motion', paused ? 'paused' : 'on');
+      } catch {
+        // Storage can be blocked; the pause still holds for this page.
+      }
+    });
+  }
+</script>
+
 <style>
   /* Measured from the reference's footer: one row in the page column. */
   .site-footer {
@@ -53,5 +96,28 @@ const year = new Date().getFullYear();
   a:hover {
     color: var(--color-text);
     text-decoration: underline;
+  }
+
+  /* The pause toggle reads like the links beside it; its icon shows pause or play. */
+  .motion-toggle {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-text-muted);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .motion-toggle:hover {
+    color: var(--color-text);
+    text-decoration: underline;
+  }
+
+  .motion-toggle[aria-pressed='true'] .when-moving,
+  .motion-toggle[aria-pressed='false'] .when-still {
+    display: none;
   }
 </style>

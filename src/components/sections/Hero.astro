@@ -26,20 +26,37 @@ const accentFrom =
   accentWords.length > 0 && profile.headline.endsWith(profile.headlineAccent ?? '')
     ? headlineWords.length - accentWords.length
     : headlineWords.length;
+// On phones the pill shows a shorter line whose last word rotates; its box is sized to the longest.
+const short = profile.availabilityShort;
+const longestWord = short?.words.reduce((longest, word) =>
+  word.length > longest.length ? word : longest,
+);
 ---
 
 <Shell id="top" labelledBy="hero-name" hero>
   <div class="card hero" data-weather={weather?.scene ?? 'none'}>
     <div class="identity">
       {profile.avatar && (
-        <img class="avatar" src={withBase(profile.avatar)} alt="" width="90" height="90" />
+        <div class="avatar">
+          <SkyGradient class="avatar-sky" />
+          <img src={withBase(profile.avatar)} alt="" width="90" height="90" />
+        </div>
       )}
       <div class="who">
         <h1 id="hero-name">{profile.name}</h1>
         {profile.availability && (
           <p class="availability">
             <span class="available-dot" aria-hidden="true"></span>
-            {profile.availability}
+            <span class="availability-full">{profile.availability}</span>
+            {short && (
+              <span class="availability-short" aria-hidden="true">
+                {short.lead}{' '}
+                <role-rotator class="pill-words" data-roles={JSON.stringify(short.words)}>
+                  <span>{short.words[0]}</span>
+                  <span class="sizer">{longestWord}</span>
+                </role-rotator>
+              </span>
+            )}
           </p>
         )}
         <p class="roles">
@@ -89,24 +106,6 @@ const accentFrom =
         </li>
       ))}
     </ul>
-    <button class="motion-toggle" type="button" aria-pressed="false" hidden>
-      <svg
-        viewBox="0 0 24 24"
-        width="14"
-        height="14"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-        focusable="false"
-      >
-        <path class="when-moving" d="M9 6v12M15 6v12"></path>
-        <path class="when-still" d="M8 5.5v13l10-6.5z"></path>
-      </svg>
-      <span class="visually-hidden">Pause animations</span>
-    </button>
   </div>
 </Shell>
 
@@ -137,25 +136,6 @@ const accentFrom =
   }
 
   customElements.define('role-rotator', RoleRotator);
-
-  // Pause animations (WCAG 2.2.2): stops every animation on the page and the rotating lines, and is
-  // remembered on this device (Base.astro reapplies it on every page). Under reduced motion nothing
-  // moves, so the button stays hidden.
-  const motion = document.querySelector<HTMLButtonElement>('.motion-toggle');
-  if (motion && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const root = document.documentElement;
-    motion.setAttribute('aria-pressed', String(root.classList.contains('motion-paused')));
-    motion.hidden = false;
-    motion.addEventListener('click', () => {
-      const paused = root.classList.toggle('motion-paused');
-      motion.setAttribute('aria-pressed', String(paused));
-      try {
-        localStorage.setItem('motion', paused ? 'paused' : 'on');
-      } catch {
-        // Storage can be blocked; the pause still holds for this page.
-      }
-    });
-  }
 </script>
 
 <style>
@@ -406,6 +386,28 @@ const accentFrom =
     font-weight: var(--weight-medium);
   }
 
+  /*
+   * The phones' shorter line (availabilityShort), hidden on wider screens. Its last word rotates
+   * like the role line, clipped to one line and held at the width of the longest word.
+   */
+  .availability-short {
+    display: none;
+  }
+
+  .pill-words {
+    display: inline-grid;
+    overflow: hidden;
+    vertical-align: bottom;
+  }
+
+  .pill-words > span {
+    grid-area: 1 / 1;
+  }
+
+  .pill-words > .sizer {
+    visibility: hidden;
+  }
+
   .available-dot {
     width: 8px;
     height: 8px;
@@ -424,33 +426,6 @@ const accentFrom =
       box-shadow: 0 0 0 0 var(--color-available-glow);
       animation: available-pulse 2s var(--ease-out) infinite;
     }
-  }
-
-  /* Pause animations, top right of the card. */
-  .motion-toggle {
-    position: absolute;
-    inset-block-start: var(--space-4);
-    inset-inline-end: var(--space-4);
-    display: grid;
-    place-items: center;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background: var(--color-surface);
-    box-shadow: var(--shadow-secondary);
-    color: var(--color-text);
-    cursor: pointer;
-  }
-
-  .motion-toggle:hover {
-    color: var(--color-accent);
-  }
-
-  .motion-toggle[aria-pressed='true'] .when-moving,
-  .motion-toggle[aria-pressed='false'] .when-still {
-    display: none;
   }
 
   /* The avatar overlaps the band by about a third, so the name sits clear of the band's edge. */
@@ -474,11 +449,28 @@ const accentFrom =
     min-width: 0;
   }
 
+  /* The photo is cut out of its backdrop, so a small live sky (SkyGradient) shows behind it. */
   .avatar {
+    position: relative;
+    flex: none;
     width: var(--avatar);
     height: var(--avatar);
+    overflow: hidden;
     border-radius: 50%;
     box-shadow: 0 0 0 4px var(--color-surface);
+    isolation: isolate;
+  }
+
+  .avatar-sky {
+    position: absolute;
+    inset: 0;
+  }
+
+  .avatar img {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
   }
 
@@ -603,10 +595,19 @@ const accentFrom =
       grid-template-columns: minmax(0, 1fr);
     }
 
-    /* The pause button moves to the top left to make room. */
-    .motion-toggle {
-      inset-block-start: var(--space-3);
-      inset-inline: var(--space-3) auto;
+    /* The pill shows its shorter line; screen readers still get the whole one (visually hidden). */
+    .availability-short {
+      display: inline;
+    }
+
+    .availability-full:has(~ .availability-short) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
     }
 
     .actions {

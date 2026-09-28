@@ -97,7 +97,7 @@ const initials = (name: string) =>
   // On phones one card shows at a time, and every three seconds the next one takes its place,
   // looping. It waits while the pointer or keyboard focus is inside, the button pauses it, and
   // picking a dot pauses it too (WCAG 2.2.2). Wider screens show every card, so it never runs there,
-  // nor under reduced motion or the hero's pause button.
+  // nor under reduced motion or the footer's pause button.
   const wall = document.querySelector<HTMLElement>('.wall');
   const button = wall?.querySelector<HTMLButtonElement>('.pause');
   const label = button?.querySelector('span');

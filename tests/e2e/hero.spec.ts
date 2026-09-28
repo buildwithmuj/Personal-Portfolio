@@ -103,6 +103,24 @@ test('the hero shows availability and the About card is signed', async ({ page }
   await expect(signature).toHaveAttribute('aria-hidden', 'true');
 });
 
+// Wide screens show the whole availability line. Phones show a shorter one whose last word rotates
+// (roles, projects, …), while screen readers still get the whole line.
+test('the availability pill shortens on phones and rotates its last word', async ({ page }) => {
+  const line = profileValue('availability');
+  await page.goto('/');
+  const pill = page.locator('.hero .availability');
+  await expect(pill.locator('.availability-full')).toBeVisible();
+  await expect(pill.locator('.availability-short')).toBeHidden();
+
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(pill.locator('.availability-short')).toBeVisible();
+  await expect(pill.locator('.availability-short')).toHaveAttribute('aria-hidden', 'true');
+  await expect(pill.locator('.availability-full')).toHaveText(line);
+  const word = pill.locator('role-rotator > span').first();
+  const first = (await word.textContent()) ?? '';
+  await expect(word).not.toHaveText(first, { timeout: 6000 });
+});
+
 // The About card's Right now panel says what the owner is up to, since when, and invites a hello.
 test('the About card says what is happening right now, and since when', async ({ page }) => {
   await page.goto('/');
@@ -121,22 +139,22 @@ test('the hero sky band holds the social links', async ({ page }) => {
   await expect(page.locator('.top-bar > .socials')).toHaveCount(0);
 });
 
-// WCAG 2.2.2: the moving parts (sector strip, role line, weather, rotations) can be paused, and the
-// choice holds on the next page load.
-test('the hero pause button holds the moving parts and remembers it', async ({ page }) => {
+// WCAG 2.2.2: the moving parts (sky, sector strip, role line, weather, rotations) can be paused
+// from the footer of any page, and the choice holds on the next page load.
+test('the footer pause toggle holds the moving parts and remembers it', async ({ page }) => {
   await page.goto('/');
-  const toggle = page.getByRole('button', { name: 'Pause animations' });
+  await expect(page.locator('.hero button')).toHaveCount(0);
+  const toggle = page.getByRole('contentinfo').getByRole('button', { name: 'Pause animations' });
   await expect(toggle).toHaveAttribute('aria-pressed', 'false');
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('html')).toHaveClass(/motion-paused/);
   await expect(page.locator('.hero')).toHaveCSS('animation-play-state', 'paused');
-  await page.reload();
+  await page.goto('/cv');
   await expect(page.locator('html')).toHaveClass(/motion-paused/);
-  await expect(page.getByRole('button', { name: 'Pause animations' })).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  );
+  await expect(
+    page.getByRole('contentinfo').getByRole('button', { name: 'Pause animations' }),
+  ).toHaveAttribute('aria-pressed', 'true');
 });
 
 // The pause is for what loops. One-off entrances still finish and scroll-linked effects still follow

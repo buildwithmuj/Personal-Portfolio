@@ -80,7 +80,7 @@ a {
 }
 
 /*
- * The hero's "Pause animations" button holds every looping animation on the page (WCAG 2.2.2).
+ * The footer's "Pause animations" toggle holds every looping animation on the page (WCAG 2.2.2).
  * One-off entrances and scroll-linked effects opt out beside their own keyframes, with
  * `:global(.motion-paused) … { animation-play-state: running !important }`: held, they would
  * freeze on their first frame, hiding the hero headline or pinning the scroll ring at empty.
