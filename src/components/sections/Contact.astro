@@ -43,7 +43,7 @@ const { profile } = Astro.props;
   <div class="details" data-reveal="rise">
     <ul class="socials" role="list">
       <li>
-        <a class="social" href={withBase('/cv')} aria-label="View CV" title="View CV" data-cv>
+        <a class="social" href={withBase('/cv.pdf')} aria-label="View CV" title="View CV" data-cv>
           <Icon name="cv" />
         </a>
       </li>
@@ -114,12 +114,13 @@ const { profile } = Astro.props;
     font-size: var(--text-sm);
   }
 
-  /* The quiet line: the CV (it opens over the page) and the social links, as icon chips. */
+  /* The quiet line, centred under the card: the CV (it opens over the page) and the social links. */
   .details {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-3) var(--space-6);
     align-items: center;
+    justify-content: center;
     margin-block-start: var(--space-6);
   }
 

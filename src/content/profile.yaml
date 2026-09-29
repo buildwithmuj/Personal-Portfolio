@@ -41,7 +41,7 @@ main:
       }
     - { stack: Learning, time: '20:30', task: Design principles and GitHub, via YouTube }
     - { stack: Learning, time: '21:30', task: Tips and show pieces from the community on X }
-  # Answers for "Interview me", drawn from the CV, skills and method, and live since v1.1.0. They
+  # Answers for "Ask me", drawn from the CV, skills and method, and live since v1.1.0. They
   # were drafted for Mujtaba, so rewrite them in his own words: the section signs them "not an AI".
   # Set draft back to true to show the section only in preview builds.
   interview:
@@ -82,7 +82,7 @@ main:
         answer: >-
           I box at Legends MMA, speak four languages and I'm always building something on the side.
           Boxing keeps me calm under pressure, which helps on go-live day too.
-  # For the CV page, from the 2026 CV.
+  # For the CV (the pop-up and PDF), from the 2026 CV.
   languages:
     - { language: English, level: Native }
     - { language: Punjabi, level: Native }
@@ -126,17 +126,8 @@ main:
       heading: What people say
       intro: From people I've worked with.
     interview:
-      heading: Interview me
-      intro: "Ask me anything. There's no AI here: these are my own answers."
-    experience:
-      heading: Experience & skills
-      intro: Over ten years in consulting and automation delivery, and the tools I use.
-    education:
-      heading: Education
-      intro: The degree and diploma behind the consulting.
-    languages:
-      heading: Languages & interests
-      intro: Four languages, and what keeps me going outside work.
+      heading: Ask me
+      intro: 'Pick a question or type your own. No AI here: every answer is mine.'
     contact:
       heading: Let's work together
       intro: Hiring, or have a process that needs untangling?

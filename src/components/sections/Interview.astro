@@ -1,6 +1,8 @@
 ---
 import { withBase } from '../../lib/paths.ts';
+import Icon from '../Icon.astro';
 import Shell from '../Shell.astro';
+import SkyGradient from '../SkyGradient.astro';
 import VoiceIntro from '../VoiceIntro.astro';
 
 interface Props {
@@ -9,78 +11,82 @@ interface Props {
   questions: { question: string; answer: string; audio?: string | undefined }[];
   name: string;
   email: string;
-  avatar?: string | undefined;
 }
 
-const { heading, intro, questions, name, email, avatar } = Astro.props;
+const { heading, intro, questions, name, email } = Astro.props;
 const firstName = name.split(' ')[0];
 ---
 
 {/*
-  Interview me, as "Ask me": a box that looks like an AI prompt and isn't one. As the visitor
-  types, it suggests the owner's own written questions (src/lib/ask.ts); picking one shows its
-  answer, signed by the owner. A question with no written answer becomes an email to the owner.
-  Without JavaScript, every question and answer shows in turn. An answer the owner has recorded
-  (its `audio` in profile.yaml) gets a "Hear my answer" button beside the signature.
+  Ask me: a card after an AI chat, and not one. It opens on a greeting under a ball of the living
+  sky; a question pill shows the owner's written answer in the greeting's place, signed by a small
+  ball. Typing fades the pills that don't fit, and Enter or the arrow shows the best fit (src/lib/
+  ask.ts); a question with no written answer becomes an email to the owner. Without JavaScript,
+  every question and answer shows in turn. An answer the owner has recorded (its `audio` in
+  profile.yaml) gets a "Hear my answer" button under it.
 */}
-<Shell id="interview" heading={heading} intro={intro} collapsible="open" icon="interview">
-  <ask-me class="ask" data-email={email}>
-    <div class="asker" hidden>
-      <div class="prompt">
-        <input
-          type="text"
-          role="combobox"
-          aria-label="Ask me a question"
-          aria-controls="ask-list"
-          aria-expanded="false"
-          aria-autocomplete="list"
-          autocomplete="off"
-          placeholder="Ask me anything…"
-        />
-        <span class="no-ai" aria-hidden="true">
-          No AI
+<Shell id="interview" heading={heading} intro={intro} collapsible="open">
+  <ask-me class="card ask" data-email={email} data-reveal="rise">
+    <div class="top">
+      <div class="hello" hidden>
+        <span class="float" aria-hidden="true">
+          <span class="orb">
+            <SkyGradient class="orb-sky" />
+          </span>
+          <span class="orb-shadow"></span>
         </span>
-        <ul
-          id="ask-list"
-          class="suggest"
-          role="listbox"
-          aria-label="Questions I've answered"
-          hidden
-        >
-          {questions.map(({ question }, index) => (
-            <li id={`ask-${index}`} role="option" aria-selected="false">
-              {question}
-            </li>
-          ))}
-        </ul>
+        <p>
+          Ask me <em>anything.</em>
+        </p>
       </div>
-      <div class="miss" hidden>
-        <p>No written answer for that one yet. Ask me directly and I'll reply myself.</p>
-        <a class="btn btn-primary" href={`mailto:${email}`}>
-          Send me this question
-        </a>
-      </div>
-    </div>
-    <div class="answers" aria-live="polite">
-      {questions.map(({ question, answer, audio }) => (
-        <article class="answer">
-          <h3 class="asked">{question}</h3>
-          <p>{answer}</p>
-          <div class="by">
-            <p class="signed">
-              {avatar && (
-                <img src={withBase(avatar)} alt="" width="32" height="32" loading="lazy" />
-              )}
-              <span>
-                Answered by <b>{firstName}</b>, not an AI
-              </span>
-            </p>
+      <div class="answers" aria-live="polite">
+        {questions.map(({ question, answer, audio }) => (
+          <article class="answer">
+            <h3 class="asked">{question}</h3>
+            <p>{answer}</p>
             {audio && (
               <VoiceIntro as="p" src={withBase(audio)} play="Hear my answer" pause="Pause answer" />
             )}
-          </div>
-        </article>
-      ))}
+          </article>
+        ))}
+        <div class="miss" hidden>
+          <p>No written answer for that one yet. Ask me directly and I'll reply myself.</p>
+          <a class="btn btn-primary" href={`mailto:${email}`}>
+            Send me this question
+          </a>
+        </div>
+      </div>
+      <p class="signed">
+        <span class="orb orb-small" aria-hidden="true">
+          <SkyGradient class="orb-sky" />
+        </span>
+        <span>
+          Answered by <b>{firstName}</b>, not an AI
+        </span>
+      </p>
+    </div>
+    <div class="asker" hidden>
+      <ul class="pills" role="list" aria-label="Questions I've answered">
+        {questions.map(({ question }) => (
+          <li>
+            <button type="button" aria-pressed="false">
+              {question}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <form class="field">
+        <input
+          type="text"
+          aria-label="Ask me a question"
+          autocomplete="off"
+          enterkeyhint="send"
+          placeholder="Ask me a question…"
+        />
+        <button class="send" type="submit" aria-label="Ask">
+          <Icon name="arrow-up" size={18} />
+        </button>
+      </form>
     </div>
   </ask-me>
 </Shell>
@@ -88,88 +94,55 @@ const firstName = name.split(' ')[0];
 <script>
   import { askMailto, matchQuestions, queryWords } from '../../lib/ask.ts';
 
-  // The prompt, its suggestions and one answer at a time. Arrow keys move through the
-  // suggestions, Enter picks one and Escape closes them; a query nothing answers offers an email.
+  // One answer at a time, in the greeting's place: from a pill, or from a typed question sent with
+  // Enter or the arrow. Typing fades the pills that don't fit it.
   class AskMe extends HTMLElement {
     connectedCallback() {
+      const [hello, asker, signed, miss] = ['.hello', '.asker', '.signed', '.miss'].map((query) =>
+        this.querySelector<HTMLElement>(query),
+      );
+      const form = this.querySelector('form');
       const input = this.querySelector('input');
-      const list = this.querySelector('ul');
-      const miss = this.querySelector<HTMLElement>('.miss');
       const send = this.querySelector<HTMLAnchorElement>('.miss a');
-      const box = this.querySelector<HTMLElement>('.answers');
-      if (!input || !list || !miss || !send || !box) return;
-      const options = [...list.children] as HTMLElement[];
+      if (!hello || !asker || !signed || !miss || !form || !input || !send) return;
+      const pills = [...this.querySelectorAll<HTMLButtonElement>('.pills button')];
       const answers = [...this.querySelectorAll<HTMLElement>('.answer')];
       const items = answers.map(({ children }) => ({
         question: children[0]?.textContent ?? '',
         answer: children[1]?.textContent ?? '',
       }));
-      let shown: number[] = [];
-      let active = -1;
 
-      const open = (isOpen: boolean) => {
-        list.hidden = !isOpen;
-        input.ariaExpanded = String(isOpen);
-      };
-      const mark = (index: number) => {
-        active = index;
-        options.forEach((option, at) => (option.ariaSelected = String(shown[index] === at)));
-        if (index < 0) input.removeAttribute('aria-activedescendant');
-        else input.setAttribute('aria-activedescendant', `ask-${shown[index]}`);
-      };
-      // An unanswered question sets the last answer aside, so the offer to email stands alone.
-      const unanswered = (isUnanswered: boolean) => {
-        miss.hidden = !isUnanswered;
-        box.hidden = isUnanswered;
-      };
-      const pick = (index: number) => {
+      // Shows answer `index`, or with -1 the offer to email the question instead.
+      const show = (index: number) => {
         // An answer being read aloud stops as another takes its place.
         this.querySelector<HTMLElement>('voice-intro[data-playing] button')?.click();
         answers.forEach((answer, at) => (answer.hidden = at !== index));
-        input.value = items[index]?.question ?? '';
-        unanswered(false);
-        open(false);
+        pills.forEach((pill, at) => (pill.ariaPressed = String(at === index)));
+        hello.hidden = true;
+        miss.hidden = index >= 0;
+        signed.hidden = index < 0;
       };
-      const filter = () => {
-        const typed = queryWords(input.value).length > 0;
-        shown = matchQuestions(input.value, items);
-        options.forEach((option, at) => (option.hidden = !shown.includes(at)));
-        list.append(...shown.map((index) => options[index] as HTMLElement));
-        unanswered(typed && !shown.length);
+      const fade = () => {
+        const fits = matchQuestions(input.value, items);
+        pills.forEach((pill, at) => pill.classList.toggle('faded', !fits.includes(at)));
+      };
+
+      pills.forEach((pill, index) => (pill.onclick = () => show(index)));
+      input.oninput = fade;
+      form.onsubmit = (event) => {
+        event.preventDefault();
+        if (!queryWords(input.value).length) return;
+        const [best = -1] = matchQuestions(input.value, items);
         send.href = askMailto(this.dataset['email'] ?? '', input.value.trim());
-        open(shown.length > 0);
-        mark(typed && shown.length ? 0 : -1);
+        show(best);
+        if (best >= 0) input.value = '';
+        fade();
       };
 
-      input.onfocus = () => {
-        filter();
-        input.select();
-      };
-      input.oninput = filter;
-      input.onblur = () => open(false);
-      input.onkeydown = (event) => {
-        const { key } = event;
-        const step = key === 'ArrowDown' ? 1 : key === 'ArrowUp' ? -1 : 0;
-        if (key === 'Escape') open(false);
-        else if (step) {
-          event.preventDefault();
-          if (list.hidden) filter();
-          if (shown.length) mark((active + step + shown.length) % shown.length);
-        } else if (key === 'Enter' && !list.hidden && shown.length) {
-          event.preventDefault();
-          pick(shown[Math.max(active, 0)] ?? 0);
-        }
-      };
-      // Pressing down on a suggestion would blur the box before the click lands; keep focus.
-      list.onmousedown = (event) => event.preventDefault();
-      list.onclick = ({ target }) => {
-        const option = (target as Element).closest('li');
-        if (option) pick(options.indexOf(option));
-      };
-
-      pick(0);
-      input.value = '';
-      (this.firstElementChild as HTMLElement).hidden = false;
+      answers.forEach((answer) => (answer.hidden = true));
+      signed.hidden = true;
+      hello.hidden = false;
+      asker.hidden = false;
     }
   }
 
@@ -177,121 +150,142 @@ const firstName = name.split(' ')[0];
 </script>
 
 <style>
+  /* Toolkit's white card, holding the greeting or an answer, the question pills and the field. */
   .ask {
+    --glow:
+      0 0 0 1px var(--color-chip), 0 8px 24px -6px var(--color-accent-glow),
+      0 0 16px var(--color-accent-glow);
+
+    display: grid;
+    gap: 20px;
+  }
+
+  .top {
     display: grid;
     gap: var(--space-4);
+    align-content: center;
+    min-height: 170px;
   }
 
-  /* The prompt: a white field with a soft focus ring and its "No AI" badge. */
-  .prompt {
-    position: relative;
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    padding: 12px 14px 12px 18px;
-    border-radius: 18px;
-    background: var(--color-surface);
-    box-shadow: var(--shadow-secondary);
-  }
-
-  .prompt:focus-within {
-    box-shadow:
-      var(--shadow-secondary),
-      0 0 0 3px var(--color-accent-glow);
-  }
-
-  input {
-    flex: 1;
-    min-width: 0;
-    padding: 4px 0;
-    border: 0;
-    background: none;
-    color: var(--color-text);
-    font: inherit;
-    font-size: var(--text-base);
-  }
-
-  input:focus {
-    outline: none;
-  }
-
-  input::placeholder {
-    color: var(--color-text-muted);
-  }
-
-  .no-ai {
-    flex: none;
-    padding: 4px 10px;
-    border-radius: var(--radius-pill);
-    background: var(--color-chip);
-    color: var(--color-accent-hover);
-    font-size: var(--text-xs);
-    font-weight: var(--weight-medium);
-  }
-
-  /* The suggestions drop over what's below, so the page never shifts as they open. */
-  .suggest {
-    position: absolute;
-    z-index: 5;
-    inset: calc(100% + 8px) 0 auto;
+  .hello {
     display: grid;
-    gap: 2px;
+    gap: 18px;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .hello p {
     margin: 0;
-    padding: 6px;
-    border-radius: 18px;
-    background: var(--color-surface);
+    font-size: var(--text-2xl);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .hello em {
+    color: var(--color-accent);
+    font-family: var(--font-serif);
+  }
+
+  /* The ball: the living sky (SkyGradient), soft-edged, with a glassy highlight and a glow. */
+  .orb {
+    position: relative;
+    display: block;
+    width: 84px;
+    height: 84px;
+    overflow: hidden;
+    border-radius: 50%;
     box-shadow:
-      var(--shadow-secondary),
-      0 20px 40px -14px var(--watch-shadow);
-    list-style: none;
+      0 0 24px 6px var(--color-accent-glow),
+      0 0 60px 16px var(--color-accent-glow);
+    filter: blur(1.5px);
+    isolation: isolate;
   }
 
-  [role='option'] {
-    padding: 10px 12px;
-    border-radius: 12px;
-    color: var(--color-text-muted);
-    cursor: pointer;
+  .orb::after {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 36% 30%, var(--color-surface), transparent 62%);
+    content: '';
+    opacity: 0.7;
   }
 
-  [role='option']:hover,
-  [role='option'][aria-selected='true'] {
-    background: var(--color-chip);
-    color: var(--color-text);
+  .orb-sky {
+    position: absolute;
+    inset: -6px;
+    opacity: 0.8;
+    filter: blur(5px);
   }
 
-  /* When nothing answers the question: an offer to send it by email. */
-  .miss {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3) var(--space-4);
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 16px;
-    border-radius: 18px;
-    background: var(--color-surface);
-    box-shadow: var(--shadow-secondary);
+  /*
+   * The ball floats in place: a slow bob over a soft shadow that shrinks and fades as it rises.
+   * A loop, so the footer's pause holds it; under reduced motion it keeps still (global.css).
+   */
+  .float {
+    position: relative;
+    display: grid;
+    justify-items: center;
   }
 
-  .miss p {
-    max-width: 34ch;
-    margin: 0;
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
+  .float .orb {
+    animation: ask-orb-float 5s ease-in-out infinite;
   }
 
-  /* The answer, signed. */
+  .orb-shadow {
+    position: absolute;
+    bottom: -12px;
+    width: 70%;
+    height: 9px;
+    border-radius: 50%;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--color-accent) 30%, transparent),
+      transparent
+    );
+    animation: ask-orb-shadow 5s ease-in-out infinite;
+  }
+
+  @keyframes ask-orb-float {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+
+    50% {
+      translate: 0 -8px;
+    }
+  }
+
+  @keyframes ask-orb-shadow {
+    0%,
+    100% {
+      opacity: 0.9;
+      scale: 1;
+    }
+
+    50% {
+      opacity: 0.5;
+      scale: 0.75;
+    }
+  }
+
+  /* The small ball that signs an answer. */
+  .orb-small {
+    flex: none;
+    width: 26px;
+    height: 26px;
+    box-shadow: 0 0 10px 2px var(--color-accent-glow);
+    filter: none;
+  }
+
+  /* An answer, in the greeting's place; without JavaScript every answer shows, spaced apart. */
   .answers {
     display: grid;
-    gap: var(--space-4);
+    gap: var(--space-6);
   }
 
   .answer {
     display: grid;
     gap: var(--space-3);
-    padding: 22px 24px;
-    border-radius: 22px;
-    background: var(--color-surface);
-    box-shadow: var(--shadow-secondary);
     animation: answer-in 400ms var(--ease-out);
   }
 
@@ -318,30 +312,178 @@ const firstName = name.split(' ')[0];
     line-height: var(--leading-body);
   }
 
-  /* The signature, and the play button where the answer is recorded. */
-  .by {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2) var(--space-4);
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .answer .signed {
+  .signed {
     display: flex;
     gap: 10px;
     align-items: center;
+    margin: 0;
     color: var(--color-text-muted);
     font-size: var(--text-sm);
-  }
-
-  .signed img {
-    border-radius: 50%;
-    background: var(--gradient-sky);
   }
 
   .signed b {
     color: var(--color-text);
     font-weight: var(--weight-medium);
+  }
+
+  /* When nothing answers the question: an offer to send it by email. */
+  .miss {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+  }
+
+  .miss p {
+    max-width: 34ch;
+    margin: 0;
+    color: var(--color-text-muted);
+  }
+
+  /* The questions, as pills that wrap; a faded pill doesn't fit what's typed. */
+  .asker {
+    display: grid;
+    gap: 20px;
+  }
+
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin: 0;
+    padding: 4px 0;
+    list-style: none;
+  }
+
+  .pills button {
+    padding: 8px 14px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    box-shadow: var(--glow);
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--text-sm);
+    cursor: pointer;
+    transition:
+      opacity var(--duration-fast) var(--ease-standard),
+      background-color var(--duration-fast) var(--ease-standard);
+  }
+
+  .pills button:hover,
+  .pills [aria-pressed='true'] {
+    background: var(--color-chip);
+    color: var(--color-accent-hover);
+  }
+
+  /* Still readable: about 5.2:1 on the white card. */
+  .pills .faded {
+    opacity: 0.6;
+  }
+
+  /* The field, with its round send arrow. */
+  .field {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 6px 6px 6px 20px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    box-shadow: var(--glow);
+  }
+
+  .field:focus-within {
+    box-shadow:
+      var(--glow),
+      0 0 0 3px var(--color-accent-glow);
+  }
+
+  /* No width of its own (a text box is about 20 characters wide by default, which on a phone pushed
+     the page wider than the screen): it grows to fill the field instead. */
+  input {
+    flex: 1;
+    width: 0;
+    min-width: 0;
+    padding: 8px 0;
+    border: 0;
+    background: none;
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--text-base);
+  }
+
+  input:focus {
+    outline: none;
+  }
+
+  input::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  .send {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--color-accent-hover);
+    color: var(--color-on-accent);
+    cursor: pointer;
+    transition: transform var(--duration-fast) var(--ease-standard);
+  }
+
+  .send:hover {
+    transform: scale(1.06);
+  }
+
+  /*
+   * On phones the card keeps short: a smaller ball and greeting, and the questions in one row that
+   * runs off the card's edges, swiped sideways, rather than seven lines of pills.
+   */
+  @media (width < 40rem) {
+    .top {
+      min-height: 0;
+    }
+
+    .hello {
+      gap: 12px;
+      padding-block: 8px;
+    }
+
+    .hello p {
+      font-size: var(--text-xl);
+    }
+
+    .orb {
+      width: 60px;
+      height: 60px;
+    }
+
+    .orb-shadow {
+      bottom: -9px;
+      height: 7px;
+    }
+
+    .orb-small {
+      width: 22px;
+      height: 22px;
+    }
+
+    .pills {
+      flex-wrap: nowrap;
+      justify-content: start;
+      margin-inline: calc(-1 * var(--card-pad));
+      padding: 6px var(--card-pad) 10px;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+    }
+
+    .pills li {
+      flex: none;
+    }
   }
 </style>

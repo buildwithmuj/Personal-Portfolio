@@ -21,7 +21,7 @@ const groups = (['client', 'product'] as const).map((kind) => ({
   Selected work: a bento grid on desktop (the featured project large, beside two tiles and over a
   wide one), two columns on tablets, and on phones a swipe deck of the same tiles that snaps card
   by card, with a dot per card. Covers up front, the title in white on a navy fade, the sector (or
-  status) and years as chips. The whole tile is the link; its name stays the title.
+  status) as a chip. The whole tile is the link; its name stays the title.
 */}
 {groups.map((group) => (
   <div class="showcase" data-kind={group.kind}>
@@ -44,7 +44,6 @@ const groups = (['client', 'product'] as const).map((kind) => ({
           <div class="tile-text">
             <p class="chips">
               <span>{caseStudyDetail(study.data)}</span>
-              <span>{study.data.timeframe}</span>
             </p>
             <h3 class="tile-title">
               <a href={withBase(`/work/${study.id}`)}>{study.data.title}</a>
@@ -224,18 +223,25 @@ const groups = (['client', 'product'] as const).map((kind) => ({
   }
 
   /*
-   * Phones: a swipe deck. The row runs out to the frame's edges and snaps card by card, the next
-   * card peeking in; the page itself never scrolls sideways. A dot per card sits underneath.
+   * Phones: a swipe deck. The row runs out to the frame's edges and snaps card by card, one card a
+   * swipe, the next peeking in; the page itself never scrolls sideways. Each card rests at the frame's
+   * inset, the last one too: cards are sized against the section (container units), so the row can
+   * end with the room the last card needs (the inset plus the peek) without shrinking them. A dot
+   * per card sits underneath.
    */
   @media (width < 40rem) {
+    .showcase {
+      container-type: inline-size;
+    }
+
     .tiles {
       grid-template-columns: none;
-      grid-auto-columns: 84%;
+      grid-auto-columns: 84cqi;
       grid-auto-flow: column;
       grid-auto-rows: 360px;
       overflow-x: auto;
       margin-inline: calc(-1 * var(--shell-pad));
-      padding: 4px var(--shell-pad) 8px;
+      padding: 4px calc(var(--shell-pad) + 16cqi) 8px var(--shell-pad);
       overscroll-behavior-x: contain;
       scroll-padding-inline: var(--shell-pad);
       scroll-snap-type: x mandatory;
@@ -244,6 +250,7 @@ const groups = (['client', 'product'] as const).map((kind) => ({
 
     .tile {
       scroll-snap-align: start;
+      scroll-snap-stop: always;
     }
 
     .tile:is(:first-child, :nth-child(4)) {

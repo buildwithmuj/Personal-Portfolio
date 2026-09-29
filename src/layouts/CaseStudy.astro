@@ -11,14 +11,14 @@ import Base from './Base.astro';
 
 interface Props {
   study: CollectionEntry<'caseStudies'>;
-  /** The study after this one, for the "Next case study" card (none when it would be itself). */
-  next?: CollectionEntry<'caseStudies'> | undefined;
+  /** The next four studies after this one, in order and wrapping round, for the cards at its end. */
+  more: CollectionEntry<'caseStudies'>[];
   ogImageUrl: string;
   structuredData: string;
 }
 
-const { study, next, ogImageUrl, structuredData } = Astro.props;
-const { title, summary, role, timeframe, employer, tags, links, cover, coverAlt } = study.data;
+const { study, more, ogImageUrl, structuredData } = Astro.props;
+const { title, summary, role, employer, tags, links, cover, coverAlt } = study.data;
 ---
 
 <Base
@@ -39,10 +39,6 @@ const { title, summary, role, timeframe, employer, tags, links, cover, coverAlt 
           <div>
             <dt>Role</dt>
             <dd>{role}</dd>
-          </div>
-          <div>
-            <dt>Timeframe</dt>
-            <dd>{timeframe}</dd>
           </div>
           {employer && (
             <div>
@@ -78,19 +74,25 @@ const { title, summary, role, timeframe, employer, tags, links, cover, coverAlt 
           </ul>
         </section>
       )}
-      {next && next.id !== study.id && (
-        <nav class="next" aria-labelledby="next-heading">
-          <p id="next-heading" class="next-label">
-            Next case study
-          </p>
-          <CaseStudyCard
-            href={withBase(`/work/${next.id}`)}
-            title={next.data.title}
-            label={caseStudyLabel(next.data)}
-            cover={next.data.cover}
-            coverAlt={next.data.coverAlt}
-            headingLevel={2}
-          />
+      {more.length > 0 && (
+        <nav class="more" aria-labelledby="more-heading">
+          <h2 id="more-heading" class="more-label">
+            More case studies
+          </h2>
+          <ul class="more-row" role="list">
+            {more.map((other) => (
+              <li>
+                <CaseStudyCard
+                  href={withBase(`/work/${other.id}`)}
+                  title={other.data.title}
+                  label={caseStudyLabel(other.data)}
+                  cover={other.data.cover}
+                  coverAlt={other.data.coverAlt}
+                  small
+                />
+              </li>
+            ))}
+          </ul>
         </nav>
       )}
       <p>
@@ -141,15 +143,49 @@ const { title, summary, role, timeframe, employer, tags, links, cover, coverAlt 
     animation-play-state: running !important;
   }
 
-  .next {
+  /*
+   * The next four case studies, small, four in a row. On phones they're a swipe row, like Selected
+   * work's deck: each card rests at the same inset, the last included, one card per swipe.
+   */
+  .more {
     display: grid;
-    gap: var(--space-3);
-    max-width: 24rem;
+    gap: var(--space-4);
+    container-type: inline-size;
   }
 
-  .next-label {
+  .more-label {
     color: var(--color-text-muted);
     font-size: var(--text-sm);
+    font-weight: var(--weight-regular);
+  }
+
+  .more-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (width < 40rem) {
+    .more-row {
+      grid-template-columns: none;
+      grid-auto-columns: 70cqi;
+      grid-auto-flow: column;
+      overflow-x: auto;
+      margin-inline: calc(-1 * var(--shell-pad));
+      padding: 4px calc(var(--shell-pad) + 30cqi) 8px var(--shell-pad);
+      overscroll-behavior-x: contain;
+      scroll-padding-inline: var(--shell-pad);
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+    }
+
+    .more-row > li {
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
   }
 
   .case-study {

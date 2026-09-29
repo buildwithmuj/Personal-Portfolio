@@ -69,7 +69,6 @@
     var(--watch-metal-dark) 50%,
     var(--watch-metal-light)
   );
-  --color-on-accent-track: rgb(255 255 255 / 30%);
   --color-available: #1f9d63;
   --color-available-glow: rgb(31 157 99 / 45%);
 
@@ -85,6 +84,12 @@
 
   /* Frosted white, for pills and chips over the sky or a cover */
   --color-frost: rgb(255 255 255 / 78%);
+
+  /* The certificates in the Toolkit's viewer (Skills.astro): four Blue sky blues, one each. */
+  --cert-1: #2661ba;
+  --cert-2: #1f3f7a;
+  --cert-3: #3570cc;
+  --cert-4: #2b4f9a;
 
   /* Contact's sky band (global.css .shell-sky): solid behind the heading, fading into the grey */
   --sky-band: 200px;

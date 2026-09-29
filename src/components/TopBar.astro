@@ -26,7 +26,7 @@ const nav = [
   { href: withBase('/#about'), label: 'About' },
   { href: withBase('/#work'), label: 'Work' },
   { href: withBase('/#skills'), label: 'Toolkit' },
-  // Interview me, in one word, while the section shows.
+  // Ask me, in one word, while the section shows.
   ...(visibleInterview(profile) ? [{ href: withBase('/#interview'), label: 'Ask' }] : []),
   { href: withBase('/#contact'), label: 'Contact' },
 ];
@@ -105,7 +105,7 @@ const nav = [
         <ul class="socials" role="list">
           {/* The CV first: on the home page it opens over the page (CvViewer.astro). */}
           <li>
-            <a class="icon-button" href={withBase('/cv')} aria-label="View CV" data-cv>
+            <a class="icon-button" href={withBase('/cv.pdf')} aria-label="View CV" data-cv>
               <Icon name="cv" />
             </a>
           </li>

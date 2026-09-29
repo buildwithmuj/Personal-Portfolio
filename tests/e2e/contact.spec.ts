@@ -27,7 +27,7 @@ test('the contact section offers booking, email, CV and socials', async ({ page 
     'href',
     `mailto:${EMAIL}`,
   );
-  await expect(contact.getByRole('link', { name: 'View CV' })).toHaveAttribute('href', '/cv');
+  await expect(contact.getByRole('link', { name: 'View CV' })).toHaveAttribute('href', '/cv.pdf');
   for (const platform of ['LinkedIn', 'X', 'TikTok', 'GitHub']) {
     await expect(contact.getByRole('link', { name: platform, exact: true })).toHaveCount(1);
   }
@@ -54,6 +54,24 @@ test('the contact section leads with the call', async ({ page }) => {
   expect(mail?.y).toBe(call?.y);
   expect(mail?.height).toBe(call?.height);
 });
+
+// The CV and social icons sit centred beneath the card, on phones and desktops alike.
+for (const viewport of [
+  { width: 375, height: 812 },
+  { width: 1280, height: 800 },
+]) {
+  test(`the icon row sits centred under the card (${viewport.width}px)`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    const offset = await page.locator('#contact').evaluate((section) => {
+      const card = section.querySelector('.invite')?.getBoundingClientRect();
+      const icons = section.querySelector('.socials')?.getBoundingClientRect();
+      if (!card || !icons) return null;
+      return icons.left + icons.width / 2 - (card.left + card.width / 2);
+    });
+    expect(Math.abs(offset ?? 100)).toBeLessThanOrEqual(1);
+  });
+}
 
 test('nothing loads from Cal.com until the booking panel opens', async ({ page }) => {
   const calRequests: string[] = [];
@@ -122,11 +140,8 @@ test('security.txt lists the same email as the site', async ({ page, request, br
   expect(securityTxt).toContain(`Contact: ${mailto}`);
 });
 
-test('the CV page shows the CV and offers the PDF', async ({ page }) => {
-  await page.goto('/cv');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(NAME);
-  await expect(page.locator('#cv-experience .timeline > li')).toHaveCount(3);
-  const download = page.getByRole('link', { name: 'Download PDF' });
-  await expect(download).toHaveAttribute('href', '/cv.pdf');
-  await expect(download).toHaveAttribute('download', '');
+// The CV lives in the pop-up and the PDF; there's no separate CV page (removed 2026-09-29).
+test('there is no separate CV page', async ({ request, browserName }) => {
+  test.skip(browserName !== 'chromium', SERVER_ONLY);
+  expect((await request.get('/cv')).status()).toBe(404);
 });

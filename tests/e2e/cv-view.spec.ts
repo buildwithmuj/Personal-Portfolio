@@ -1,6 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { profileValue } from '../support/content.ts';
+import { scrollIntoViewSettled } from '../support/settle.ts';
 
 const NAME = profileValue('name');
 
@@ -35,7 +36,7 @@ test('View CV in About opens the CV over the page, and its close button shuts it
 test("the CV icon in Let's work together opens it too, and Escape closes it", async ({ page }) => {
   await page.goto('/');
   const link = page.locator('#contact').getByRole('link', { name: 'View CV' });
-  await link.scrollIntoViewIfNeeded();
+  await scrollIntoViewSettled(link);
   await link.click();
   const cv = page.getByRole('dialog', { name: NAME });
   await expect(cv).toBeVisible();
@@ -67,12 +68,34 @@ test('the open CV has no WCAG 2.2 AA violations', async ({ page, browserName }) 
   expect(results.violations).toEqual([]);
 });
 
+// Each role lists its highlights, and education and languages are filled in.
+test('the CV lists each role with its highlights, and the education and languages', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.locator('#about').getByRole('link', { name: 'View CV' }).click();
+  const cv = page.getByRole('dialog', { name: NAME });
+  const section = (name: string) =>
+    cv.locator('section').filter({ has: page.getByRole('heading', { level: 3, name }) });
+  const roles = section('Experience').locator('.entry');
+  await expect(roles).toHaveCount(3);
+  for (const role of await roles.all()) {
+    await expect(role.locator('.points li').first()).toBeVisible();
+  }
+  await expect(section('Education').locator('.entry').first()).toBeVisible();
+  await expect(section('Languages').locator('li').first()).toBeVisible();
+});
+
 test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
 
-  test('View CV goes to the CV page', async ({ page }) => {
+  // With no pop-up to open, View CV links to the PDF itself (there's no separate CV page).
+  test('View CV links to the PDF', async ({ page }) => {
     await page.goto('/');
-    await page.locator('#about').getByRole('link', { name: 'View CV' }).click();
-    await expect(page).toHaveURL(/\/cv$/);
+    const links = await page.getByRole('link', { name: 'View CV' }).all();
+    expect(links.length).toBeGreaterThan(0);
+    for (const link of links) {
+      await expect(link).toHaveAttribute('href', '/cv.pdf');
+    }
   });
 });

@@ -62,6 +62,16 @@ for (const path of builtPagePaths()) {
     test('does not scroll sideways at 320px', async ({ page }) => {
       await page.setViewportSize({ width: 320, height: 800 });
       await page.goto(path);
+      // Measured once every section has slid open and settled: a settled section lets its content
+      // spill over its edges, and what spills could widen the page (Ask me's text box once did).
+      await page.evaluate(async () => {
+        const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+        for (const section of document.querySelectorAll('.stack > .shell')) {
+          section.scrollIntoView({ block: 'center' });
+          if (!section.querySelector(':scope > .shell-body')) continue;
+          while (!section.classList.contains('is-settled')) await frame();
+        }
+      });
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - window.innerWidth,
       );

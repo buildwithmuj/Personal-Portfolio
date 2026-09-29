@@ -1,5 +1,5 @@
 /**
- * The "Ask me" search in Interview me (Interview.astro): which of the owner's written answers fit
+ * The search in Ask me (Interview.astro): which of the owner's written answers fit
  * what a visitor types. Plain word matching, no AI: every meaningful word typed must start a word
  * in the question or its answer, questions that match coming before answers that do.
  */

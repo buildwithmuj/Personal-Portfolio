@@ -249,6 +249,11 @@ a {
   display: none;
 }
 
+/* Its bar is as deep above the title as below it, so the title sits centred, not low. */
+.stack > .shell:has(> .shell-body[hidden]) {
+  padding-block-start: var(--shell-pad);
+}
+
 .collapse {
   display: grid;
   grid-area: 1 / 2;

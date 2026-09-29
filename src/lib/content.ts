@@ -47,7 +47,7 @@ export async function getPage(id: string): Promise<CollectionEntry<'pages'>> {
   return entry;
 }
 
-/** Interview me's questions, or null: draft answers show only in preview builds, never live. */
+/** Ask me's questions, or null: draft answers show only in preview builds, never live. */
 export function visibleInterview(
   profile: CollectionEntry<'profile'>['data'],
 ): NonNullable<CollectionEntry<'profile'>['data']['interview']> | null {
