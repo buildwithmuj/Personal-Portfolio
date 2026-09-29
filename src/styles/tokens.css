@@ -63,6 +63,12 @@
   --watch-metal-dark: #45474f;
   --watch-glare: rgb(255 255 255 / 16%);
   --watch-shadow: rgb(15 23 42 / 28%);
+  --watch-rim: linear-gradient(
+    150deg,
+    var(--watch-metal-light),
+    var(--watch-metal-dark) 50%,
+    var(--watch-metal-light)
+  );
   --color-on-accent-track: rgb(255 255 255 / 30%);
   --color-available: #1f9d63;
   --color-available-glow: rgb(31 157 99 / 45%);

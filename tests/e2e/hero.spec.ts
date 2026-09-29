@@ -48,6 +48,30 @@ test('the phone menu opens the navigation and closes when a link is followed', a
   await expect(page).toHaveURL(/#work$/);
 });
 
+// The phone menu drops from the bar with the call beneath its links; Escape or a tap outside it
+// closes it.
+test('the phone menu offers the call, and closes on Escape or a tap outside it', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('/');
+  const menu = page.locator('.top-bar details');
+  await menu.locator('summary').click();
+  await expect(menu.getByRole('link', { name: 'Book a 30-minute call' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(menu).not.toHaveAttribute('open');
+  await expect(menu.locator('summary')).toBeFocused();
+  await menu.locator('summary').click();
+  // Tapping inside the panel, away from its links, leaves it open.
+  const card = await menu.locator('.menu-card').boundingBox();
+  await page.mouse.click((card?.x ?? 0) + 8, (card?.y ?? 0) + 8);
+  await expect(menu).toHaveAttribute('open');
+  // Below the panel, on the page.
+  const panel = await menu.locator('.panel').boundingBox();
+  await page.mouse.click(20, (panel?.y ?? 0) + (panel?.height ?? 0) + 40);
+  await expect(menu).not.toHaveAttribute('open');
+});
+
 // The phone menu leads its icons with the CV, which opens over the home page.
 test('the phone menu offers the CV beside the social links', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
@@ -149,6 +173,15 @@ test('the availability pill shortens on phones and rotates its last word', async
   await expect(word).not.toHaveText(first, { timeout: 6000 });
 });
 
+// The hero's workflow line-art runs over the sky on wider screens; phones keep the sky alone.
+test('the hero line-art shows on desktop and rests on phones', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.hero .flow')).toBeVisible();
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(page.locator('.hero .flow')).toBeHidden();
+  await expect(page.locator('.hero .band-socials')).toBeVisible();
+});
+
 // The About card's typical day ticks itself off on London time: every task before the one under
 // way is done, and the rest are still to come. (The scrolling list is drawn twice; screen readers
 // and this test read the first copy.)
@@ -174,6 +207,27 @@ test('the About card ticks off a typical day on London time', async ({ page }) =
   }
   await expect(day).toContainText(/\d+ of \d+ done/);
   await expect(day.getByRole('link', { name: "Let's talk" })).toHaveAttribute('href', '#contact');
+});
+
+// The typical day is a watch: its face goes black after dark in London, and the crown switches it.
+test('the day watch shows its night face after dark, and the crown switches it', async ({
+  page,
+}) => {
+  await page.clock.setFixedTime(new Date('2026-09-28T20:30:00Z')); // 21:30 in London
+  await page.goto('/');
+  const watch = page.locator('.rem-watch');
+  const crown = watch.getByRole('button', { name: 'Night face' });
+  await expect(watch).toHaveAttribute('data-night', '');
+  await expect(crown).toHaveAttribute('aria-pressed', 'true');
+  await crown.click();
+  await expect(watch).not.toHaveAttribute('data-night');
+  await expect(crown).toHaveAttribute('aria-pressed', 'false');
+});
+
+test('the day watch shows its day face in the London daytime', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-09-28T11:00:00Z')); // 12:00 in London
+  await page.goto('/');
+  await expect(page.locator('.rem-watch')).not.toHaveAttribute('data-night');
 });
 
 // The social links sit in the hero's sky band, each named for screen readers.

@@ -7,4 +7,5 @@ index_files = ["index.html"]
 exclude = [
   '^https://example\.com',           # placeholder SITE_URL and case-study link until launch
   '^https://(www\.)?linkedin\.com',  # LinkedIn answers automated requests with status 999
+  '^https://(www\.)?(x|twitter)\.com/', # X answers them with 403 Forbidden, live profile or not
 ]

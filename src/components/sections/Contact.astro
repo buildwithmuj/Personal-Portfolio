@@ -2,6 +2,7 @@
 import type { CollectionEntry } from 'astro:content';
 import { withBase } from '../../lib/paths.ts';
 import { socialLabels } from '../../lib/social.ts';
+import AvailabilityPill from '../AvailabilityPill.astro';
 import BookingPanel from '../BookingPanel.astro';
 import Icon from '../Icon.astro';
 import Shell from '../Shell.astro';
@@ -26,12 +27,7 @@ const { profile } = Astro.props;
   sky
 >
   <div class="invite" data-reveal="rise">
-    {profile.availability && (
-      <p class="availability">
-        <span class="dot" aria-hidden="true"></span>
-        {profile.availability}
-      </p>
-    )}
+    {profile.availability && <AvailabilityPill text={profile.availability} />}
     <p class="big">
       Let's talk it <em>through.</em>
     </p>
@@ -71,27 +67,6 @@ const { profile } = Astro.props;
     border-radius: var(--radius-card);
     background: var(--color-surface);
     box-shadow: var(--shadow-secondary);
-  }
-
-  .availability {
-    display: flex;
-    gap: var(--space-2);
-    align-items: center;
-    margin: 0;
-    padding: 6px 12px;
-    border-radius: var(--radius-pill);
-    background: var(--color-surface);
-    box-shadow: var(--shadow-secondary);
-    font-size: var(--text-xs);
-    font-weight: var(--weight-medium);
-  }
-
-  .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--color-available);
-    box-shadow: 0 0 0 4px var(--color-available-glow);
   }
 
   .big {

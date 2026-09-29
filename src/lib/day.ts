@@ -22,3 +22,8 @@ export function localTime(timeZone: string | undefined, date: Date = new Date())
     hourCycle: 'h23',
   }).format(date);
 }
+
+/** The watch shows its night face from 19:00 until the day starts again at 06:00. */
+export function isNight(now: string): boolean {
+  return now >= '19:00' || now < '06:00';
+}
