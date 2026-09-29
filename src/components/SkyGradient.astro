@@ -160,7 +160,21 @@ void main(){
   }
 
   class SkyGradient extends HTMLElement {
+    // A sky sets up its graphics only as it nears the screen: the skies below the fold cost the
+    // page nothing as it loads, and a hidden one (Ask me's balls) nothing until it shows.
     connectedCallback(): void {
+      const near = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry?.isIntersecting) return;
+          near.disconnect();
+          this.begin();
+        },
+        { rootMargin: '50%' },
+      );
+      near.observe(this);
+    }
+
+    begin(): void {
       const canvas = this.querySelector('canvas');
       const gl = canvas?.getContext('webgl', {
         alpha: false,

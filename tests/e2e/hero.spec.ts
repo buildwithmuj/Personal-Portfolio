@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { profileValue, sectionHeading } from '../support/content.ts';
+import { scrollIntoViewSettled } from '../support/settle.ts';
 
 // The headline and section headings are split into words for their reveal animations; the text
 // people and screen readers get must still match the content exactly.
@@ -22,6 +23,28 @@ test('with software rendering, the skies keep their CSS gradient and skip the sh
     await expect(sky).not.toHaveAttribute('data-ready');
     await expect(sky).toHaveCSS('background-image', /linear-gradient/);
   }
+});
+
+// A sky sets up its graphics only as it nears the screen, so the skies below the fold cost the page
+// nothing as it loads. Each canvas a sky asks for a WebGL context is marked.
+test('a sky sets up its graphics only as it nears the screen', async ({ page }) => {
+  await page.addInitScript(() => {
+    const original = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (
+      this: HTMLCanvasElement,
+      contextId: string,
+      options?: unknown,
+    ) {
+      this.closest('sky-gradient')?.setAttribute('data-asked', '');
+      return original.call(this, contextId, options);
+    } as typeof original;
+  });
+  await page.goto('/');
+  await expect(page.locator('#top sky-gradient').first()).toHaveAttribute('data-asked');
+  const desk = page.locator('#skills .desk sky-gradient');
+  await expect(desk).not.toHaveAttribute('data-asked');
+  await scrollIntoViewSettled(page.locator('#skills'));
+  await expect(desk).toHaveAttribute('data-asked');
 });
 
 test('the hero headline reads exactly as written', async ({ page }) => {
