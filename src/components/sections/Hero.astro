@@ -4,6 +4,7 @@ import { withBase } from '../../lib/paths.ts';
 import { socialLabels } from '../../lib/social.ts';
 import ProofStrip from '../ProofStrip.astro';
 import Shell from '../Shell.astro';
+import AvailabilityPill from '../AvailabilityPill.astro';
 import SkyGradient from '../SkyGradient.astro';
 import SocialIcon from '../SocialIcon.astro';
 
@@ -21,11 +22,8 @@ const accentFrom =
   accentWords.length > 0 && profile.headline.endsWith(profile.headlineAccent ?? '')
     ? headlineWords.length - accentWords.length
     : headlineWords.length;
-// On phones the pill shows a shorter line whose last word rotates; its box is sized to the longest.
+// On phones the pill shows a shorter line whose last word rotates (AvailabilityPill.astro).
 const short = profile.availabilityShort;
-const longestWord = short?.words.reduce((longest, word) =>
-  word.length > longest.length ? word : longest,
-);
 // The workflow line-art in the sky band: five tangled lines run into the social links, as into an
 // automation, and leave as clean parallel lines (a 1000 × 200 box, stretched to the band).
 const flow = [
@@ -49,19 +47,7 @@ const flow = [
       <div class="who">
         <h1 id="hero-name">{profile.name}</h1>
         {profile.availability && (
-          <p class="availability">
-            <span class="available-dot" aria-hidden="true"></span>
-            <span class="availability-full">{profile.availability}</span>
-            {short && (
-              <span class="availability-short" aria-hidden="true">
-                {short.lead}{' '}
-                <role-rotator class="pill-words" data-roles={JSON.stringify(short.words)}>
-                  <span>{short.words[0]}</span>
-                  <span class="sizer">{longestWord}</span>
-                </role-rotator>
-              </span>
-            )}
-          </p>
+          <AvailabilityPill text={profile.availability} short={short} class="hero-pill" />
         )}
         <p class="roles">
           <span class="visually-hidden">{rolesSentence}</span>
@@ -280,64 +266,9 @@ const flow = [
   }
 
   /*
-   * An availability pill level with the name at the card's right edge (on phones, where the row is
-   * too narrow, at the band's bottom right), with a softly pulsing dot that holds still under
-   * reduced motion or the pause button.
+   * The availability pill (AvailabilityPill.astro) sits level with the name at the card's right
+   * edge; on phones, where the row is too narrow, at the band's top right.
    */
-  .availability {
-    display: flex;
-    gap: var(--space-2);
-    align-items: center;
-    margin: 0;
-    padding: 6px 12px;
-    border-radius: var(--radius-pill);
-    background: var(--color-surface);
-    box-shadow: var(--shadow-secondary);
-    font-size: var(--text-xs);
-    font-weight: var(--weight-medium);
-  }
-
-  /*
-   * The phones' shorter line (availabilityShort), hidden on wider screens. Its last word rotates
-   * like the role line, clipped to one line and held at the width of the longest word.
-   */
-  .availability-short {
-    display: none;
-  }
-
-  .pill-words {
-    display: inline-grid;
-    overflow: hidden;
-    vertical-align: bottom;
-  }
-
-  .pill-words > span {
-    grid-area: 1 / 1;
-  }
-
-  .pill-words > .sizer {
-    visibility: hidden;
-  }
-
-  .available-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--color-available);
-  }
-
-  @keyframes available-pulse {
-    to {
-      box-shadow: 0 0 0 6px transparent;
-    }
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .available-dot {
-      box-shadow: 0 0 0 0 var(--color-available-glow);
-      animation: available-pulse 2s var(--ease-out) infinite;
-    }
-  }
 
   /* The avatar overlaps the band by about a third, so the name sits clear of the band's edge. */
   .identity {
@@ -494,8 +425,13 @@ const flow = [
       inset-block-start: calc(var(--cover) * 0.56);
     }
 
+    /* Phones keep the hero calm: the sky, without the workflow line-art and its pulses. */
+    .flow {
+      display: none;
+    }
+
     /* As in the reference, the pill sits 12px in from the card's top right (from the identity row). */
-    .availability {
+    .hero-pill {
       position: absolute;
       inset-block-start: calc(var(--avatar) / 2 - var(--cover) - var(--space-1));
       inset-inline-end: calc(var(--space-3) - var(--hero-card-pad));
@@ -504,21 +440,6 @@ const flow = [
     /* With the pill out of the row, the name and role line take its full width. */
     .who {
       grid-template-columns: minmax(0, 1fr);
-    }
-
-    /* The pill shows its shorter line; screen readers still get the whole one (visually hidden). */
-    .availability-short {
-      display: inline;
-    }
-
-    .availability-full:has(~ .availability-short) {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      margin: -1px;
-      overflow: hidden;
-      clip-path: inset(50%);
-      white-space: nowrap;
     }
 
     .actions {

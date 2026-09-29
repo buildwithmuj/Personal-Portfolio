@@ -354,13 +354,7 @@ a {
   background:
     linear-gradient(165deg, var(--watch-glare), transparent 45%) padding-box,
     linear-gradient(var(--color-inverse), var(--color-inverse)) padding-box,
-    linear-gradient(
-        150deg,
-        var(--watch-metal-light),
-        var(--watch-metal-dark) 50%,
-        var(--watch-metal-light)
-      )
-      border-box;
+    var(--watch-rim) border-box;
   box-shadow: 0 3px 8px -2px var(--watch-shadow);
   color: var(--color-on-inverse);
 }

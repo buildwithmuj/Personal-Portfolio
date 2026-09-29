@@ -5,6 +5,7 @@ import { ICONS, ICON_VIEWBOX } from '../lib/icons.ts';
 import { withBase } from '../lib/paths.ts';
 import { socialLabels } from '../lib/social.ts';
 import { currentWeather, type WeatherScene } from '../lib/weather.ts';
+import AvailabilityPill from './AvailabilityPill.astro';
 import Icon from './Icon.astro';
 import LiveClock from './LiveClock.astro';
 import SocialIcon from './SocialIcon.astro';
@@ -77,7 +78,10 @@ const nav = [
     ))}
   </svg>
 
-  <!-- Phones: a menu button opens the same links in a panel, as in the reference. -->
+  <!--
+    Phones: the menu button drops a panel from the bar with the links in large type and, on a white
+    card beneath them, the availability, the call and the CV and social links.
+  -->
   <details class="menu">
     <summary aria-label="Menu">
       <Icon name="menu" size={22} class="open-icon" />
@@ -93,31 +97,53 @@ const nav = [
           ))}
         </ul>
       </nav>
-      <ul class="socials" role="list">
-        {/* The CV first: on the home page it opens over the page (CvViewer.astro). */}
-        <li>
-          <a class="icon-button" href={withBase('/cv')} aria-label="View CV" data-cv>
-            <Icon name="cv" />
-          </a>
-        </li>
-        {profile.socials.map((social) => (
+      <div class="menu-card">
+        {profile.availability && <AvailabilityPill text={profile.availability} class="menu-pill" />}
+        <a class="btn btn-primary" href={withBase('/#contact')}>
+          Book a 30-minute call
+        </a>
+        <ul class="socials" role="list">
+          {/* The CV first: on the home page it opens over the page (CvViewer.astro). */}
           <li>
-            <a
-              class="icon-button"
-              href={social.url}
-              aria-label={`${profile.name} on ${socialLabels[social.platform]}`}
-            >
-              <SocialIcon platform={social.platform} />
+            <a class="icon-button" href={withBase('/cv')} aria-label="View CV" data-cv>
+              <Icon name="cv" />
             </a>
           </li>
-        ))}
-      </ul>
+          {profile.socials.map((social) => (
+            <li>
+              <a
+                class="icon-button"
+                href={social.url}
+                aria-label={`${profile.name} on ${socialLabels[social.platform]}`}
+              >
+                <SocialIcon platform={social.platform} />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   </details>
 </header>
 
 <script>
   import { parseWeather, weatherUrl, type Weather } from '../lib/weather.ts';
+
+  // The phone menu: following one of its links, a tap anywhere outside it, or Escape closes it
+  // (Escape hands focus back to the menu button). This runs first, so nothing below can stop it.
+  const menu = document.querySelector<HTMLDetailsElement>('.top-bar .menu');
+  if (menu) {
+    const close = () => (menu.open = false);
+    document.addEventListener('click', ({ target }) => {
+      const hit = target as Element;
+      if (menu.open && (!menu.contains(hit) || hit.closest('.panel a'))) close();
+    });
+    document.addEventListener('keydown', ({ key }) => {
+      if (key !== 'Escape' || !menu.open) return;
+      close();
+      menu.querySelector('summary')?.focus();
+    });
+  }
 
   // Live weather (see the privacy notice): the build-time reading is refreshed from Open-Meteo in
   // the visitor's browser, at most every 15 minutes per tab, so the top bar's temperature and icon
@@ -160,14 +186,6 @@ const nav = [
         })
         .catch(() => undefined);
     }
-  }
-
-  // Close the phone menu when one of its links is followed, so the section isn't hidden behind it.
-  for (const link of document.querySelectorAll<HTMLAnchorElement>('.top-bar .panel a')) {
-    link.addEventListener('click', () => {
-      const menu = link.closest('details');
-      if (menu) menu.open = false;
-    });
   }
 </script>
 
@@ -379,11 +397,6 @@ const nav = [
       justify-self: start;
     }
 
-    .top-bar:has(.menu[open]) {
-      border-end-start-radius: 0;
-      border-end-end-radius: 0;
-    }
-
     .wide-only {
       display: none;
     }
@@ -392,32 +405,68 @@ const nav = [
       display: block;
     }
 
-    /* The panel continues the frosted bar downwards. */
+    .top-bar:has(.menu[open]) {
+      border-end-start-radius: 0;
+      border-end-end-radius: 0;
+    }
+
+    /* The panel continues the grey bar downwards: the links, then the white card beneath them. */
     .panel {
       position: absolute;
       inset-inline: 0;
       inset-block-start: 100%;
       display: grid;
-      gap: 40px;
-      justify-items: center;
-      padding: var(--space-6) var(--space-4) var(--space-8);
+      gap: var(--space-6);
+      padding: var(--space-4) var(--space-4) var(--space-4);
       border-end-start-radius: var(--radius-card);
       border-end-end-radius: var(--radius-card);
       background: var(--color-shell);
       box-shadow: 0 24px 40px -24px var(--color-grid-line);
+      animation: menu-in 200ms var(--ease-standard);
     }
 
     .panel-links {
       display: grid;
-      gap: var(--space-4);
+      gap: var(--space-2);
       justify-items: center;
       padding: 0;
       list-style: none;
     }
 
     .panel-links a {
-      font-size: var(--text-lg);
+      font-size: 2rem;
       font-weight: var(--weight-regular);
+      letter-spacing: var(--tracking-tight);
     }
+
+    /* The white card: availability, the call, the CV and social links. */
+    .menu-card {
+      display: grid;
+      gap: var(--space-4);
+      padding: var(--space-4);
+      border-radius: var(--radius-card);
+      background: var(--color-surface);
+      box-shadow: var(--shadow-secondary);
+      text-align: center;
+    }
+
+    .menu-pill {
+      justify-self: center;
+    }
+
+    .menu-card .socials {
+      justify-content: center;
+    }
+  }
+
+  @keyframes menu-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /* A one-off entrance: under paused animations it would freeze unseen on its first frame. */
+  :global(.motion-paused) .menu[open] .panel {
+    animation-play-state: running !important;
   }
 </style>

@@ -16,61 +16,70 @@ const { tasks, place, timeZone } = Astro.props;
   at a time like a list on a watch: the task in focus sits in the middle at full size, its
   neighbours smaller and fainter. Tasks tick off as the day goes in the owner's time zone.
 */}
-<article class="rem" data-time-zone={timeZone} aria-labelledby="rem-title">
-  <header class="rem-head">
-    <SkyGradient class="rem-sky" scale={0.5} />
-    <div>
-      <p class="rem-app">A typical day</p>
-      <p class="rem-clock">
-        <span data-local-time>--:--</span> in {place}
+<div class="rem-watch">
+  <article class="rem" data-time-zone={timeZone} aria-labelledby="rem-title">
+    <header class="rem-head">
+      <SkyGradient class="rem-sky" scale={0.5} />
+      <div>
+        <p class="rem-app">A typical day</p>
+        <p class="rem-clock">
+          <span data-local-time>--:--</span> in {place}
+        </p>
+      </div>
+      <p class="rem-count">
+        <span data-done-count>0</span> of {tasks.length} done
       </p>
+    </header>
+    <div class="rem-body">
+      <h3 id="rem-title">Tasks for today</h3>
+      <div class="rem-viewport">
+        <ol class="rem-list" role="list">
+          {tasks.map(({ time, task }) => (
+            <li data-time={time} aria-hidden="true">
+              <span class="rem-tick"></span>
+              <span class="rem-task">
+                <time>{time}</time>
+                {task}
+              </span>
+            </li>
+          ))}
+          {tasks.map(({ time, task }) => (
+            <li data-time={time}>
+              <span class="rem-tick" aria-hidden="true"></span>
+              <span class="rem-task">
+                <time>{time}</time>
+                {task}
+                <span class="visually-hidden" data-state-label></span>
+              </span>
+            </li>
+          ))}
+          {tasks.map(({ time, task }) => (
+            <li data-time={time} aria-hidden="true">
+              <span class="rem-tick"></span>
+              <span class="rem-task">
+                <time>{time}</time>
+                {task}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </div>
+      <a class="btn btn-primary rem-talk" href="#contact">
+        Let's talk
+      </a>
     </div>
-    <p class="rem-count">
-      <span data-done-count>0</span> of {tasks.length} done
-    </p>
-  </header>
-  <div class="rem-body">
-    <h3 id="rem-title">Tasks for today</h3>
-    <div class="rem-viewport">
-      <ol class="rem-list" role="list">
-        {tasks.map(({ time, task }) => (
-          <li data-time={time} aria-hidden="true">
-            <span class="rem-tick"></span>
-            <span class="rem-task">
-              <time>{time}</time>
-              {task}
-            </span>
-          </li>
-        ))}
-        {tasks.map(({ time, task }) => (
-          <li data-time={time}>
-            <span class="rem-tick" aria-hidden="true"></span>
-            <span class="rem-task">
-              <time>{time}</time>
-              {task}
-              <span class="visually-hidden" data-state-label></span>
-            </span>
-          </li>
-        ))}
-        {tasks.map(({ time, task }) => (
-          <li data-time={time} aria-hidden="true">
-            <span class="rem-tick"></span>
-            <span class="rem-task">
-              <time>{time}</time>
-              {task}
-            </span>
-          </li>
-        ))}
-      </ol>
-    </div>
-    <a class="btn btn-primary rem-talk" href="#contact">
-      Let's talk
-    </a>
-  </div>
-</article>
+  </article>
+  <button
+    class="rem-crown"
+    type="button"
+    aria-label="Night face"
+    aria-pressed="false"
+    hidden
+  ></button>
+</div>
 
 <script>
-  import { localTime, taskStates } from '../lib/day.ts';
+  import { isNight, localTime, taskStates } from '../lib/day.ts';
 
   // The day as it happens in the owner's time zone: a task is done once the next has started, and
   // the one under way is "now"; the clock and the count follow. Every few seconds the next task
@@ -88,6 +97,21 @@ const { tasks, place, timeZone } = Astro.props;
     const clock = widget.querySelector('[data-local-time]');
     const done = widget.querySelector('[data-done-count]');
     const paused = () => document.documentElement.classList.contains('motion-paused');
+    // The watch face follows London's day and night until the visitor turns the crown.
+    const watch = widget.parentElement;
+    const crown = watch?.querySelector<HTMLButtonElement>('.rem-crown');
+    let turned = false;
+    const face = (night: boolean) => {
+      watch?.toggleAttribute('data-night', night);
+      crown?.setAttribute('aria-pressed', String(night));
+    };
+    if (crown) {
+      crown.hidden = false;
+      crown.onclick = () => {
+        turned = true;
+        face(!watch?.hasAttribute('data-night'));
+      };
+    }
     const tick = () => {
       const now = localTime(widget.dataset['timeZone']);
       const states = taskStates(times, now);
@@ -98,6 +122,7 @@ const { tasks, place, timeZone } = Astro.props;
         if (label) label.textContent = state ? `, ${state}` : '';
       });
       if (clock) clock.textContent = now;
+      if (!turned) face(isNight(now));
       if (done) done.textContent = String(states.filter((state) => state === 'done').length);
       return states;
     };
@@ -141,14 +166,69 @@ const { tasks, place, timeZone } = Astro.props;
 </script>
 
 <style>
+  /*
+   * A watch, like the one in the top bar: the brushed-metal rim, a ridged crown and a side button on
+   * the right. The face is white by day and black by night (19:00 to 06:00 in the owner's time zone,
+   * src/lib/day.ts); turning the crown (a button) switches it by hand.
+   */
+  .rem-watch {
+    --face: var(--color-surface);
+
+    position: relative;
+  }
+
+  .rem-watch[data-night] {
+    --face: var(--color-inverse);
+  }
+
   .rem {
     position: relative;
     overflow: hidden;
-    border-radius: 28px;
-    background: var(--color-surface);
-    box-shadow:
-      0 0 0 1px var(--color-hairline),
-      0 24px 48px -24px var(--color-accent-glow);
+    border: 7px solid transparent;
+    border-radius: 46px;
+    background:
+      linear-gradient(var(--face), var(--face)) padding-box,
+      var(--watch-rim) border-box;
+    box-shadow: 0 18px 36px -12px var(--watch-shadow);
+  }
+
+  .rem-watch::before,
+  .rem-watch::after {
+    position: absolute;
+    inset-inline-end: -9px;
+    content: '';
+  }
+
+  .rem-watch::before {
+    inset-block-start: 120px;
+    width: 9px;
+    height: 44px;
+    border-radius: 0 5px 5px 0;
+    background: repeating-linear-gradient(
+      var(--watch-metal-light) 0 2px,
+      var(--watch-metal-dark) 2px 4px
+    );
+  }
+
+  .rem-watch::after {
+    inset-block-start: 196px;
+    width: 5px;
+    height: 70px;
+    border-radius: 0 3px 3px 0;
+    background: linear-gradient(90deg, var(--watch-metal-dark), var(--watch-metal-light));
+  }
+
+  /* The crown's button: a 24px target over the ridges, drawn by the case itself. */
+  .rem-crown {
+    position: absolute;
+    inset: 110px -16px auto auto;
+    width: 24px;
+    height: 64px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    cursor: pointer;
   }
 
   /* The header: the live sky, the time and the day's progress. */
@@ -213,7 +293,7 @@ const { tasks, place, timeZone } = Astro.props;
     margin-block-start: -36px;
     padding: 26px 28px 28px;
     border-radius: 28px 28px 0 0;
-    background: var(--color-surface);
+    background: var(--face);
   }
 
   .rem-body h3 {
@@ -349,6 +429,31 @@ const { tasks, place, timeZone } = Astro.props;
     display: flex;
     width: fit-content;
     margin: var(--space-4) 0 0 auto;
+  }
+
+  /* Night: a darker sky, and the face's text in white and pale blue. */
+  .rem-watch[data-night] .rem-head::after {
+    background:
+      var(--gradient-cover-fade), linear-gradient(var(--color-scrim), var(--color-scrim)),
+      linear-gradient(var(--color-scrim), var(--color-scrim));
+  }
+
+  .rem-watch[data-night] .rem-task {
+    color: var(--watch-metal-light);
+  }
+
+  .rem-watch[data-night] h3,
+  .rem-watch[data-night] li[data-state='done'] .rem-task,
+  .rem-watch[data-night] li[data-state='now'] .rem-task {
+    color: var(--color-on-inverse);
+  }
+
+  .rem-watch[data-night] .rem-task time {
+    color: var(--color-accent-light);
+  }
+
+  .rem-watch[data-night] .rem-tick {
+    border-color: var(--color-accent-light);
   }
 
   @media (width < 40rem) {
