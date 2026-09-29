@@ -113,11 +113,14 @@ for (const width of [770, 960, 1280]) {
 }
 
 // The client logos sit in one quiet ink; the one under the pointer turns the brand blue.
+// The strip is held still (its reduced-motion layout), or a scrolling logo can slide out of view
+// before the pointer reaches it.
 test('a client logo turns the brand blue under the pointer', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
   const logo = page.locator('.proof .track img').first();
   await expect(logo).toHaveCSS('filter', 'brightness(0)');
-  await logo.hover({ force: true });
+  await logo.hover();
   await expect(logo).toHaveCSS('filter', /hue-rotate\(187deg\)/);
   await expect(logo).toHaveCSS('opacity', '1');
 });
