@@ -1,11 +1,12 @@
 ---
 import { withBase } from '../../lib/paths.ts';
 import Shell from '../Shell.astro';
+import VoiceIntro from '../VoiceIntro.astro';
 
 interface Props {
   heading: string;
   intro: string;
-  questions: { question: string; answer: string }[];
+  questions: { question: string; answer: string; audio?: string | undefined }[];
   name: string;
   email: string;
   avatar?: string | undefined;
@@ -19,7 +20,8 @@ const firstName = name.split(' ')[0];
   Interview me, as "Ask me": a box that looks like an AI prompt and isn't one. As the visitor
   types, it suggests the owner's own written questions (src/lib/ask.ts); picking one shows its
   answer, signed by the owner. A question with no written answer becomes an email to the owner.
-  Without JavaScript, every question and answer shows in turn.
+  Without JavaScript, every question and answer shows in turn. An answer the owner has recorded
+  (its `audio` in profile.yaml) gets a "Hear my answer" button beside the signature.
 */}
 <Shell id="interview" heading={heading} intro={intro} collapsible="open" icon="interview">
   <ask-me class="ask" data-email={email}>
@@ -60,16 +62,23 @@ const firstName = name.split(' ')[0];
       </div>
     </div>
     <div class="answers" aria-live="polite">
-      {questions.map(({ question, answer }) => (
+      {questions.map(({ question, answer, audio }) => (
         <article class="answer">
           <h3 class="asked">{question}</h3>
           <p>{answer}</p>
-          <p class="signed">
-            {avatar && <img src={withBase(avatar)} alt="" width="32" height="32" loading="lazy" />}
-            <span>
-              Answered by <b>{firstName}</b>, not an AI
-            </span>
-          </p>
+          <div class="by">
+            <p class="signed">
+              {avatar && (
+                <img src={withBase(avatar)} alt="" width="32" height="32" loading="lazy" />
+              )}
+              <span>
+                Answered by <b>{firstName}</b>, not an AI
+              </span>
+            </p>
+            {audio && (
+              <VoiceIntro as="p" src={withBase(audio)} play="Hear my answer" pause="Pause answer" />
+            )}
+          </div>
         </article>
       ))}
     </div>
@@ -114,6 +123,8 @@ const firstName = name.split(' ')[0];
         box.hidden = isUnanswered;
       };
       const pick = (index: number) => {
+        // An answer being read aloud stops as another takes its place.
+        this.querySelector<HTMLElement>('voice-intro[data-playing] button')?.click();
         answers.forEach((answer, at) => (answer.hidden = at !== index));
         input.value = items[index]?.question ?? '';
         unanswered(false);
@@ -305,6 +316,15 @@ const firstName = name.split(' ')[0];
   .answer p {
     margin: 0;
     line-height: var(--leading-body);
+  }
+
+  /* The signature, and the play button where the answer is recorded. */
+  .by {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    align-items: center;
+    justify-content: space-between;
   }
 
   .answer .signed {

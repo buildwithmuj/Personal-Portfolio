@@ -6,10 +6,16 @@ import Interview from '../components/sections/Interview.astro';
 import SelectedWork from '../components/sections/SelectedWork.astro';
 import Skills from '../components/sections/Skills.astro';
 import Testimonials from '../components/sections/Testimonials.astro';
+import CvViewer from '../components/CvViewer.astro';
 import Base from '../layouts/Base.astro';
 import { featuredStudies } from '../lib/case-studies.ts';
-import { getCaseStudies, getProfile, getSkills, getTestimonials } from '../lib/content.ts';
-import { isProduction } from '../lib/mode.ts';
+import {
+  getCaseStudies,
+  getProfile,
+  getSkills,
+  getTestimonials,
+  visibleInterview,
+} from '../lib/content.ts';
 import { withBase } from '../lib/paths.ts';
 import { personJsonLd } from '../lib/structured-data.ts';
 
@@ -26,9 +32,7 @@ const structuredData = personJsonLd({
 const featured = featuredStudies(await getCaseStudies());
 const skills = await getSkills();
 const testimonials = await getTestimonials();
-// Draft interview answers show only in preview builds, never on the live site.
-const interview =
-  profile.interview && (!profile.interview.draft || !isProduction) ? profile.interview : null;
+const interview = visibleInterview(profile);
 const interviewCopy = profile.sections.interview;
 ---
 
@@ -65,4 +69,5 @@ const interviewCopy = profile.sections.interview;
     />
   )}
   <Contact profile={profile} />
+  <CvViewer />
 </Base>

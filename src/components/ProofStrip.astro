@@ -85,7 +85,7 @@ const logos = items.map(({ name, logo, scale = 1 }) => {
   /*
    * Monochrome and quiet, as in the DigiBlu site's client strip: every logo in one ink at under
    * half strength, so they read as a set rather than as eleven brands. Hovering the strip brings
-   * them up, and hovering one brings it to full strength.
+   * them up, and hovering one brings it to full strength in the brand blue.
    */
   .track img {
     display: block;
@@ -99,6 +99,7 @@ const logos = items.map(({ name, logo, scale = 1 }) => {
   }
 
   .marquee .track img:hover {
+    filter: var(--filter-accent);
     opacity: 1;
   }
 

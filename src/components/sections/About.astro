@@ -32,8 +32,10 @@ const rest = profile.about.slice(split);
     <ul class="contact-row" role="list">
       {profile.voiceIntro && <VoiceIntro src={withBase(profile.voiceIntro)} />}
       <li>
-        <Icon name="document" size={20} class="row-icon" />
-        <a href={withBase('/cv')}>View CV</a>
+        <Icon name="cv" size={20} class="row-icon" />
+        <a href={withBase('/cv')} data-cv>
+          View CV
+        </a>
       </li>
     </ul>
     <Stats stats={profile.stats} />

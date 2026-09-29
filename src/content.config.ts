@@ -12,6 +12,10 @@ const publicImage = z
   .string()
   .regex(/^\/[\w./-]+\.(?:png|jpg)$/, 'A root-relative path to a PNG or JPEG in public/');
 
+const publicAudio = z
+  .string()
+  .regex(/^\/[\w./-]+\.(?:mp3|m4a|ogg|wav)$/, 'A root-relative path to an audio file in public/');
+
 const sectionCopy = z.object({ heading: z.string().min(1), intro: z.string().min(1) });
 
 const profile = defineCollection({
@@ -47,11 +51,18 @@ const profile = defineCollection({
       .default([]),
     // "Interview me": questions with the owner's own answers, including how they work (it replaced
     // the How I work section). A draft shows only in preview builds. Interview.astro shows up to 8.
+    // An answer with `audio` (the owner reading it aloud, in public/audio/) gets a play button.
     interview: z
       .object({
         draft: z.boolean().default(true),
         questions: z
-          .array(z.object({ question: z.string().min(1), answer: z.string().min(1) }))
+          .array(
+            z.object({
+              question: z.string().min(1),
+              answer: z.string().min(1),
+              audio: publicAudio.optional(),
+            }),
+          )
           .min(1)
           .max(8),
       })
@@ -109,13 +120,7 @@ const profile = defineCollection({
       .string()
       .regex(/^\/[\w./-]+\.(?:png|jpg|webp)$/, 'A root-relative path to an image in public/')
       .optional(),
-    voiceIntro: z
-      .string()
-      .regex(
-        /^\/[\w./-]+\.(?:mp3|m4a|ogg|wav)$/,
-        'A root-relative path to an audio file in public/',
-      )
-      .optional(),
+    voiceIntro: publicAudio.optional(),
     timeZone: z.string().min(1).default('Europe/London'),
     locationLabel: z.string().min(1),
     coordinates: z

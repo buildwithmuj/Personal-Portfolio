@@ -3,6 +3,8 @@ import { profileValue, yamlValues } from '../support/content.ts';
 
 const EMAIL = profileValue('email');
 const QUESTIONS = yamlValues('src/content/profile.yaml', 'question');
+// Recorded answers: the owner reading an answer aloud (`audio` under a question).
+const RECORDED = yamlValues('src/content/profile.yaml', 'audio').length;
 
 // Interview me, as "Ask me": a prompt over the owner's own written answers, with no AI behind it.
 test('Ask me opens on the first answer, signed by the owner', async ({ page }) => {
@@ -62,6 +64,29 @@ test('a question with no written answer becomes an email', async ({ page }) => {
     `mailto:${EMAIL}?subject=${encodeURIComponent('A question from your site')}` +
       `&body=${encodeURIComponent(question)}`,
   );
+});
+
+// Each recorded answer gets a play button beside its signature; the others get none.
+test('only recorded answers offer to be heard', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#interview voice-intro')).toHaveCount(RECORDED);
+});
+
+test('a recorded answer plays and stops as another answer takes its place', async ({ page }) => {
+  test.skip(RECORDED === 0, 'No answer is recorded yet');
+  await page.goto('/');
+  const section = page.locator('#interview');
+  const player = section.locator('voice-intro').first();
+  const heading = await player.locator('xpath=ancestor::article//h3').textContent();
+  const input = section.getByRole('combobox', { name: 'Ask me a question' });
+  await input.fill(heading ?? '');
+  await input.press('Enter');
+  await player.getByRole('button', { name: 'Hear my answer' }).click();
+  await expect(player).toHaveAttribute('data-playing', '');
+  const other = QUESTIONS.find((question) => question !== heading) ?? '';
+  await input.fill(other);
+  await input.press('Enter');
+  await expect(player).not.toHaveAttribute('data-playing');
 });
 
 test.describe('without JavaScript', () => {

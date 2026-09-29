@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { visibleInterview } from '../lib/content.ts';
 import { ICONS, ICON_VIEWBOX } from '../lib/icons.ts';
 import { withBase } from '../lib/paths.ts';
 import { socialLabels } from '../lib/social.ts';
@@ -24,6 +25,8 @@ const nav = [
   { href: withBase('/#about'), label: 'About' },
   { href: withBase('/#work'), label: 'Work' },
   { href: withBase('/#skills'), label: 'Toolkit' },
+  // Interview me, in one word, while the section shows.
+  ...(visibleInterview(profile) ? [{ href: withBase('/#interview'), label: 'Ask' }] : []),
   { href: withBase('/#contact'), label: 'Contact' },
 ];
 ---
@@ -91,6 +94,12 @@ const nav = [
         </ul>
       </nav>
       <ul class="socials" role="list">
+        {/* The CV first: on the home page it opens over the page (CvViewer.astro). */}
+        <li>
+          <a class="icon-button" href={withBase('/cv')} aria-label="View CV" data-cv>
+            <Icon name="cv" />
+          </a>
+        </li>
         {profile.socials.map((social) => (
           <li>
             <a
@@ -357,7 +366,7 @@ const nav = [
     }
   }
 
-  /* Five links, the weather and four icons need the full column; narrower, the bar uses the menu. */
+  /* Six links, the weather and four icons need the full column; narrower, the bar uses the menu. */
   @media (width < 48rem) {
     .top-bar {
       grid-template-columns: auto 1fr auto;

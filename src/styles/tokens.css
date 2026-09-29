@@ -46,6 +46,14 @@
 
   /* Selected work (WorkShowcase.astro): a navy fade over a cover, under white text */
   --gradient-cover-fade: linear-gradient(180deg, transparent 30%, rgb(12 36 84 / 80%));
+
+  /* The accent (#2661ba) as a filter, for images drawn in one ink: from any colour to black, then
+     to the accent (rgb 38 96 188 as rendered). The hero's client logos take it on hover. */
+  --filter-accent: brightness(0) saturate(100%) invert(30%) sepia(91%) saturate(769%)
+    hue-rotate(187deg) brightness(96%) contrast(98%);
+
+  /* The CV overlay (CvViewer.astro): the page dimmed navy behind it */
+  --color-scrim: rgb(12 36 84 / 45%);
   --color-inverse: #0a0a0a;
   --color-on-inverse: #fff;
   --color-hairline: #e3e4ea;

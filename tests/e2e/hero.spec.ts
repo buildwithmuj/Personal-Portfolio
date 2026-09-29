@@ -48,6 +48,20 @@ test('the phone menu opens the navigation and closes when a link is followed', a
   await expect(page).toHaveURL(/#work$/);
 });
 
+// The phone menu leads its icons with the CV, which opens over the home page.
+test('the phone menu offers the CV beside the social links', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('/');
+  const menu = page.locator('.top-bar details');
+  await menu.locator('summary').click();
+  const icons = menu.locator('.socials a');
+  await expect(icons.first()).toHaveAccessibleName('View CV');
+  await expect(icons).toHaveCount(5);
+  await icons.first().click();
+  await expect(menu).not.toHaveAttribute('open');
+  await expect(page.getByRole('dialog', { name: profileValue('name') })).toBeVisible();
+});
+
 for (const path of ['/cv', '/projects', '/work/amniki']) {
   test(`${path} has a Back to home shortcut`, async ({ page }) => {
     await page.goto(path);
@@ -70,11 +84,16 @@ test('the top bar links to each part of the home page, in order', async ({ page 
     'About',
     'Work',
     'Toolkit',
+    'Ask',
     'Contact',
   ]);
+  await expect(page.locator('.top-bar .links').getByRole('link', { name: 'Ask' })).toHaveAttribute(
+    'href',
+    '/#interview',
+  );
 });
 
-// The clock, five centred links and the weather only fit from 768px; narrower, the bar uses its
+// The clock, six centred links and the weather only fit from 768px; narrower, the bar uses its
 // menu. The links sit in the middle, clear of the clock and the weather.
 for (const width of [770, 960, 1280]) {
   test(`at ${width}px the top bar fits its links between the clock and the weather`, async ({
@@ -92,6 +111,16 @@ for (const width of [770, 960, 1280]) {
     expect(weather.x + weather.width).toBeLessThanOrEqual(bar.x + bar.width);
   });
 }
+
+// The client logos sit in one quiet ink; the one under the pointer turns the brand blue.
+test('a client logo turns the brand blue under the pointer', async ({ page }) => {
+  await page.goto('/');
+  const logo = page.locator('.proof .track img').first();
+  await expect(logo).toHaveCSS('filter', 'brightness(0)');
+  await logo.hover({ force: true });
+  await expect(logo).toHaveCSS('filter', /hue-rotate\(187deg\)/);
+  await expect(logo).toHaveCSS('opacity', '1');
+});
 
 // The hero says whether the owner is open to work.
 test('the hero shows availability', async ({ page }) => {

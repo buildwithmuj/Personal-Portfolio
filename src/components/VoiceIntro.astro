@@ -1,22 +1,26 @@
 ---
 import Icon from './Icon.astro';
 /**
- * "Play my intro" for the About row. The audio downloads only when the visitor presses play. The item
- * stays hidden without JavaScript, like the copy-email button.
+ * A play button for the owner's voice: "Play my intro" in the About row (a list item), and "Hear my
+ * answer" under each recorded answer in Interview me (a paragraph). The audio downloads only when
+ * the visitor presses play, and one recording plays at a time. It stays hidden without JavaScript.
  */
 interface Props {
   src: string;
+  as?: 'li' | 'p';
+  play?: string;
+  pause?: string;
 }
 
-const { src } = Astro.props;
+const { src, as: Tag = 'li', play = 'Play my intro', pause = 'Pause intro' } = Astro.props;
 ---
 
-<li class="voice" hidden>
-  <voice-intro data-src={src}>
+<Tag class="voice" hidden>
+  <voice-intro data-src={src} data-play={play} data-pause={pause}>
     <button type="button">
       <Icon name="play-circle" size={20} class="play" />
       <Icon name="pause-circle" size={20} class="pause" />
-      <span data-label>Play my intro</span>
+      <span data-label>{play}</span>
       <span class="bars" aria-hidden="true">
         <span></span>
         <span></span>
@@ -35,12 +39,15 @@ const { src } = Astro.props;
       </span>
     </button>
   </voice-intro>
-</li>
+</Tag>
 
 <script>
   // While the intro plays, the label becomes a row of bars that move with the voice: an analyser
   // reads the audio's loudness per frequency band each frame. Under reduced motion, or without
-  // Web Audio, the label simply reads "Pause intro".
+  // Web Audio, the label simply reads its pause label ("Pause intro"). Starting one recording
+  // pauses any other.
+  let current: HTMLAudioElement | undefined;
+
   class VoiceIntro extends HTMLElement {
     connectedCallback(): void {
       const button = this.querySelector('button');
@@ -80,7 +87,7 @@ const { src } = Astro.props;
         const animate = playing && Boolean(analyser);
         this.toggleAttribute('data-playing', playing);
         this.toggleAttribute('data-bars', animate);
-        label.textContent = playing ? 'Pause intro' : 'Play my intro';
+        label.textContent = (playing ? this.dataset['pause'] : this.dataset['play']) ?? '';
         label.classList.toggle('visually-hidden', animate);
         cancelAnimationFrame(frame);
         if (animate) draw();
@@ -90,7 +97,11 @@ const { src } = Astro.props;
         if (!audio) {
           audio = new Audio(src);
           listen(audio);
-          audio.addEventListener('play', () => show(true));
+          audio.addEventListener('play', () => {
+            if (current !== audio) current?.pause();
+            current = audio;
+            show(true);
+          });
           audio.addEventListener('pause', () => show(false));
           audio.addEventListener('ended', () => show(false));
         }
@@ -98,11 +109,11 @@ const { src } = Astro.props;
         if (audio.paused) {
           audio.play().catch(() => {
             show(false);
-            label.textContent = 'Intro unavailable';
+            label.textContent = 'Audio unavailable';
           });
         } else audio.pause();
       });
-      this.closest('li')?.removeAttribute('hidden');
+      this.parentElement?.removeAttribute('hidden');
     }
   }
 

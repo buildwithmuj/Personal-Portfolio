@@ -46,3 +46,11 @@ export async function getPage(id: string): Promise<CollectionEntry<'pages'>> {
   if (!entry) throw new Error(`src/content/pages/${id}.md is missing`);
   return entry;
 }
+
+/** Interview me's questions, or null: draft answers show only in preview builds, never live. */
+export function visibleInterview(
+  profile: CollectionEntry<'profile'>['data'],
+): NonNullable<CollectionEntry<'profile'>['data']['interview']> | null {
+  const { interview } = profile;
+  return interview && (!interview.draft || !isProduction) ? interview : null;
+}

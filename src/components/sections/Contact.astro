@@ -45,10 +45,12 @@ const { profile } = Astro.props;
     <p class="meta">A 30-minute call, booked in a couple of clicks.</p>
   </div>
   <div class="details" data-reveal="rise">
-    <a class="cv" href={withBase('/cv')}>
-      View CV
-    </a>
     <ul class="socials" role="list">
+      <li>
+        <a class="social" href={withBase('/cv')} aria-label="View CV" title="View CV" data-cv>
+          <Icon name="cv" />
+        </a>
+      </li>
       {profile.socials.map((social) => (
         <li>
           <a class="social" href={social.url} aria-label={socialLabels[social.platform]}>
@@ -137,22 +139,13 @@ const { profile } = Astro.props;
     font-size: var(--text-sm);
   }
 
-  /* The quiet line: the CV and the social links. */
+  /* The quiet line: the CV (it opens over the page) and the social links, as icon chips. */
   .details {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-3) var(--space-6);
     align-items: center;
     margin-block-start: var(--space-6);
-  }
-
-  .cv {
-    color: var(--color-text);
-    text-decoration: none;
-  }
-
-  .cv:hover {
-    text-decoration: underline;
   }
 
   .socials {
