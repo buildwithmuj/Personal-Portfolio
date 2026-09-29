@@ -11,16 +11,25 @@ import { creativeWorkJsonLd } from '../../lib/structured-data.ts';
 
 export const getStaticPaths = (async () => {
   const studies = await getCaseStudies();
-  // Each study also gets the one after it (wrapping round), for the "Next case study" card.
+  // Each study also gets up to four after it (wrapping round, never itself), for the cards at its end.
   return studies.map((study, index) => ({
     params: { slug: study.id },
-    props: { study, next: studies[(index + 1) % studies.length] },
+    props: {
+      study,
+      more: studies
+        .map((_, step) => studies[(index + step + 1) % studies.length])
+        .filter(
+          (other): other is (typeof studies)[number] =>
+            other !== undefined && other.id !== study.id,
+        )
+        .slice(0, 4),
+    },
   }));
 }) satisfies GetStaticPaths;
 
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 
-const { study, next } = Astro.props;
+const { study, more } = Astro.props;
 const { Content } = await render(study);
 const profile = await getProfile();
 if (!Astro.site) throw new Error('`site` must be set in astro.config.ts');
@@ -37,6 +46,6 @@ const structuredData = creativeWorkJsonLd({
 });
 ---
 
-<CaseStudy study={study} next={next} ogImageUrl={ogImage.src} structuredData={structuredData}>
+<CaseStudy study={study} more={more} ogImageUrl={ogImage.src} structuredData={structuredData}>
   <Content components={mdxComponents} />
 </CaseStudy>

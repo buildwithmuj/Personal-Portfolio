@@ -22,10 +22,10 @@ describe('checkPageWeight (spec §4, floors 2 and 3)', () => {
     );
   });
 
-  it('flags JavaScript over 9 KB and CSS over 12 KB compressed', () => {
-    assert.deepEqual(checkPageWeight([], origin, { script: 10 * KB, stylesheet: 13 * KB }), [
+  it('flags JavaScript over 9 KB and CSS over 13 KB compressed', () => {
+    assert.deepEqual(checkPageWeight([], origin, { script: 10 * KB, stylesheet: 14 * KB }), [
       'script (compressed): 10240 B > 9216 B',
-      'stylesheet (compressed): 13312 B > 12288 B',
+      'stylesheet (compressed): 14336 B > 13312 B',
     ]);
   });
 

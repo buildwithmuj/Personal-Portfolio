@@ -1,5 +1,4 @@
 ---
-import type { IconName } from '../lib/icons.ts';
 import Icon from './Icon.astro';
 import SkyGradient from './SkyGradient.astro';
 
@@ -14,8 +13,6 @@ interface Props {
   hero?: boolean;
   /** Adds a round toggle to the header; 'closed' starts the section collapsed. */
   collapsible?: 'open' | 'closed';
-  /** The toggle's icon while the section is collapsed (src/lib/icons.ts); a down chevron if none. */
-  icon?: IconName;
   /** Paints the hero's living Blue sky behind the whole section instead of the grey frame. */
   sky?: boolean;
 }
@@ -29,7 +26,6 @@ const {
   inset = false,
   hero = false,
   collapsible,
-  icon,
   sky = false,
 } = Astro.props;
 const headingId = `${id}-heading`;
@@ -70,8 +66,8 @@ const words = heading?.split(/\s+/) ?? [];
           data-start={collapsible}
           hidden
         >
-          {/* The section's own icon while it's collapsed; an up chevron (to close it) while open. */}
-          <Icon name={icon ?? 'chevron-down'} size={17} class="when-closed" />
+          {/* A down chevron (to open it) while it's collapsed; an up chevron (to close it) while open. */}
+          <Icon name="chevron-down" size={17} class="when-closed" />
           <Icon name="chevron-up" size={17} class="when-open" />
           <span class="visually-hidden">{heading}</span>
         </button>

@@ -49,7 +49,7 @@ const profile = defineCollection({
         }),
       )
       .default([]),
-    // "Interview me": questions with the owner's own answers, including how they work (it replaced
+    // "Ask me": questions with the owner's own answers, including how they work (it replaced
     // the How I work section). A draft shows only in preview builds. Interview.astro shows up to 8.
     // An answer with `audio` (the owner reading it aloud, in public/audio/) gets a play button.
     interview: z
@@ -67,7 +67,7 @@ const profile = defineCollection({
           .max(8),
       })
       .optional(),
-    // For the CV page.
+    // For the CV (CvViewer.astro).
     languages: z.array(z.object({ language: z.string().min(1), level: z.string().min(1) })),
     outsideWork: z.array(
       z.object({ activity: z.string().min(1), start: z.string().regex(/^\d{4}-\d{2}$/) }),
@@ -105,10 +105,6 @@ const profile = defineCollection({
       skills: sectionCopy,
       testimonials: sectionCopy,
       interview: sectionCopy.optional(),
-      experience: sectionCopy,
-      // The CV page's Education and Languages & interests sections.
-      education: sectionCopy,
-      languages: sectionCopy,
       contact: sectionCopy,
     }),
     email: z.email(),
@@ -179,7 +175,7 @@ const testimonials = defineCollection({
       name: z.string().min(1),
       role: z.string().min(1),
       quote: z.string().min(1).max(320),
-      // Where it was given, named at the foot of the card: a LinkedIn recommendation, a post on X, or
+      // Where it was given, named at the foot of the card ("LinkedIn", "Posted on X"), or
       // an email (not named).
       source: z.enum(['linkedin', 'x', 'email']).optional(),
       // The recommendation or post itself; with it, the card reads "Verified on LinkedIn" as a link.
@@ -205,7 +201,7 @@ const experience = defineCollection({
     start: yearMonth,
     end: yearMonth.optional(),
     summary: z.string().min(1),
-    // Key achievements, shown under the summary on the CV page.
+    // Key achievements, shown under the summary in the CV.
     highlights: z.array(z.string().min(1)).default([]),
   }),
 });
@@ -222,22 +218,61 @@ const education = defineCollection({
 
 const skills = defineCollection({
   loader: file('src/content/skills.yaml'),
-  schema: z.object({
-    intro: z.string().min(1),
-    skills: z.array(z.string().min(1)).min(1),
-    // Listed on the CV page only; the home page's Toolkit keeps to the main list.
-    cvOnly: z.array(z.string().min(1)).default([]),
-    // The home page's tools: a name and a logo in public/tools/.
-    tools: z
-      .array(
+  schema: z
+    .object({
+      intro: z.string().min(1),
+      skills: z.array(z.string().min(1)).min(1),
+      // From the CV: listed in the CV, and among the Toolkit's grouped skills (below).
+      cvOnly: z.array(z.string().min(1)).default([]),
+      // The Toolkit's Skills tab: every skill and CV-only skill once, under a heading each.
+      groups: z.array(
+        z.object({ group: z.string().min(1), items: z.array(z.string().min(1)).min(1) }),
+      ),
+      // The home page's tools: a name and a logo in public/tools/.
+      tools: z
+        .array(
+          z.object({
+            name: z.string().min(1),
+            logo: z.string().regex(/^\/tools\/[a-z0-9-]+\.svg$/, 'An SVG in public/tools/'),
+          }),
+        )
+        .default([]),
+      // The Toolkit's folders: each opens its certificate, a placeholder until `image` is given.
+      certifications: z.array(
         z.object({
-          name: z.string().min(1),
-          logo: z.string().regex(/^\/tools\/[a-z0-9-]+\.svg$/, 'An SVG in public/tools/'),
+          title: z.string().min(1),
+          issuer: z.string().min(1),
+          // The folder's own name, short enough for a small folder; the full title shows opened.
+          short: z.string().min(1),
+          image: z
+            .string()
+            .regex(
+              /^\/certificates\/[a-z0-9-]+\.(?:webp|png|jpg)$/,
+              'An image in public/certificates/',
+            )
+            .optional(),
         }),
-      )
-      .default([]),
-    certifications: z.array(z.object({ title: z.string().min(1), issuer: z.string().min(1) })),
-  }),
+      ),
+    })
+    .superRefine(({ skills, cvOnly, groups }, context) => {
+      const grouped = groups.flatMap(({ items }) => items);
+      const all = [...skills, ...cvOnly];
+      const missing = all.filter((skill) => !grouped.includes(skill));
+      const extra = grouped.filter((skill) => !all.includes(skill));
+      const twice = grouped.filter((skill, index) => grouped.indexOf(skill) !== index);
+      for (const [problem, list] of [
+        ['not in any group', missing],
+        ['not a skill or CV-only skill', extra],
+        ['in more than one group', twice],
+      ] as const) {
+        for (const skill of list)
+          context.addIssue({
+            code: 'custom',
+            path: ['groups'],
+            message: `"${skill}" is ${problem}`,
+          });
+      }
+    }),
 });
 
 const pages = defineCollection({

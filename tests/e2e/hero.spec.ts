@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { profileValue, sectionHeading } from '../support/content.ts';
+import { scrollIntoViewSettled } from '../support/settle.ts';
 
 // The headline and section headings are split into words for their reveal animations; the text
 // people and screen readers get must still match the content exactly.
@@ -22,6 +23,28 @@ test('with software rendering, the skies keep their CSS gradient and skip the sh
     await expect(sky).not.toHaveAttribute('data-ready');
     await expect(sky).toHaveCSS('background-image', /linear-gradient/);
   }
+});
+
+// A sky sets up its graphics only as it nears the screen, so the skies below the fold cost the page
+// nothing as it loads. Each canvas a sky asks for a WebGL context is marked.
+test('a sky sets up its graphics only as it nears the screen', async ({ page }) => {
+  await page.addInitScript(() => {
+    const original = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (
+      this: HTMLCanvasElement,
+      contextId: string,
+      options?: unknown,
+    ) {
+      this.closest('sky-gradient')?.setAttribute('data-asked', '');
+      return original.call(this, contextId, options);
+    } as typeof original;
+  });
+  await page.goto('/');
+  await expect(page.locator('#top sky-gradient').first()).toHaveAttribute('data-asked');
+  const desk = page.locator('#skills .desk sky-gradient');
+  await expect(desk).not.toHaveAttribute('data-asked');
+  await scrollIntoViewSettled(page.locator('#skills'));
+  await expect(desk).toHaveAttribute('data-asked');
 });
 
 test('the hero headline reads exactly as written', async ({ page }) => {
@@ -86,7 +109,7 @@ test('the phone menu offers the CV beside the social links', async ({ page }) =>
   await expect(page.getByRole('dialog', { name: profileValue('name') })).toBeVisible();
 });
 
-for (const path of ['/cv', '/projects', '/work/amniki']) {
+for (const path of ['/projects', '/work/amniki']) {
   test(`${path} has a Back to home shortcut`, async ({ page }) => {
     await page.goto(path);
     await page.getByRole('main').getByRole('link', { name: 'Back to home' }).click();
@@ -94,15 +117,15 @@ for (const path of ['/cv', '/projects', '/work/amniki']) {
   });
 }
 
-test('Home in the top bar leads back to the home page from the CV', async ({ page }) => {
-  await page.goto('/cv');
+test('Home in the top bar leads back to the home page from All work', async ({ page }) => {
+  await page.goto('/projects');
   await page.locator('.top-bar .links').getByRole('link', { name: 'Home' }).click();
   await expect(page).toHaveURL(/\/#page-top$/);
   await expect(page.locator('#top .headline')).toBeVisible();
 });
 
 test('the top bar links to each part of the home page, in order', async ({ page }) => {
-  await page.goto('/cv');
+  await page.goto('/projects');
   await expect(page.locator('.top-bar .links a')).toHaveText([
     'Home',
     'About',
@@ -250,7 +273,7 @@ test('the footer pause toggle holds the moving parts and remembers it', async ({
   await expect(toggle).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('html')).toHaveClass(/motion-paused/);
   await expect(page.locator('.hero')).toHaveCSS('animation-play-state', 'paused');
-  await page.goto('/cv');
+  await page.goto('/projects');
   await expect(page.locator('html')).toHaveClass(/motion-paused/);
   await expect(
     page.getByRole('contentinfo').getByRole('button', { name: 'Pause animations' }),
@@ -270,23 +293,26 @@ test('with animations paused, entrances still finish and only loops are held', a
     /^(none|matrix\(1, 0, 0, 1, 0, 0\))$/,
   );
 
-  // Bring every scroll reveal on screen for at least one rendered frame, so the reveal observer sees
-  // it even on a slow machine, then list what the pause holds. Reveals in a hidden tab (the other
-  // side of the Work switch) can't scroll into view; skip them. A reveal inside a section that is
-  // still sliding open is clipped until the slide is done, so wait for its section to settle first.
+  // Bring every scroll reveal on screen until the reveal observer has seen it (its .in class), then
+  // list what the pause holds. Reveals in a hidden tab (the other side of the Work switch) can't
+  // scroll into view; skip them. A reveal inside a section that is still sliding open is clipped
+  // until the slide is done, so wait for its section to settle first. Each wait is on the page's own
+  // state, checked frame by frame, not a set number of frames: under a full parallel run WebKit
+  // draws only six or seven frames a second.
   await page.evaluate(async () => {
     const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+    const until = async (done: () => boolean) => {
+      while (!done()) await frame();
+    };
     for (const element of document.querySelectorAll('[data-reveal]')) {
       if (element.getClientRects().length === 0) continue;
       element.scrollIntoView({ block: 'center' });
-      await frame();
-      await frame();
       const section = element.closest('.stack > .shell');
-      if (!section?.querySelector(':scope > .shell-body')) continue;
-      while (!section.classList.contains('is-settled')) await frame();
-      element.scrollIntoView({ block: 'center' });
-      await frame();
-      await frame();
+      if (section?.querySelector(':scope > .shell-body')) {
+        await until(() => section.classList.contains('is-settled'));
+        element.scrollIntoView({ block: 'center' });
+      }
+      await until(() => element.classList.contains('in'));
     }
   });
   await page.waitForFunction(() =>

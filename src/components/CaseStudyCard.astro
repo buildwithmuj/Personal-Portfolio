@@ -10,19 +10,21 @@ interface Props {
   coverAlt: string;
   /** 2 on the All work page, where the cards sit directly under the page title. */
   headingLevel?: 2 | 3;
+  /** Small: four in a row, as at the end of a case study. */
+  small?: boolean;
 }
 
-const { href, title, label, cover, coverAlt, headingLevel = 3 } = Astro.props;
+const { href, title, label, cover, coverAlt, headingLevel = 3, small = false } = Astro.props;
 const Heading = headingLevel === 2 ? 'h2' : 'h3';
 ---
 
-<article class="case-card">
+<article class:list={['case-card', { small }]}>
   <div class="media sky-grade">
     <Image
       src={cover}
       alt={coverAlt}
-      widths={[348, 696]}
-      sizes="(min-width: 48rem) 336px, 100vw"
+      widths={small ? [348] : [348, 696]}
+      sizes={small ? '(min-width: 40rem) 160px, 70vw' : '(min-width: 48rem) 336px, 100vw'}
       loading="lazy"
     />
   </div>
@@ -92,5 +94,19 @@ const Heading = headingLevel === 2 ? 'h2' : 'h3';
 
   .case-card:hover .title a {
     color: var(--color-accent);
+  }
+
+  /* Small: a quarter of the page's width, with the text to match. */
+  .small .media {
+    margin-block-end: 10px;
+  }
+
+  .small .card-label {
+    font-size: var(--text-xs);
+  }
+
+  .small .title {
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
   }
 </style>

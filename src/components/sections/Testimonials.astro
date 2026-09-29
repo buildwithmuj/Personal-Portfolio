@@ -20,7 +20,7 @@ const initials = (name: string) =>
     .slice(0, 2);
 ---
 
-<Shell id="testimonials" heading={heading} intro={intro} collapsible="open" icon="testimonials">
+<Shell id="testimonials" heading={heading} intro={intro} collapsible="open">
   <div class="wall">
     <ul class="posts" role="list">
       {testimonials.map((testimonial, index) => (
@@ -51,7 +51,7 @@ const initials = (name: string) =>
               ) : (
                 <p class="source">
                   <SocialIcon platform={testimonial.source} />
-                  {testimonial.source === 'x' ? 'Posted on X' : 'LinkedIn recommendation'}
+                  {testimonial.source === 'x' ? 'Posted on X' : 'LinkedIn'}
                 </p>
               ))}
           </figure>

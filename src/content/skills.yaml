@@ -8,13 +8,33 @@ main:
     - Power BI and data products
     - Agile delivery and product ownership
     - Low-code, no-code and AI building
-  # From the CV; shown on the CV page only (the home page keeps six keycaps).
+  # From the CV: listed in the CV, and grouped with the skills above in the Toolkit.
   cvOnly:
     - Project management
     - Business analysis
     - Stakeholder management
     - Technical writing (SOPs)
     - Agile methods (Scrum and Kanban)
+  # The Toolkit's Skills tab: every skill above, the CV-only ones included, as pills under three
+  # headings in the order a project runs. Each skill sits in exactly one group (the schema checks).
+  groups:
+    - group: Understand
+      items:
+        - Process mapping and requirements
+        - Business cases and ROI
+        - Business analysis
+        - Stakeholder management
+    - group: Build
+      items:
+        - RPA, APIs and Power Apps
+        - Power BI and data products
+        - Low-code, no-code and AI building
+        - Technical writing (SOPs)
+    - group: Deliver
+      items:
+        - Agile delivery and product ownership
+        - Agile methods (Scrum and Kanban)
+        - Project management
   # The home page's tools, each logo in its brand colours (public/tools/, CC0 from SVG Logos and
   # Simple Icons; Kimi and OpenAI's marks are black by their own brand guides).
   tools:
@@ -28,12 +48,17 @@ main:
       logo: /tools/jira.svg
     - name: Power BI
       logo: /tools/power-bi.svg
+  # Each opens as a certificate from its folder; add image: /certificates/<name>.webp once it is in public/.
   certifications:
     - title: Certified ScrumMaster (CSM)
       issuer: Scrum Alliance
+      short: CSM
     - title: Professional Scrum Product Owner (PSPO I)
       issuer: Scrum.org
+      short: PSPO I
     - title: Microsoft Power BI Data Analyst Associate
       issuer: Microsoft
+      short: Power BI Data Analyst
     - title: 'AI Fluency: Framework & Foundations'
       issuer: Anthropic
+      short: AI Fluency
