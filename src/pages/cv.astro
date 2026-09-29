@@ -96,7 +96,7 @@ const cvDate = monthYear.format(profile.cvUpdated);
         <h3 id="cv-certifications">Certifications</h3>
         <ul class="checks" role="list">
           {skills.certifications.map((certification) => (
-            <li>{certification}</li>
+            <li>{certification.title}</li>
           ))}
         </ul>
       </section>

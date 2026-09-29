@@ -1,4 +1,6 @@
 ---
+import SkyGradient from './SkyGradient.astro';
+
 interface Props {
   stats: { value: string; label: string }[];
 }
@@ -6,14 +8,24 @@ interface Props {
 const { stats } = Astro.props;
 ---
 
-<dl class="stats">
-  {stats.map((stat) => (
-    <div data-reveal="rise">
-      <dt>{stat.label}</dt>
-      <dd data-count>{stat.value}</dd>
-    </div>
-  ))}
-</dl>
+{/*
+  The About stats on one band of the hero's living Blue sky, like an instrument panel: white
+  numbers, each over its label, that count up the first time they're seen. A navy wash deepens the
+  sky under the text.
+*/}
+<div class="stats" data-reveal="rise">
+  <SkyGradient class="stats-sky" scale={0.5} />
+  <ul class="cells" role="list">
+    {stats.map(({ value, label }) => (
+      <li>
+        <span class="stat-num" data-count>
+          {value}
+        </span>
+        <span class="stat-label">{label}</span>
+      </li>
+    ))}
+  </ul>
+</div>
 
 <script>
   // Counts each stat up from zero the first time it's seen; the HTML always holds the final value.
@@ -21,7 +33,7 @@ const { stats } = Astro.props;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function countUp(element: HTMLElement): void {
-    const match = /^(\d+)(.*)$/.exec(element.textContent ?? '');
+    const match = /^(\d+)(.*)$/.exec(element.textContent?.trim() ?? '');
     if (!match) return;
     const target = Number(match[1]);
     const suffix = match[2] ?? '';
@@ -50,61 +62,60 @@ const { stats } = Astro.props;
 </script>
 
 <style>
-  /* Large numbers in a sky-to-navy blend, with hairlines between the columns. */
   .stats {
+    position: relative;
+    overflow: hidden;
+    border-radius: 24px;
+    isolation: isolate;
+  }
+
+  .stats-sky,
+  .stats::after {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+  }
+
+  /* After the sky in paint order, so it lies over the sky and under the text. */
+  .stats::after {
+    background: var(--stats-wash);
+    content: '';
+  }
+
+  .cells {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--space-6) 0;
-  }
-
-  /* Reversed so the number shows above its label; flex-end keeps every number on the top line. */
-  .stats > div {
-    display: flex;
-    flex-direction: column-reverse;
-    gap: var(--space-2);
-    justify-content: flex-end;
-    padding-inline: var(--space-4);
-    border-inline-start: 1px solid var(--color-hairline);
-  }
-
-  .stats > div:first-child {
-    padding-inline-start: 0;
-    border: 0;
-  }
-
-  dt {
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
-  }
-
-  dd {
-    align-self: flex-start;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     margin: 0;
-    background: var(--gradient-stat);
-    background-clip: text;
-    color: transparent;
-    font-size: clamp(2rem, 1.5rem + 1.6vw, 2.5rem);
+    padding: 22px 0;
+    list-style: none;
+  }
+
+  .cells li {
+    display: grid;
+    align-content: start;
+    gap: 4px;
+    padding-inline: 22px;
+    color: var(--color-on-accent);
+    text-shadow: var(--stats-text-shadow);
+  }
+
+  .stat-num {
+    font-size: 2.25rem;
     font-weight: var(--weight-medium);
     letter-spacing: var(--tracking-tight);
-    line-height: 1;
+    line-height: 1.05;
+  }
+
+  .stat-label {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-snug);
   }
 
   @media (width < 40rem) {
-    .stats {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
-    .stats > div {
-      padding-inline: var(--space-3);
-    }
-
-    .stats > div:nth-child(odd) {
-      padding-inline-start: 0;
-      border: 0;
-    }
-
-    dt {
-      font-size: var(--text-xs);
+    .cells {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-4) 0;
     }
   }
 </style>

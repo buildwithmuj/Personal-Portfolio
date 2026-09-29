@@ -1,0 +1,359 @@
+---
+import SkyGradient from './SkyGradient.astro';
+
+interface Props {
+  tasks: { time: string; task: string }[];
+  place: string;
+  timeZone: string;
+}
+
+const { tasks, place, timeZone } = Astro.props;
+---
+
+{/*
+  The owner's typical day (profile.day) as a Reminders-style widget. A live sky header with the
+  local time and how much of the day is done, over "Tasks for today", which scrolls itself one task
+  at a time like a list on a watch: the task in focus sits in the middle at full size, its
+  neighbours smaller and fainter. Tasks tick off as the day goes in the owner's time zone.
+*/}
+<article class="rem" data-time-zone={timeZone} aria-labelledby="rem-title">
+  <header class="rem-head">
+    <SkyGradient class="rem-sky" scale={0.5} />
+    <div>
+      <p class="rem-app">A typical day</p>
+      <p class="rem-clock">
+        <span data-local-time>--:--</span> in {place}
+      </p>
+    </div>
+    <p class="rem-count">
+      <span data-done-count>0</span> of {tasks.length} done
+    </p>
+  </header>
+  <div class="rem-body">
+    <h3 id="rem-title">Tasks for today</h3>
+    <div class="rem-viewport">
+      <ol class="rem-list" role="list">
+        {tasks.map(({ time, task }) => (
+          <li data-time={time} aria-hidden="true">
+            <span class="rem-tick"></span>
+            <span class="rem-task">
+              <time>{time}</time>
+              {task}
+            </span>
+          </li>
+        ))}
+        {tasks.map(({ time, task }) => (
+          <li data-time={time}>
+            <span class="rem-tick" aria-hidden="true"></span>
+            <span class="rem-task">
+              <time>{time}</time>
+              {task}
+              <span class="visually-hidden" data-state-label></span>
+            </span>
+          </li>
+        ))}
+        {tasks.map(({ time, task }) => (
+          <li data-time={time} aria-hidden="true">
+            <span class="rem-tick"></span>
+            <span class="rem-task">
+              <time>{time}</time>
+              {task}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+    <a class="btn btn-primary rem-talk" href="#contact">
+      Let's talk
+    </a>
+  </div>
+</article>
+
+<script>
+  import { localTime, taskStates } from '../lib/day.ts';
+
+  // The day as it happens in the owner's time zone: a task is done once the next has started, and
+  // the one under way is "now"; the clock and the count follow. Every few seconds the next task
+  // slides into the middle, watch-style. The list is drawn three times (the middle copy is the one
+  // screen readers get), so there are always tasks above and below, and after the last task it
+  // carries on into the first without rewinding. It starts at the task under way, and holds while
+  // hovered or focused, under reduced motion, or while animations are paused. Without JavaScript
+  // the list simply shows, unticked.
+  for (const widget of document.querySelectorAll<HTMLElement>('.rem')) {
+    const list = widget.querySelector<HTMLElement>('.rem-list');
+    if (!list) continue;
+    const items = [...list.children] as HTMLElement[];
+    const count = items.length / 3;
+    const times = items.slice(count, count * 2).map((item) => item.dataset['time'] ?? '');
+    const clock = widget.querySelector('[data-local-time]');
+    const done = widget.querySelector('[data-done-count]');
+    const paused = () => document.documentElement.classList.contains('motion-paused');
+    const tick = () => {
+      const now = localTime(widget.dataset['timeZone']);
+      const states = taskStates(times, now);
+      items.forEach((item, i) => {
+        const state = states[i % count] ?? '';
+        item.dataset['state'] = state;
+        const label = item.querySelector('[data-state-label]');
+        if (label) label.textContent = state ? `, ${state}` : '';
+      });
+      if (clock) clock.textContent = now;
+      if (done) done.textContent = String(states.filter((state) => state === 'done').length);
+      return states;
+    };
+    let index = count + Math.max(0, tick().indexOf('now'));
+    // Rows grow with their text (tasks wrap on phones), so the list is moved by the focused task's
+    // own position: its middle goes to the middle of the viewport.
+    const viewport = list.parentElement;
+    const show = (animate: boolean) => {
+      const item = items[index];
+      if (!item || !viewport) return;
+      const above = items.slice(0, index).reduce((sum, row) => sum + row.offsetHeight, 0);
+      const middle = above + item.offsetHeight / 2;
+      list.style.transition = animate ? '' : 'none';
+      list.style.transform = `translateY(${viewport.clientHeight / 2 - middle}px)`;
+      items.forEach((item, i) => {
+        item.dataset['dist'] = String(Math.min(3, Math.abs(i - index)));
+      });
+    };
+    show(false);
+    new ResizeObserver(() => show(false)).observe(list);
+    window.setInterval(() => {
+      if (!paused()) tick();
+    }, 60_000);
+    window.setInterval(() => {
+      if (paused() || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (widget.matches(':hover, :focus-within')) return;
+      index += 1;
+      show(true);
+      if (index === count * 2) {
+        list.addEventListener(
+          'transitionend',
+          () => {
+            index = count;
+            show(false);
+          },
+          { once: true },
+        );
+      }
+    }, 2400);
+  }
+</script>
+
+<style>
+  .rem {
+    position: relative;
+    overflow: hidden;
+    border-radius: 28px;
+    background: var(--color-surface);
+    box-shadow:
+      0 0 0 1px var(--color-hairline),
+      0 24px 48px -24px var(--color-accent-glow);
+  }
+
+  /* The header: the live sky, the time and the day's progress. */
+  .rem-head {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    height: 128px;
+    padding: 22px 24px;
+    isolation: isolate;
+  }
+
+  .rem-sky {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+  }
+
+  /*
+   * White on the live sky, with the soft navy shadow the About stats use, over a navy wash on the
+   * text's side that fades out towards the count: the sky can drift pale, and without WebGL its
+   * fallback gradient is pale at the top.
+   */
+  .rem-head::after {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: var(--sky-text-wash);
+    content: '';
+  }
+
+  .rem-app,
+  .rem-clock {
+    color: var(--color-on-accent);
+    text-shadow: var(--stats-text-shadow);
+  }
+
+  .rem-app {
+    margin: 0;
+    font-weight: var(--weight-medium);
+  }
+
+  .rem-clock {
+    margin: 2px 0 0;
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rem-count {
+    margin: 0;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--color-frost);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+  }
+
+  /* The body rides up over the header with rounded shoulders, as in the reference. */
+  .rem-body {
+    position: relative;
+    margin-block-start: -36px;
+    padding: 26px 28px 28px;
+    border-radius: 28px 28px 0 0;
+    background: var(--color-surface);
+  }
+
+  .rem-body h3 {
+    margin: 0 0 var(--space-3);
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  /* Five rows show; the task in focus sits in the third. */
+  .rem-viewport {
+    --row: 46px;
+
+    height: calc(var(--row) * 5);
+    overflow: hidden;
+    mask-image: linear-gradient(
+      transparent,
+      var(--color-text) 14%,
+      var(--color-text) 86%,
+      transparent
+    );
+  }
+
+  .rem-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    transition: transform 700ms var(--ease-out);
+  }
+
+  .rem-list li {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+    min-height: var(--row);
+    padding-block: 6px;
+    transform-origin: left center;
+    transition:
+      opacity 500ms var(--ease-out),
+      scale 500ms var(--ease-out);
+  }
+
+  /*
+   * Tasks away from the middle shrink, and the viewport's edge fade (a mask) dims the outer rows.
+   * The rows themselves stay at 80% or more, so their text keeps its contrast (WCAG 1.4.3).
+   */
+  .rem-list li[data-dist='1'] {
+    opacity: 0.9;
+    scale: 0.94;
+  }
+
+  .rem-list li[data-dist='2'] {
+    opacity: 0.8;
+    scale: 0.88;
+  }
+
+  .rem-list li[data-dist='3'] {
+    opacity: 0.8;
+    scale: 0.82;
+  }
+
+  .rem-tick {
+    position: relative;
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border: 1.5px solid var(--color-chip-edge);
+    border-radius: 50%;
+  }
+
+  .rem-task {
+    color: var(--color-text-muted);
+    font-size: var(--text-lg);
+    line-height: var(--leading-tight);
+  }
+
+  .rem-task time {
+    margin-inline-end: 6px;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Done: a filled navy tick, the task in full ink. Now: a pulsing dot in an accent ring. */
+  li[data-state='done'] .rem-tick {
+    border-color: var(--color-accent-hover);
+    background: var(--color-accent-hover);
+  }
+
+  li[data-state='done'] .rem-tick::after {
+    position: absolute;
+    inset-block-start: 3px;
+    inset-inline-start: 6.5px;
+    width: 5px;
+    height: 10px;
+    border: solid var(--color-on-accent);
+    border-width: 0 2px 2px 0;
+    content: '';
+    rotate: 45deg;
+  }
+
+  li[data-state='done'] .rem-task,
+  li[data-state='now'] .rem-task {
+    color: var(--color-text);
+  }
+
+  li[data-state='now'] .rem-tick {
+    border-color: var(--color-accent);
+  }
+
+  li[data-state='now'] .rem-tick::after {
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    content: '';
+    animation: rem-pulse 1.4s ease-in-out infinite alternate;
+  }
+
+  li[data-state='now'] time {
+    color: var(--color-accent);
+    font-weight: var(--weight-medium);
+  }
+
+  @keyframes rem-pulse {
+    from {
+      opacity: 0.35;
+    }
+  }
+
+  /* "Let's talk", the site's blue pill, under the list at the right; it leads to Contact. */
+  .rem-talk {
+    display: flex;
+    width: fit-content;
+    margin: var(--space-4) 0 0 auto;
+  }
+
+  @media (width < 40rem) {
+    .rem-task {
+      font-size: var(--text-base);
+    }
+  }
+</style>

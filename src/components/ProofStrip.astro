@@ -1,23 +1,44 @@
 ---
+import { readFileSync } from 'node:fs';
+import { withBase } from '../lib/paths.ts';
+
 interface Props {
   label: string;
-  items: string[];
+  items: { name: string; logo?: string | undefined; scale?: number | undefined }[];
 }
 
 const { label, items } = Astro.props;
+// Client logos are navy PNGs, 84px tall (public/clients/). Each is sized to the same area rather
+// than the same height, so a long wordmark (Barclays) and a compact mark (BP) look equally weighty,
+// with square marks capped at MAX_HEIGHT, then nudged by the logo's optional `scale`. Sizes come
+// from each PNG's header, so the strip doesn't shift as the logos load.
+const AREA = 1600;
+const MAX_HEIGHT = 28;
+const logos = items.map(({ name, logo, scale = 1 }) => {
+  if (!logo) return { name };
+  const png = readFileSync(`public${logo}`);
+  const aspect = png.readUInt32BE(16) / png.readUInt32BE(20);
+  const height = Math.min(MAX_HEIGHT, Math.sqrt(AREA / aspect)) * scale;
+  return {
+    name,
+    src: withBase(logo),
+    width: Math.round(height * aspect),
+    height: Math.round(height),
+  };
+});
 ---
 
 <div class="proof">
   <p class="proof-label">{label}</p>
   <div class="marquee">
     <ul class="track" role="list">
-      {items.map((item) => (
-        <li>{item}</li>
+      {logos.map(({ name, src, width, height }) => (
+        <li>{src ? <img src={src} alt={name} width={width} height={height} /> : name}</li>
       ))}
     </ul>
     <ul class="track" role="list" aria-hidden="true">
-      {items.map((item) => (
-        <li>{item}</li>
+      {logos.map(({ name, src, width, height }) => (
+        <li>{src ? <img src={src} alt="" width={width} height={height} /> : name}</li>
       ))}
     </ul>
   </div>
@@ -26,7 +47,7 @@ const { label, items } = Astro.props;
 <style>
   .proof {
     display: grid;
-    gap: var(--space-4);
+    gap: var(--space-6);
   }
 
   .proof-label {
@@ -49,6 +70,7 @@ const { label, items } = Astro.props;
     display: flex;
     flex-shrink: 0;
     gap: var(--space-8);
+    align-items: center;
     padding: 0 var(--space-8) 0 0;
     list-style: none;
     animation: marquee var(--marquee-duration) linear infinite;
@@ -58,6 +80,27 @@ const { label, items } = Astro.props;
     font-size: var(--text-lg);
     font-weight: var(--weight-medium);
     white-space: nowrap;
+  }
+
+  /*
+   * Monochrome and quiet, as in the DigiBlu site's client strip: every logo in one ink at under
+   * half strength, so they read as a set rather than as eleven brands. Hovering the strip brings
+   * them up, and hovering one brings it to full strength in the brand blue.
+   */
+  .track img {
+    display: block;
+    filter: brightness(0);
+    opacity: 0.4;
+    transition: opacity var(--duration-base) var(--ease-standard);
+  }
+
+  .marquee:hover .track img {
+    opacity: 0.65;
+  }
+
+  .marquee .track img:hover {
+    filter: var(--filter-accent);
+    opacity: 1;
   }
 
   /* Hovering pauses it (content spec §5.2). */

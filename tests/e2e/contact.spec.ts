@@ -20,10 +20,10 @@ test.beforeEach(async ({ page }) => {
   );
 });
 
-test('the contact section offers email, CV, socials and booking', async ({ page }) => {
+test('the contact section offers booking, email, CV and socials', async ({ page }) => {
   await page.goto('/');
   const contact = page.locator('#contact');
-  await expect(contact.getByRole('link', { name: EMAIL })).toHaveAttribute(
+  await expect(contact.getByRole('link', { name: 'Drop an email' })).toHaveAttribute(
     'href',
     `mailto:${EMAIL}`,
   );
@@ -32,20 +32,27 @@ test('the contact section offers email, CV, socials and booking', async ({ page 
     await expect(contact.getByRole('link', { name: platform, exact: true })).toHaveCount(1);
   }
   await expect(contact.locator('summary')).toHaveText('Book a 30-minute call');
+  // The button stands in for the address, which the section no longer spells out.
+  await expect(contact.getByText(EMAIL)).toHaveCount(0);
 });
 
-test('the copy button copies the address and announces it', async ({
-  page,
-  context,
-  browserName,
-}) => {
-  test.skip(browserName !== 'chromium', 'Only Chromium lets tests grant clipboard permissions');
-  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+// Invitation first: the call leads, under the availability, with Drop an email beside it; the CV
+// and socials follow.
+test('the contact section leads with the call', async ({ page }) => {
   await page.goto('/');
   const contact = page.locator('#contact');
-  await contact.getByRole('button', { name: 'Copy email address' }).click();
-  await expect(contact.locator('[role="status"]')).toHaveText('Copied');
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(EMAIL);
+  await expect(contact.getByText("Let's talk it through.")).toBeVisible();
+  await expect(contact.getByText(profileValue('availability'))).toBeVisible();
+  const callFirst = await contact.evaluate((section) => {
+    const call = section.querySelector('summary');
+    const email = section.querySelector('a[href^="mailto:"]');
+    return !!call && !!email && !!(call.compareDocumentPosition(email) & 4);
+  });
+  expect(callFirst).toBe(true);
+  const call = await contact.locator('summary').boundingBox();
+  const mail = await contact.getByRole('link', { name: 'Drop an email' }).boundingBox();
+  expect(mail?.y).toBe(call?.y);
+  expect(mail?.height).toBe(call?.height);
 });
 
 test('nothing loads from Cal.com until the booking panel opens', async ({ page }) => {
@@ -89,13 +96,6 @@ test('opening the booking panel causes no CSP violation', async ({ page }) => {
 
 test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
-
-  test('the copy button stays hidden and the email link still works', async ({ page }) => {
-    await page.goto('/');
-    const contact = page.locator('#contact');
-    await expect(contact.getByRole('button', { name: 'Copy email address' })).toHaveCount(0);
-    await expect(contact.getByRole('link', { name: EMAIL })).toBeVisible();
-  });
 
   test('the booking panel offers the booking page link instead of a frame', async ({ page }) => {
     await page.goto('/');

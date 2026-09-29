@@ -11,6 +11,10 @@ main:
     - Project Manager
     - Product Owner
   headline: I turn messy processes into automation and products people actually use.
+  headlineAccent: people actually use.
+  availability: Open to new roles and projects
+  # On phones the pill reads "Open to new roles", its last word rotating through these.
+  availabilityShort: { lead: Open to new, words: [roles, projects] }
   subline: >-
     Over ten years untangling complex processes for organisations across the public sector, healthcare,
     education, financial services and telecoms, and building my own products along the way.
@@ -18,6 +22,66 @@ main:
     Hey, I'm Mujtaba Shah, a Senior Intelligent Automation Analyst who turns complex processes into
     automation, data and AI products that save time, cut errors and scale.
   interests: 'Outside work: boxing at Legends MMA, four languages, and building side projects.'
+  # A typical weekday, from Mujtaba's own answers (2026-09-28), in London time. The About card's
+  # board ticks each task off once the next one has started.
+  day:
+    - { stack: Morning, time: '06:00', task: Gym and sauna }
+    - { stack: Morning, time: '07:45', task: 'Write the day’s goals and actions, by hand' }
+    - {
+        stack: Building,
+        time: '08:30',
+        task: 'Client work: process optimisation and automation advisory',
+      }
+    - { stack: Building, time: '13:30', task: 'Firm projects, like designing our new website' }
+    - { stack: Building, time: '16:00', task: Mentoring new joiners }
+    - {
+        stack: Learning,
+        time: '19:00',
+        task: 'Tea, notebook open: a side project with Claude or ChatGPT',
+      }
+    - { stack: Learning, time: '20:30', task: Design principles and GitHub, via YouTube }
+    - { stack: Learning, time: '21:30', task: Tips and show pieces from the community on X }
+  # Answers for "Interview me", drawn from the CV, skills and method, and live since v1.1.0. They
+  # were drafted for Mujtaba, so rewrite them in his own words: the section signs them "not an AI".
+  # Set draft back to true to show the section only in preview builds.
+  interview:
+    draft: false
+    questions:
+      - question: What role are you after?
+        answer: >-
+          A senior role where automation, AI and product meet: leading an intelligent automation
+          programme, or owning an AI product from the first problem to version one. I'm also open to
+          projects where a process needs untangling.
+      - question: Proudest project?
+        answer: >-
+          Leading automation for a UK healthcare group, where RPA and workflow tools cut manual work
+          and improved turnaround times. What matters most to me is that it gets used, not just
+          delivered.
+      - question: How do you tackle a messy process?
+        answer: >-
+          I start with the real process, not the documented one, mapping how the work actually
+          happens with the people who do it. Then I design the future state, build the business case
+          so the right people can say yes, and deliver in small, tested steps. Finally I embed it,
+          with the SOPs and adoption support that make the change stick.
+      - question: How do you build a product?
+        answer: >-
+          From a real problem people actually have, checked before I build anything. I prototype
+          fast with low-code, no-code and AI tools, put it in front of real users early, ship the
+          smallest version that solves it well, then measure, listen and improve, or retire it and
+          carry the lessons forward.
+      - question: Which tools do you use?
+        answer: >-
+          RPA, APIs and Power Apps for automation, Power BI for data products, and low-code, no-code
+          and AI tools to build products fast. I'm a Certified ScrumMaster and Professional Scrum
+          Product Owner, so agile delivery is second nature.
+      - question: What are you learning?
+        answer: >-
+          Agentic AI workflows: automations that can reason about a task instead of only following a
+          script. I'm putting them to work at DigiBlu, and on this site.
+      - question: Life outside work?
+        answer: >-
+          I box at Legends MMA, speak four languages and I'm always building something on the side.
+          Boxing keeps me calm under pressure, which helps on go-live day too.
   # For the CV page, from the 2026 CV.
   languages:
     - { language: English, level: Native }
@@ -26,14 +90,22 @@ main:
     - { language: Spanish, level: Working knowledge }
   outsideWork:
     - { activity: Boxing at Legends MMA, start: '2023-09' }
+  # Clients from Mujtaba's professional work, cleared by him to name (2026-09-28). Logos live in
+  # public/clients/ and are tinted to the site's navy; a client without one shows by name.
   proof:
-    label: 10+ years across
+    label: 10+ years with teams at
     items:
-      - Public sector
-      - Healthcare
-      - Education
-      - Financial services
-      - Telecoms
+      - { name: GSK, logo: /clients/gsk.png, scale: 0.85 }
+      - { name: Equiniti, logo: /clients/equiniti.png, scale: 0.85 }
+      - { name: Acacium Group, logo: /clients/acacium.png, scale: 1.15 }
+      - { name: The Open University, logo: /clients/open-university.png }
+      - { name: BASF, logo: /clients/basf.png }
+      - { name: Proximus, logo: /clients/proximus.png }
+      - { name: PeoplePlus, logo: /clients/peopleplus.png }
+      - { name: Barclays, logo: /clients/barclays.png }
+      - { name: BP, logo: /clients/bp.png }
+      - { name: TPx, logo: /clients/tpx.png, scale: 0.9 }
+      - { name: Brent Council, logo: /clients/brent.png }
   stats:
     - value: '10+'
       label: Years of experience
@@ -43,29 +115,19 @@ main:
       label: Case studies
     - value: '2'
       label: Own products built
-  # The softer side: pills that fall into the About card as it scrolls into view.
-  traits:
-    - Entrepreneur
-    - Ambitious
-    - Not afraid to fail
-    - Curious
-    - Builder at heart
-    - Boxer
-    - Four languages
-    - Calm under pressure
   sections:
     work:
       heading: Selected work
       intro: Client programmes and my own products, each turning a messy problem into something people use.
     skills:
-      heading: Skills & certifications
-      intro: The methods and tools I bring, and the certifications behind them.
-    method:
-      heading: How I work
-      intro: Two ways I work, whether I'm untangling processes for organisations or building products of my own.
+      heading: Toolkit
+      intro: Skills, tools and the certifications behind them.
     testimonials:
       heading: What people say
       intro: From people I've worked with.
+    interview:
+      heading: Interview me
+      intro: "Ask me anything. There's no AI here: these are my own answers."
     experience:
       heading: Experience & skills
       intro: Over ten years in consulting and automation delivery, and the tools I use.
@@ -77,10 +139,10 @@ main:
       intro: Four languages, and what keeps me going outside work.
     contact:
       heading: Let's work together
-      intro: Hiring, or have a process that needs untangling? Book a call or send me an email.
+      intro: Hiring, or have a process that needs untangling?
   email: mujtaba.shah@outlook.com
   bookingUrl: https://cal.com/mujtaba.shah/30min
-  avatar: /avatar.jpg
+  avatar: /avatar.webp
   voiceIntro: /audio/intro.wav # PLACEHOLDER: record the real voice intro
   timeZone: Europe/London
   locationLabel: London

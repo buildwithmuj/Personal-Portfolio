@@ -12,6 +12,10 @@ const publicImage = z
   .string()
   .regex(/^\/[\w./-]+\.(?:png|jpg)$/, 'A root-relative path to a PNG or JPEG in public/');
 
+const publicAudio = z
+  .string()
+  .regex(/^\/[\w./-]+\.(?:mp3|m4a|ogg|wav)$/, 'A root-relative path to an audio file in public/');
+
 const sectionCopy = z.object({ heading: z.string().min(1), intro: z.string().min(1) });
 
 const profile = defineCollection({
@@ -23,15 +27,70 @@ const profile = defineCollection({
     titleTagline: z.string().min(1),
     roles: z.array(z.string().min(1)).min(1).max(6),
     headline: z.string().min(1),
+    // The headline's closing words, set in the editorial serif (they must end the headline).
+    headlineAccent: z.string().min(1).optional(),
+    // A short availability line for the hero's pill, e.g. "Open to new roles and projects".
+    availability: z.string().min(1).optional(),
+    // On phones the pill shortens to a lead and one word that rotates, e.g. "Open to new" + roles.
+    availabilityShort: z
+      .object({ lead: z.string().min(1), words: z.array(z.string().min(1)).min(2) })
+      .optional(),
     subline: z.string().min(1),
     about: z.string().min(1),
     interests: z.string().min(1),
+    // A typical weekday for the About card's board: tasks in stacks (e.g. Morning, Building,
+    // Learning), each at a local time (HH:MM); the board ticks them off as the owner's day goes.
+    day: z
+      .array(
+        z.object({
+          stack: z.string().min(1),
+          time: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, 'A 24-hour time, e.g. "08:30"'),
+          task: z.string().min(1),
+        }),
+      )
+      .default([]),
+    // "Interview me": questions with the owner's own answers, including how they work (it replaced
+    // the How I work section). A draft shows only in preview builds. Interview.astro shows up to 8.
+    // An answer with `audio` (the owner reading it aloud, in public/audio/) gets a play button.
+    interview: z
+      .object({
+        draft: z.boolean().default(true),
+        questions: z
+          .array(
+            z.object({
+              question: z.string().min(1),
+              answer: z.string().min(1),
+              audio: publicAudio.optional(),
+            }),
+          )
+          .min(1)
+          .max(8),
+      })
+      .optional(),
     // For the CV page.
     languages: z.array(z.object({ language: z.string().min(1), level: z.string().min(1) })),
     outsideWork: z.array(
       z.object({ activity: z.string().min(1), start: z.string().regex(/^\d{4}-\d{2}$/) }),
     ),
-    proof: z.object({ label: z.string().min(1), items: z.array(z.string().min(1)).min(1) }),
+    // The hero's logo strip: clients the owner has worked with (cleared to name, 2026-09-28), each
+    // with a logo in public/clients/ when there is one (a navy PNG, 84px tall), or shown by name.
+    proof: z.object({
+      label: z.string().min(1),
+      items: z
+        .array(
+          z.object({
+            name: z.string().min(1),
+            logo: z
+              .string()
+              .regex(/^\/[\w./-]+\.png$/, 'A root-relative path to a PNG in public/')
+              .optional(),
+            // An optical nudge for a logo that reads heavier (below 1) or lighter (above 1) than
+            // its neighbours at the same size.
+            scale: z.number().min(0.5).max(1.5).optional(),
+          }),
+        )
+        .min(1),
+    }),
     stats: z
       .array(
         z.object({
@@ -41,13 +100,11 @@ const profile = defineCollection({
       )
       .min(1)
       .max(4),
-    // Short personality words for the About card's pills.
-    traits: z.array(z.string().min(1).max(24)).max(12).default([]),
     sections: z.object({
       work: sectionCopy,
       skills: sectionCopy,
-      method: sectionCopy,
       testimonials: sectionCopy,
+      interview: sectionCopy.optional(),
       experience: sectionCopy,
       // The CV page's Education and Languages & interests sections.
       education: sectionCopy,
@@ -58,14 +115,12 @@ const profile = defineCollection({
     bookingUrl: httpsUrl.refine((value) => value.startsWith('https://cal.com/'), {
       message: 'Must be a Cal.com event URL (https://cal.com/…)',
     }),
-    avatar: publicImage.optional(),
-    voiceIntro: z
+    // Only shown on the site (never as a share image), so it may be a WebP cut-out with transparency.
+    avatar: z
       .string()
-      .regex(
-        /^\/[\w./-]+\.(?:mp3|m4a|ogg|wav)$/,
-        'A root-relative path to an audio file in public/',
-      )
+      .regex(/^\/[\w./-]+\.(?:png|jpg|webp)$/, 'A root-relative path to an image in public/')
       .optional(),
+    voiceIntro: publicAudio.optional(),
     timeZone: z.string().min(1).default('Europe/London'),
     locationLabel: z.string().min(1),
     coordinates: z
@@ -117,29 +172,27 @@ const caseStudies = defineCollection({
       }),
 });
 
-const method = defineCollection({
-  loader: file('src/content/method.yaml'),
-  schema: z.object({
-    track: z.enum(['process', 'product']),
-    order: z.number().int(),
-    title: z.string().min(1),
-    description: z.string().min(1),
-    tags: z.array(z.string().min(1)).min(1),
-  }),
-});
-
 const testimonials = defineCollection({
   loader: file('src/content/testimonials.yaml'),
-  schema: z.object({
-    name: z.string().min(1),
-    role: z.string().min(1),
-    quote: z.string().min(1).max(320),
-    // Where it was given, for the mark in the card's corner: a LinkedIn recommendation, a post on X,
-    // or an email (no mark).
-    source: z.enum(['linkedin', 'x', 'email']).optional(),
-    // Required, so no quote can reach the live site without stating whether it is real.
-    placeholder: z.boolean(),
-  }),
+  schema: z
+    .object({
+      name: z.string().min(1),
+      role: z.string().min(1),
+      quote: z.string().min(1).max(320),
+      // Where it was given, named at the foot of the card: a LinkedIn recommendation, a post on X, or
+      // an email (not named).
+      source: z.enum(['linkedin', 'x', 'email']).optional(),
+      // The recommendation or post itself; with it, the card reads "Verified on LinkedIn" as a link.
+      url: httpsUrl.optional(),
+      // A phrase from the quote to mark with the sky highlighter, word for word.
+      highlight: z.string().min(1).optional(),
+      // Required, so no quote can reach the live site without stating whether it is real.
+      placeholder: z.boolean(),
+    })
+    .refine((data) => !data.highlight || data.quote.includes(data.highlight), {
+      message: 'The highlight must be a phrase from the quote, word for word',
+      path: ['highlight'],
+    }),
 });
 
 const yearMonth = z.string().regex(/^\d{4}-\d{2}$/, 'Use YYYY-MM');
@@ -172,9 +225,18 @@ const skills = defineCollection({
   schema: z.object({
     intro: z.string().min(1),
     skills: z.array(z.string().min(1)).min(1),
-    // Listed on the CV page only; the home page's Skills keycaps stay at the main list.
+    // Listed on the CV page only; the home page's Toolkit keeps to the main list.
     cvOnly: z.array(z.string().min(1)).default([]),
-    certifications: z.array(z.string().min(1)),
+    // The home page's tools: a name and a logo in public/tools/.
+    tools: z
+      .array(
+        z.object({
+          name: z.string().min(1),
+          logo: z.string().regex(/^\/tools\/[a-z0-9-]+\.svg$/, 'An SVG in public/tools/'),
+        }),
+      )
+      .default([]),
+    certifications: z.array(z.object({ title: z.string().min(1), issuer: z.string().min(1) })),
   }),
 });
 
@@ -186,7 +248,6 @@ const pages = defineCollection({
 export const collections = {
   profile,
   caseStudies,
-  method,
   testimonials,
   experience,
   education,

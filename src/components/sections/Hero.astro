@@ -1,32 +1,68 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { withBase } from '../../lib/paths.ts';
-import { currentWeather } from '../../lib/weather.ts';
+import { socialLabels } from '../../lib/social.ts';
 import ProofStrip from '../ProofStrip.astro';
 import Shell from '../Shell.astro';
 import SkyGradient from '../SkyGradient.astro';
+import SocialIcon from '../SocialIcon.astro';
 
 interface Props {
   profile: CollectionEntry<'profile'>['data'];
 }
 
 const { profile } = Astro.props;
-// The ambient layer plays a scene for London's weather when the site last built.
-const weather =
-  profile.coordinates &&
-  (await currentWeather(profile.coordinates.latitude, profile.coordinates.longitude));
 // Screen readers get every role once, as a sentence; the visible line cycles through them.
 const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).format(profile.roles);
+// The headline's closing words (profile.headlineAccent) are set in the editorial serif.
+const headlineWords = profile.headline.split(/\s+/);
+const accentWords = profile.headlineAccent?.split(/\s+/) ?? [];
+const accentFrom =
+  accentWords.length > 0 && profile.headline.endsWith(profile.headlineAccent ?? '')
+    ? headlineWords.length - accentWords.length
+    : headlineWords.length;
+// On phones the pill shows a shorter line whose last word rotates; its box is sized to the longest.
+const short = profile.availabilityShort;
+const longestWord = short?.words.reduce((longest, word) =>
+  word.length > longest.length ? word : longest,
+);
+// The workflow line-art in the sky band: five tangled lines run into the social links, as into an
+// automation, and leave as clean parallel lines (a 1000 × 200 box, stretched to the band).
+const flow = [
+  'M0 150C80 150 110 30 200 45S320 160 400 92H600C650 92 660 60 710 60H1000',
+  'M0 30C70 30 120 170 210 150S330 40 400 96H600C650 96 660 80 710 80H1000',
+  'M0 185C90 185 100 80 190 110S300 20 400 100H1000',
+  'M0 95C60 95 140 190 230 140S320 60 400 104H600C650 104 660 120 710 120H1000',
+  'M0 10C100 10 90 120 180 90S340 180 400 108H600C650 108 660 140 710 140H1000',
+];
 ---
 
 <Shell id="top" labelledBy="hero-name" hero>
-  <div class="card hero" data-weather={weather?.scene ?? 'none'}>
+  <div class="card hero">
     <div class="identity">
       {profile.avatar && (
-        <img class="avatar" src={withBase(profile.avatar)} alt="" width="90" height="90" />
+        <div class="avatar">
+          <SkyGradient class="avatar-sky" />
+          <img src={withBase(profile.avatar)} alt="" width="90" height="90" />
+        </div>
       )}
-      <div>
+      <div class="who">
         <h1 id="hero-name">{profile.name}</h1>
+        {profile.availability && (
+          <p class="availability">
+            <span class="available-dot" aria-hidden="true"></span>
+            <span class="availability-full">{profile.availability}</span>
+            {short && (
+              <span class="availability-short" aria-hidden="true">
+                {short.lead}{' '}
+                <role-rotator class="pill-words" data-roles={JSON.stringify(short.words)}>
+                  <span>{short.words[0]}</span>
+                  <span class="sizer">{longestWord}</span>
+                </role-rotator>
+              </span>
+            )}
+          </p>
+        )}
         <p class="roles">
           <span class="visually-hidden">{rolesSentence}</span>
           <role-rotator
@@ -40,10 +76,10 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
       </div>
     </div>
     <p class="headline">
-      {profile.headline.split(/\s+/).map((word, index) => (
+      {headlineWords.map((word, index) => (
         <>
           {index > 0 && ' '}
-          <span class="w">
+          <span class:list={['w', { accent: index >= accentFrom }]}>
             <span>{word}</span>
           </span>
         </>
@@ -60,25 +96,33 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     </p>
     <ProofStrip label={profile.proof.label} items={profile.proof.items} />
     <SkyGradient class="cover" />
-    <div class="weather" aria-hidden="true"></div>
-    <button class="motion-toggle" type="button" aria-pressed="false" hidden>
-      <svg
-        viewBox="0 0 24 24"
-        width="14"
-        height="14"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-        focusable="false"
-      >
-        <path class="when-moving" d="M9 6v12M15 6v12"></path>
-        <path class="when-still" d="M8 5.5v13l10-6.5z"></path>
-      </svg>
-      <span class="visually-hidden">Pause animations</span>
-    </button>
+    <svg
+      class="flow"
+      viewBox="0 0 1000 200"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {flow.map((d) => (
+        <path d={d} pathLength="1" />
+      ))}
+      {flow.map((d) => (
+        <path class="pulse" d={d} pathLength="1" />
+      ))}
+    </svg>
+    <ul class="band-socials" role="list">
+      {profile.socials.map((social) => (
+        <li>
+          <a
+            class="band-icon"
+            href={social.url}
+            aria-label={`${profile.name} on ${socialLabels[social.platform]}`}
+          >
+            <SocialIcon platform={social.platform} />
+          </a>
+        </li>
+      ))}
+    </ul>
   </div>
 </Shell>
 
@@ -109,25 +153,6 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
   }
 
   customElements.define('role-rotator', RoleRotator);
-
-  // Pause animations (WCAG 2.2.2): stops every animation on the page and the rotating lines, and is
-  // remembered on this device (Base.astro reapplies it on every page). Under reduced motion nothing
-  // moves, so the button stays hidden.
-  const motion = document.querySelector<HTMLButtonElement>('.motion-toggle');
-  if (motion && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const root = document.documentElement;
-    motion.setAttribute('aria-pressed', String(root.classList.contains('motion-paused')));
-    motion.hidden = false;
-    motion.addEventListener('click', () => {
-      const paused = root.classList.toggle('motion-paused');
-      motion.setAttribute('aria-pressed', String(paused));
-      try {
-        localStorage.setItem('motion', paused ? 'paused' : 'on');
-      } catch {
-        // Storage can be blocked; the pause still holds for this page.
-      }
-    });
-  }
 </script>
 
 <style>
@@ -150,180 +175,6 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     content: '';
   }
 
-  /*
-   * The weather layer: it starts at the sky band's lower edge, so the weather seems to fall out of
-   * the sky onto the card, and it clips the moving pattern drawn by its ::after.
-   */
-  .weather {
-    position: absolute;
-    z-index: -1;
-    inset: var(--cover) 0 0;
-    overflow: hidden;
-    pointer-events: none;
-  }
-
-  /*
-   * An ambient pattern that follows London's live weather (src/lib/weather.ts and the top bar).
-   * Each pattern repeats every tile, so moving the layer by one tile loops seamlessly. Everything
-   * holds still under reduced motion.
-   *   clear:   specks of light drift up under a brighter, slowly breathing glow
-   *   cloud:   soft clouds drift across
-   *   fog:     a low haze slides slowly back and forth
-   *   drizzle: light, sparse rain; rain: rain; storm: rain with a faint flash now and then
-   *   snow:    flakes fall slowly
-   * Without weather (the fetch failed), the specks drift on their own.
-   */
-  .weather::after {
-    position: absolute;
-    z-index: -1;
-    inset: 0 0 -240px;
-    background-image:
-      radial-gradient(2px 2px at 20% 30%, var(--color-particle), transparent),
-      radial-gradient(1.5px 1.5px at 70% 60%, var(--color-particle), transparent),
-      radial-gradient(2.5px 2.5px at 45% 85%, var(--color-particle), transparent);
-    background-size: 240px 240px;
-    content: '';
-    pointer-events: none;
-  }
-
-  .hero[data-weather='clear']::before {
-    background: radial-gradient(70% 80% at 85% 10%, var(--color-sun), transparent 70%);
-    transform-origin: 85% 10%;
-  }
-
-  .hero[data-weather='cloud'] .weather::after {
-    inset: 0 -640px 0 0;
-    background-image:
-      radial-gradient(160px 60px at 25% 30%, var(--color-cloud), transparent),
-      radial-gradient(220px 80px at 70% 55%, var(--color-cloud), transparent),
-      radial-gradient(140px 50px at 45% 85%, var(--color-cloud), transparent);
-    background-size: 640px 100%;
-  }
-
-  .hero[data-weather='fog'] .weather::after {
-    inset: 0 -15%;
-    background-image:
-      radial-gradient(50% 22% at 30% 75%, var(--color-fog), transparent),
-      radial-gradient(45% 18% at 70% 55%, var(--color-fog), transparent),
-      radial-gradient(60% 20% at 50% 95%, var(--color-fog), transparent);
-    background-size: auto;
-  }
-
-  .hero:is([data-weather='drizzle'], [data-weather='rain'], [data-weather='storm'])
-    .weather::after {
-    inset: -120px -10% 0;
-    background-image:
-      radial-gradient(1px 14px at 30% 20%, var(--color-rain), transparent),
-      radial-gradient(1px 10px at 75% 60%, var(--color-rain), transparent),
-      radial-gradient(1px 12px at 55% 90%, var(--color-rain), transparent);
-    background-size: 90px 120px;
-    rotate: 8deg;
-  }
-
-  .hero[data-weather='drizzle'] .weather::after {
-    background-size: 160px 120px;
-  }
-
-  .hero[data-weather='snow'] .weather::after {
-    inset: -200px 0 0;
-    background-image:
-      radial-gradient(3px 3px at 20% 30%, var(--color-particle), transparent),
-      radial-gradient(2px 2px at 65% 55%, var(--color-particle), transparent),
-      radial-gradient(2.5px 2.5px at 40% 80%, var(--color-particle), transparent),
-      radial-gradient(2px 2px at 85% 15%, var(--color-particle), transparent);
-    background-size: 200px 200px;
-  }
-
-  @keyframes hero-drift {
-    to {
-      translate: 0 -240px;
-    }
-  }
-
-  @keyframes hero-clouds {
-    to {
-      translate: -640px 0;
-    }
-  }
-
-  @keyframes hero-haze {
-    to {
-      translate: 12% 0;
-    }
-  }
-
-  /*
-   * The rain layer is tilted (rotate: 8deg), so it must fall along its own tilted axis: transform
-   * applies inside the rotation, where one 120px step is exactly one tile of the pattern. (Moving it
-   * with translate, straight down the page, missed the tile by ~17px sideways, and the drops jumped
-   * each time the loop restarted.)
-   */
-  @keyframes hero-rain {
-    to {
-      transform: translateY(120px);
-    }
-  }
-
-  @keyframes hero-snow {
-    to {
-      translate: 0 200px;
-    }
-  }
-
-  @keyframes hero-sun {
-    to {
-      scale: 1.1;
-    }
-  }
-
-  @keyframes hero-flash {
-    0%,
-    90%,
-    94%,
-    100% {
-      background-color: transparent;
-    }
-
-    91%,
-    93% {
-      background-color: var(--color-flash);
-    }
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .weather::after {
-      animation: hero-drift 40s linear infinite;
-    }
-
-    .hero[data-weather='clear']::before {
-      animation: hero-sun 6s ease-in-out infinite alternate;
-    }
-
-    .hero[data-weather='storm']::before {
-      animation: hero-flash 9s linear infinite;
-    }
-
-    .hero[data-weather='cloud'] .weather::after {
-      animation: hero-clouds 80s linear infinite;
-    }
-
-    .hero[data-weather='fog'] .weather::after {
-      animation: hero-haze 18s ease-in-out infinite alternate;
-    }
-
-    .hero:is([data-weather='rain'], [data-weather='storm']) .weather::after {
-      animation: hero-rain 700ms linear infinite;
-    }
-
-    .hero[data-weather='drizzle'] .weather::after {
-      animation: hero-rain 1.4s linear infinite;
-    }
-
-    .hero[data-weather='snow'] .weather::after {
-      animation: hero-snow 14s linear infinite;
-    }
-  }
-
   /* A living Blue sky cover band (SkyGradient); the avatar overlaps its lower edge like a profile photo. */
   .cover {
     position: absolute;
@@ -332,35 +183,165 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     height: var(--cover);
   }
 
-  /* Pause animations, top right of the card. */
-  .motion-toggle {
+  /*
+   * The workflow line-art over the sky: white hairlines draw themselves in once, then a light runs
+   * along each now and then, from the tangle through the social links and out along the clean side.
+   */
+  .flow {
     position: absolute;
-    inset-block-start: var(--space-4);
-    inset-inline-end: var(--space-4);
+    z-index: -1;
+    inset: 0 0 auto;
+    width: 100%;
+    height: var(--cover);
+    fill: none;
+    stroke: var(--color-flow);
+    stroke-linecap: round;
+    stroke-width: 1.2;
+    pointer-events: none;
+  }
+
+  .flow path {
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 1;
+    animation: flow-draw 2s var(--ease-out) 300ms both;
+  }
+
+  .flow .pulse {
+    stroke: var(--color-flow-pulse);
+    stroke-width: 2;
+    stroke-dasharray: 0.06 1.2;
+    stroke-dashoffset: 0.06;
+    animation: flow-pulse 4.5s linear 2.4s infinite;
+  }
+
+  .flow .pulse:nth-of-type(7) {
+    animation-delay: 3.8s;
+  }
+
+  .flow .pulse:nth-of-type(8) {
+    animation-delay: 5s;
+  }
+
+  .flow .pulse:nth-of-type(9) {
+    animation-delay: 3.2s;
+  }
+
+  .flow .pulse:nth-of-type(10) {
+    animation-delay: 5.7s;
+  }
+
+  @keyframes flow-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes flow-pulse {
+    to {
+      stroke-dashoffset: -1;
+    }
+  }
+
+  /* The drawing-in is a one-off entrance, so it finishes even with animations paused. */
+  :global(.motion-paused) .flow path:not(.pulse) {
+    animation-play-state: running !important;
+  }
+
+  /* The social links, centred in the sky band. */
+  .band-socials {
+    position: absolute;
+    inset: calc(var(--cover) / 2) 0 auto;
+    display: flex;
+    gap: var(--space-2);
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    translate: 0 -50%;
+    list-style: none;
+  }
+
+  .band-icon {
     display: grid;
     place-items: center;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
+    width: var(--icon-button);
+    height: var(--icon-button);
+    border-radius: var(--radius-icon);
     background: var(--color-surface);
     box-shadow: var(--shadow-secondary);
     color: var(--color-text);
-    cursor: pointer;
   }
 
-  .motion-toggle:hover {
+  .band-icon:hover {
     color: var(--color-accent);
   }
 
-  .motion-toggle[aria-pressed='true'] .when-moving,
-  .motion-toggle[aria-pressed='false'] .when-still {
+  /*
+   * An availability pill level with the name at the card's right edge (on phones, where the row is
+   * too narrow, at the band's bottom right), with a softly pulsing dot that holds still under
+   * reduced motion or the pause button.
+   */
+  .availability {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    margin: 0;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-secondary);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+  }
+
+  /*
+   * The phones' shorter line (availabilityShort), hidden on wider screens. Its last word rotates
+   * like the role line, clipped to one line and held at the width of the longest word.
+   */
+  .availability-short {
     display: none;
+  }
+
+  .pill-words {
+    display: inline-grid;
+    overflow: hidden;
+    vertical-align: bottom;
+  }
+
+  .pill-words > span {
+    grid-area: 1 / 1;
+  }
+
+  .pill-words > .sizer {
+    visibility: hidden;
+  }
+
+  .available-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-available);
+  }
+
+  @keyframes available-pulse {
+    to {
+      box-shadow: 0 0 0 6px transparent;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .available-dot {
+      box-shadow: 0 0 0 0 var(--color-available-glow);
+      animation: available-pulse 2s var(--ease-out) infinite;
+    }
   }
 
   /* The avatar overlaps the band by about a third, so the name sits clear of the band's edge. */
   .identity {
+    position: relative;
     display: flex;
     gap: var(--space-4);
     align-items: flex-end;
@@ -369,11 +350,38 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     );
   }
 
+  /* The name and the availability pill share the first row; the role line runs below both. */
+  .who {
+    display: grid;
+    flex: 1;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0 var(--space-4);
+    align-items: center;
+    min-width: 0;
+  }
+
+  /* The photo is cut out of its backdrop, so a small live sky (SkyGradient) shows behind it. */
   .avatar {
+    position: relative;
+    flex: none;
     width: var(--avatar);
     height: var(--avatar);
+    overflow: hidden;
     border-radius: 50%;
     box-shadow: 0 0 0 4px var(--color-surface);
+    isolation: isolate;
+  }
+
+  .avatar-sky {
+    position: absolute;
+    inset: 0;
+  }
+
+  .avatar img {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
   }
 
@@ -382,6 +390,7 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
   }
 
   .roles {
+    grid-column: 1 / -1;
     height: 1.5em;
     overflow: hidden;
     color: var(--color-text-muted);
@@ -432,8 +441,8 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     animation-delay: 400ms;
   }
 
-  /* The weather layer stays put while the card's content rises in. */
-  .hero > .weather {
+  /* The sky band and its line-art are there from the first frame; only the content rises in. */
+  .hero > :is(.cover, .flow) {
     animation: none;
   }
 
@@ -455,6 +464,14 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
     line-height: var(--leading-tight);
   }
 
+  /* The headline's closing words in an editorial italic serif. */
+  .headline .w.accent > span {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: var(--weight-regular);
+    letter-spacing: 0;
+  }
+
   .subline {
     max-width: 34rem;
     color: var(--color-text-muted);
@@ -468,8 +485,40 @@ const rolesSentence = new Intl.ListFormat('en-GB', { type: 'conjunction' }).form
   }
 
   @media (width < 40rem) {
+    /* A taller band: the pill gets a row of its own, the social links sit a little lower. */
     .hero {
-      --cover: 112px;
+      --cover: 136px;
+    }
+
+    .band-socials {
+      inset-block-start: calc(var(--cover) * 0.56);
+    }
+
+    /* As in the reference, the pill sits 12px in from the card's top right (from the identity row). */
+    .availability {
+      position: absolute;
+      inset-block-start: calc(var(--avatar) / 2 - var(--cover) - var(--space-1));
+      inset-inline-end: calc(var(--space-3) - var(--hero-card-pad));
+    }
+
+    /* With the pill out of the row, the name and role line take its full width. */
+    .who {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* The pill shows its shorter line; screen readers still get the whole one (visually hidden). */
+    .availability-short {
+      display: inline;
+    }
+
+    .availability-full:has(~ .availability-short) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
     }
 
     .actions {

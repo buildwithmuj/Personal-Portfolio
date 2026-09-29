@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import BackLink from '../components/BackLink.astro';
+import CaseStudyCard from '../components/CaseStudyCard.astro';
 import Shell from '../components/Shell.astro';
 import TagList from '../components/TagList.astro';
 import { caseStudyLabel } from '../lib/case-studies.ts';
@@ -10,11 +11,13 @@ import Base from './Base.astro';
 
 interface Props {
   study: CollectionEntry<'caseStudies'>;
+  /** The study after this one, for the "Next case study" card (none when it would be itself). */
+  next?: CollectionEntry<'caseStudies'> | undefined;
   ogImageUrl: string;
   structuredData: string;
 }
 
-const { study, ogImageUrl, structuredData } = Astro.props;
+const { study, next, ogImageUrl, structuredData } = Astro.props;
 const { title, summary, role, timeframe, employer, tags, links, cover, coverAlt } = study.data;
 ---
 
@@ -75,6 +78,21 @@ const { title, summary, role, timeframe, employer, tags, links, cover, coverAlt 
           </ul>
         </section>
       )}
+      {next && next.id !== study.id && (
+        <nav class="next" aria-labelledby="next-heading">
+          <p id="next-heading" class="next-label">
+            Next case study
+          </p>
+          <CaseStudyCard
+            href={withBase(`/work/${next.id}`)}
+            title={next.data.title}
+            label={caseStudyLabel(next.data)}
+            cover={next.data.cover}
+            coverAlt={next.data.coverAlt}
+            headingLevel={2}
+          />
+        </nav>
+      )}
       <p>
         <a class="btn btn-secondary" href={withBase('/projects')}>
           Back to all work
@@ -82,9 +100,58 @@ const { title, summary, role, timeframe, employer, tags, links, cover, coverAlt 
       </p>
     </article>
   </Shell>
+  {/* Reading progress: fixed, so it can sit last (the page's first child gets the top bar's padding). */}
+  <div class="read-progress" aria-hidden="true"></div>
 </Base>
 
 <style>
+  /*
+   * Reading progress, a scroll-driven bar (no script) at the top of the window. It follows
+   * the scroll, not the clock, so pausing animations leaves it running. Without scroll timelines it
+   * stays hidden.
+   */
+  .read-progress {
+    position: fixed;
+    z-index: 20;
+    inset: 0 0 auto;
+    height: 3px;
+    background: var(--color-accent);
+    transform-origin: 0 50%;
+    scale: 0 1;
+  }
+
+  @keyframes read-progress {
+    to {
+      scale: 1 1;
+    }
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .read-progress {
+      animation: read-progress linear both;
+    }
+
+    /* Own rule, more specific: the shorthand can't reset the timeline (see ScrollTop). */
+    :global(body) .read-progress {
+      animation-timeline: scroll(root);
+    }
+  }
+
+  :global(.motion-paused) .read-progress {
+    animation-play-state: running !important;
+  }
+
+  .next {
+    display: grid;
+    gap: var(--space-3);
+    max-width: 24rem;
+  }
+
+  .next-label {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
   .case-study {
     display: grid;
     gap: var(--space-8);

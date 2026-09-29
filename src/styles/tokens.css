@@ -14,14 +14,15 @@
   --color-surface: #fff;
   --color-text: #0a0a0a;
   --color-text-muted: #4a4f54;
+
+  /* About's statement before it's read: it fills to full ink as it scrolls up the screen */
+  --color-text-unread: #c4c7cd;
   --color-accent: #2661ba;
   --color-accent-hover: #1f3f7a;
   --color-accent-light: #80b3ff;
   --color-on-accent: #fff;
   --color-accent-glow: rgb(102 153 230 / 14%);
   --color-avatar-text: #fff;
-  --color-blob-1: rgb(102 153 230 / 75%);
-  --color-blob-2: rgb(128 179 255 / 65%);
 
   /*
    * Testimonial avatars: four flat colours from the Blue sky palette, two deep blues under white
@@ -32,7 +33,27 @@
   --color-avatar-3: #80b3ff;
   --color-avatar-4: #cfe4ff;
   --color-avatar-text-light: #1f3f7a;
-  --gradient-stat: linear-gradient(135deg, #4a7fd6, #1f3f7a);
+
+  /* The About stats (Stats.astro) and the typical day's header: white text on the live sky */
+  --stats-wash: linear-gradient(180deg, rgb(29 74 146 / 22%), rgb(29 74 146 / 42%));
+  --stats-text-shadow: 0 1px 12px rgb(12 36 84 / 45%);
+  --sky-text-wash: linear-gradient(
+    100deg,
+    rgb(29 74 146 / 55%),
+    rgb(29 74 146 / 20%) 45%,
+    transparent 70%
+  );
+
+  /* Selected work (WorkShowcase.astro): a navy fade over a cover, under white text */
+  --gradient-cover-fade: linear-gradient(180deg, transparent 30%, rgb(12 36 84 / 80%));
+
+  /* The accent (#2661ba) as a filter, for images drawn in one ink: from any colour to black, then
+     to the accent (rgb 38 96 188 as rendered). The hero's client logos take it on hover. */
+  --filter-accent: brightness(0) saturate(100%) invert(30%) sepia(91%) saturate(769%)
+    hue-rotate(187deg) brightness(96%) contrast(98%);
+
+  /* The CV overlay (CvViewer.astro): the page dimmed navy behind it */
+  --color-scrim: rgb(12 36 84 / 45%);
   --color-inverse: #0a0a0a;
   --color-on-inverse: #fff;
   --color-hairline: #e3e4ea;
@@ -43,13 +64,8 @@
   --watch-glare: rgb(255 255 255 / 16%);
   --watch-shadow: rgb(15 23 42 / 28%);
   --color-on-accent-track: rgb(255 255 255 / 30%);
-  --color-key-edge: #d3d6df;
-  --color-particle: rgb(102 153 230 / 38%);
-  --color-rain: rgb(31 63 122 / 30%);
-  --color-sun: rgb(128 179 255 / 30%);
-  --color-cloud: rgb(31 63 122 / 10%);
-  --color-fog: rgb(102 153 230 / 16%);
-  --color-flash: rgb(128 179 255 / 18%);
+  --color-available: #1f9d63;
+  --color-available-glow: rgb(31 157 99 / 45%);
 
   /* The hero band's Blue sky stops (Feral UI export), shown until WebGL paints or without it */
   --gradient-sky: linear-gradient(180deg, #e6f2ff, #b3d9ff, #80b3ff, #6699e6);
@@ -61,12 +77,33 @@
   --color-chip: #e6f2ff;
   --color-chip-edge: #b3d9ff;
 
+  /* Frosted white, for pills and chips over the sky or a cover */
+  --color-frost: rgb(255 255 255 / 78%);
+
   /* Contact's sky band (global.css .shell-sky): solid behind the heading, fading into the grey */
   --sky-band: 200px;
   --mask-fade-down: linear-gradient(180deg, #000 55%, transparent);
 
+  /*
+   * The neck joining each section shell to the next (global.css): as tall as the gap, and cut away
+   * on both sides by half-circles, so it narrows to the gap's width in the middle.
+   */
+  --neck-r: calc(var(--shell-gap) / 2);
+  --mask-neck:
+    radial-gradient(circle at 0 50%, transparent var(--neck-r), #000 calc(var(--neck-r) + 0.5px))
+      left / 50% 100% no-repeat,
+    radial-gradient(circle at 100% 50%, transparent var(--neck-r), #000 calc(var(--neck-r) + 0.5px))
+      right / 50% 100% no-repeat;
+
+  /* The hero band's workflow line-art (Hero.astro .flow): white hairlines, and the pulses along them */
+  --color-flow: rgb(255 255 255 / 55%);
+  --color-flow-pulse: #fff;
+
   /* Type */
   --font-sans: var(--font-mona);
+
+  /* An editorial italic serif for accent words and the signature (system fonts: the CSP allows only the site's own files) */
+  --font-serif: 'Iowan Old Style', 'Palatino Linotype', palatino, 'Book Antiqua', georgia, serif;
   --text-xs: 0.75rem;
   --text-clock: 0.8125rem;
   --text-sm: 0.875rem;
@@ -99,7 +136,8 @@
   --measure: 65ch;
   --bar-height: 64px;
   --bar-offset: 18px;
-  --shell-gap: 10px;
+  --shell-gap: 40px;
+  --shell-gap-tight: 10px;
   --shell-pad-top: 50px;
   --shell-pad: 32px;
   --inset: 2px;

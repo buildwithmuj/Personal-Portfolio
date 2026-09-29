@@ -1,8 +1,11 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { visibleInterview } from '../lib/content.ts';
+import { ICONS, ICON_VIEWBOX } from '../lib/icons.ts';
 import { withBase } from '../lib/paths.ts';
 import { socialLabels } from '../lib/social.ts';
-import { currentWeather } from '../lib/weather.ts';
+import { currentWeather, type WeatherScene } from '../lib/weather.ts';
+import Icon from './Icon.astro';
 import LiveClock from './LiveClock.astro';
 import SocialIcon from './SocialIcon.astro';
 
@@ -15,30 +18,23 @@ const weather =
   profile.coordinates &&
   (await currentWeather(profile.coordinates.latitude, profile.coordinates.longitude));
 // Home leads back from the CV and case study pages; How I work stays reachable by scrolling.
+// Every scene the weather can show, each with its icon (src/lib/icons.ts).
+const scenes: WeatherScene[] = ['clear', 'cloud', 'fog', 'drizzle', 'rain', 'storm', 'snow'];
 const nav = [
   { href: withBase('/#page-top'), label: 'Home' },
   { href: withBase('/#about'), label: 'About' },
   { href: withBase('/#work'), label: 'Work' },
-  { href: withBase('/#skills'), label: 'Skills' },
+  { href: withBase('/#skills'), label: 'Toolkit' },
+  // Interview me, in one word, while the section shows.
+  ...(visibleInterview(profile) ? [{ href: withBase('/#interview'), label: 'Ask' }] : []),
   { href: withBase('/#contact'), label: 'Contact' },
 ];
 ---
 
 <header class="top-bar">
-  <p
-    class="where"
-    data-lat={profile.coordinates?.latitude}
-    data-lon={profile.coordinates?.longitude}
-  >
-    <LiveClock timeZone={profile.timeZone} />
-    <span class="city">{profile.locationLabel}</span>
-    <span class="weather" hidden={!weather}>
-      <span data-temp>{weather?.temperature}</span>°
-      <span class="condition">{` ${weather?.condition ?? ''}`}</span>
-    </span>
-  </p>
+  <LiveClock timeZone={profile.timeZone} />
 
-  <!-- Desktop: the links and social icons sit in the bar. -->
+  <!-- Desktop: the links, centred on the page between the clock and the weather. -->
   <nav class="wide-only" aria-label="Main">
     <ul class="links" role="list">
       {nav.map((item) => (
@@ -48,53 +44,44 @@ const nav = [
       ))}
     </ul>
   </nav>
-  <ul class="socials wide-only" role="list">
-    {profile.socials.map((social) => (
-      <li>
-        <a
-          class="icon-button"
-          href={social.url}
-          aria-label={`${profile.name} on ${socialLabels[social.platform]}`}
-        >
-          <SocialIcon platform={social.platform} />
-        </a>
-      </li>
+
+  <!-- Where the owner is: London's live weather, on the right (the clock is on the left). -->
+  <p
+    class="where"
+    data-lat={profile.coordinates?.latitude}
+    data-lon={profile.coordinates?.longitude}
+  >
+    <span class="city">{profile.locationLabel}</span>
+    <span class="weather" hidden={!weather}>
+      <svg
+        class="weather-icon"
+        viewBox="0 0 24 24"
+        width="16"
+        height="16"
+        fill="currentColor"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <use href={`#weather-${weather?.scene ?? 'cloud'}`}></use>
+      </svg>
+      <span>
+        <span data-temp>{weather?.temperature}</span>°
+      </span>
+      <span class="condition">{weather?.condition}</span>
+    </span>
+  </p>
+  <!-- The weather icons (Framework7, src/lib/icons.ts); the weather shows the one for now. -->
+  <svg class="weather-icons" aria-hidden="true" focusable="false">
+    {scenes.map((scene) => (
+      <symbol id={`weather-${scene}`} viewBox={ICON_VIEWBOX} set:html={ICONS[`weather-${scene}`]} />
     ))}
-  </ul>
+  </svg>
 
   <!-- Phones: a menu button opens the same links in a panel, as in the reference. -->
   <details class="menu">
     <summary aria-label="Menu">
-      <svg
-        class="open-icon"
-        viewBox="0 0 24 24"
-        width="24"
-        height="24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.6"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-        focusable="false"
-      >
-        <!-- A 2 × 2 app grid, like a watch's app screen. -->
-        <path d="M5 5h5v5H5zM14 5h5v5h-5zM5 14h5v5H5zM14 14h5v5h-5z"></path>
-      </svg>
-      <svg
-        class="close-icon"
-        viewBox="0 0 24 24"
-        width="24"
-        height="24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.6"
-        stroke-linecap="round"
-        aria-hidden="true"
-        focusable="false"
-      >
-        <path d="m6 6 12 12M18 6 6 18"></path>
-      </svg>
+      <Icon name="menu" size={22} class="open-icon" />
+      <Icon name="close" size={24} class="close-icon" />
     </summary>
     <div class="panel">
       <nav aria-label="Main">
@@ -107,6 +94,12 @@ const nav = [
         </ul>
       </nav>
       <ul class="socials" role="list">
+        {/* The CV first: on the home page it opens over the page (CvViewer.astro). */}
+        <li>
+          <a class="icon-button" href={withBase('/cv')} aria-label="View CV" data-cv>
+            <Icon name="cv" />
+          </a>
+        </li>
         {profile.socials.map((social) => (
           <li>
             <a
@@ -127,7 +120,7 @@ const nav = [
   import { parseWeather, weatherUrl, type Weather } from '../lib/weather.ts';
 
   // Live weather (see the privacy notice): the build-time reading is refreshed from Open-Meteo in
-  // the visitor's browser, at most every 15 minutes per tab, so the top bar and the hero's scene
+  // the visitor's browser, at most every 15 minutes per tab, so the top bar's temperature and icon
   // show London as it is now. A failed request, or one still waiting after 5 seconds, keeps the
   // build-time reading.
   const where = document.querySelector<HTMLElement>('.top-bar .where');
@@ -139,9 +132,9 @@ const nav = [
     const condition = box?.querySelector('.condition');
     if (!box || !temperature || !condition) return;
     temperature.textContent = String(weather.temperature);
-    condition.textContent = ` ${weather.condition}`;
+    condition.textContent = weather.condition;
+    box.querySelector('use')?.setAttribute('href', `#weather-${weather.scene}`);
     box.hidden = false;
-    document.querySelector('.hero')?.setAttribute('data-weather', weather.scene);
   };
   if (where?.dataset['lat'] && Number.isFinite(latitude) && Number.isFinite(longitude)) {
     let saved: { at: number; weather: Weather } | undefined;
@@ -184,13 +177,14 @@ const nav = [
     z-index: 10;
     top: var(--bar-offset);
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: 1fr auto 1fr;
     gap: var(--space-3) var(--space-6);
     align-items: center;
     height: var(--bar-height);
     margin-block-end: calc(-1 * var(--bar-height));
     padding: var(--space-3) var(--space-4) var(--space-3) var(--button-pad-x);
     border-radius: var(--radius-card);
+    view-transition-name: top-bar;
   }
 
   /*
@@ -253,7 +247,13 @@ const nav = [
     animation: none;
   }
 
+  /* The clock keeps its own width at the left; the weather sits at the right. */
+  .top-bar > :global(live-clock) {
+    justify-self: start;
+  }
+
   .where {
+    justify-self: end;
     display: flex;
     gap: var(--space-3);
     align-items: center;
@@ -271,9 +271,23 @@ const nav = [
     letter-spacing: normal;
   }
 
-  /* London's weather when the site last built; phones show just the temperature. */
+  /* London's weather: an icon for the conditions, the temperature, and (on wide screens) a word. */
   .weather {
+    display: inline-flex;
+    gap: 5px;
+    align-items: center;
     margin-inline-start: calc(-1 * var(--space-1));
+  }
+
+  .weather-icon {
+    flex: none;
+    color: var(--color-accent);
+  }
+
+  .weather-icons {
+    position: absolute;
+    width: 0;
+    height: 0;
   }
 
   .links,
@@ -352,11 +366,17 @@ const nav = [
     }
   }
 
-  /* Five links, the weather and four icons need the full column; narrower, the bar uses the menu. */
+  /* Six links, the weather and four icons need the full column; narrower, the bar uses the menu. */
   @media (width < 48rem) {
     .top-bar {
-      grid-template-columns: 1fr auto;
+      grid-template-columns: auto 1fr auto;
+      column-gap: var(--space-3);
       padding-inline-end: var(--space-3);
+    }
+
+    /* Phones keep the temperature beside the clock, as before. */
+    .where {
+      justify-self: start;
     }
 
     .top-bar:has(.menu[open]) {

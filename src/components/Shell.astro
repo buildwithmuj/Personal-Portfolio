@@ -1,4 +1,6 @@
 ---
+import type { IconName } from '../lib/icons.ts';
+import Icon from './Icon.astro';
 import SkyGradient from './SkyGradient.astro';
 
 interface Props {
@@ -12,8 +14,8 @@ interface Props {
   hero?: boolean;
   /** Adds a round toggle to the header; 'closed' starts the section collapsed. */
   collapsible?: 'open' | 'closed';
-  /** The toggle's icon while the section is collapsed: SVG path data on a 24 × 24 grid. */
-  icon?: string;
+  /** The toggle's icon while the section is collapsed (src/lib/icons.ts); a down chevron if none. */
+  icon?: IconName;
   /** Paints the hero's living Blue sky behind the whole section instead of the grey frame. */
   sky?: boolean;
 }
@@ -69,29 +71,18 @@ const words = heading?.split(/\s+/) ?? [];
           hidden
         >
           {/* The section's own icon while it's collapsed; an up chevron (to close it) while open. */}
-          <svg
-            viewBox="0 0 24 24"
-            width="16"
-            height="16"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path class="when-closed" d={icon ?? 'm6 9 6 6 6-6'}></path>
-            <path class="when-open" d="m6 15 6-6 6 6"></path>
-          </svg>
+          <Icon name={icon ?? 'chevron-down'} size={17} class="when-closed" />
+          <Icon name="chevron-up" size={17} class="when-open" />
           <span class="visually-hidden">{heading}</span>
         </button>
       )}
     </header>
   )}
   {collapsible ? (
-    <div id={bodyId}>
-      <slot />
+    <div id={bodyId} class="shell-body">
+      <div class="shell-body-inner">
+        <slot />
+      </div>
     </div>
   ) : (
     <slot />
@@ -114,5 +105,24 @@ const words = heading?.split(/\s+/) ?? [];
     button.hidden = false;
     button.addEventListener('click', toggle);
     button.parentElement?.querySelector('.section-title')?.addEventListener('click', toggle);
+  }
+
+  // On the home page's chain of sections, each collapsible one opens as it scrolls into view and
+  // stays open (global.css): .is-open starts the slide, and .is-settled, once it has finished, lets
+  // the content's shadows and focus rings spill over its edges again.
+  const opener = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const section = entry.target;
+        opener.unobserve(section);
+        section.classList.add('is-open');
+        window.setTimeout(() => section.classList.add('is-settled'), 850);
+      }
+    },
+    { rootMargin: '0px 0px -20% 0px' },
+  );
+  for (const body of document.querySelectorAll('.stack > .shell > .shell-body')) {
+    if (body.parentElement) opener.observe(body.parentElement);
   }
 </script>

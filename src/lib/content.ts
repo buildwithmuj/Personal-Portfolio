@@ -14,13 +14,6 @@ export async function getCaseStudies(): Promise<CollectionEntry<'caseStudies'>[]
   return visibleStudies(await getCollection('caseStudies'), !isProduction);
 }
 
-/** The "How I work" steps, in order (content spec §5.5). */
-export async function getMethod(): Promise<CollectionEntry<'method'>['data'][]> {
-  return (await getCollection('method'))
-    .map((entry) => entry.data)
-    .toSorted((a, b) => a.order - b.order);
-}
-
 /** Testimonials; placeholders only outside production (content spec §5.6). */
 export async function getTestimonials(): Promise<CollectionEntry<'testimonials'>['data'][]> {
   return visibleTestimonials(await getCollection('testimonials'), !isProduction).map(
@@ -52,4 +45,12 @@ export async function getPage(id: string): Promise<CollectionEntry<'pages'>> {
   const entry = await getEntry('pages', id);
   if (!entry) throw new Error(`src/content/pages/${id}.md is missing`);
   return entry;
+}
+
+/** Interview me's questions, or null: draft answers show only in preview builds, never live. */
+export function visibleInterview(
+  profile: CollectionEntry<'profile'>['data'],
+): NonNullable<CollectionEntry<'profile'>['data']['interview']> | null {
+  const { interview } = profile;
+  return interview && (!interview.draft || !isProduction) ? interview : null;
 }

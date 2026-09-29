@@ -1,22 +1,14 @@
-import { expect, test } from '@playwright/test';
-import { sectionHeading, yamlList } from '../support/content.ts';
+import { expect, test, type Locator, type Page } from '@playwright/test';
+import { profileValue, sectionHeading, yamlList, yamlValues } from '../support/content.ts';
 
 // Long sections can be collapsed with a round toggle (named after the section, announcing whether
-// it's expanded); How I work starts collapsed, the others start open.
-test('How I work starts collapsed and opens with its toggle', async ({ page }) => {
-  await page.goto('/');
-  const toggle = page.getByRole('button', { name: sectionHeading('method'), exact: true });
-  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-  await expect(page.locator('#method-body')).toBeHidden();
-  await toggle.click();
-  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-  await expect(page.locator('#method-body')).toBeVisible();
-});
-
+// it's expanded).
 test('Selected work starts open and can be hidden', async ({ page }) => {
   await page.goto('/');
   const toggle = page.getByRole('button', { name: sectionHeading('work'), exact: true });
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  // It slides open as it scrolls into view (below).
+  await page.locator('#work').scrollIntoViewIfNeeded();
   await expect(page.locator('#work-body')).toBeVisible();
   await toggle.click();
   await expect(page.locator('#work-body')).toBeHidden();
@@ -26,10 +18,10 @@ test('Selected work starts open and can be hidden', async ({ page }) => {
 
 test('clicking a collapsible section title toggles it too', async ({ page }) => {
   await page.goto('/');
-  await page.locator('#method .section-title').click();
-  await expect(page.locator('#method-body')).toBeVisible();
-  await page.locator('#method h2').click();
-  await expect(page.locator('#method-body')).toBeHidden();
+  await page.locator('#skills .section-title').click();
+  await expect(page.locator('#skills-body')).toBeHidden();
+  await page.locator('#skills h2').click();
+  await expect(page.locator('#skills-body')).toBeVisible();
 });
 
 test.describe('without JavaScript', () => {
@@ -37,10 +29,51 @@ test.describe('without JavaScript', () => {
 
   test('every section stays open and no toggle shows', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('#method .collapse')).toBeHidden();
+    await expect(page.locator('#skills .collapse')).toBeHidden();
     await expect(page.locator('#work .collapse')).toBeHidden();
-    await expect(page.locator('#method-body')).toBeVisible();
+    await expect(page.locator('#skills-body')).toBeVisible();
   });
+});
+
+// On the home page, a collapsible section is closed below its heading until it scrolls into view,
+// then slides open and stays open.
+test('sections open as they scroll into view', async ({ page }) => {
+  await page.goto('/');
+  const body = page.locator('#skills-body');
+  const height = async () => (await body.boundingBox())?.height ?? 0;
+  expect(await height()).toBe(0);
+  await page.locator('#skills').scrollIntoViewIfNeeded();
+  await expect.poll(height).toBeGreaterThan(100);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect.poll(height).toBeGreaterThan(100);
+});
+
+test.describe('under reduced motion', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test('every section is open from the start', async ({ page }) => {
+    await page.goto('/');
+    expect((await page.locator('#skills-body').boundingBox())?.height).toBeGreaterThan(100);
+  });
+});
+
+// As in the Portfolik reference, the About card runs straight into Selected work as one grey panel
+// (no gap, square where they meet), even with a section's script between them in the page.
+test('About runs straight into Selected work, as one panel', async ({ page }) => {
+  await page.goto('/');
+  const edges = await page.evaluate(() => {
+    const about = document.getElementById('about');
+    const work = document.getElementById('work');
+    if (!about || !work) return null;
+    const gap = work.getBoundingClientRect().top - about.getBoundingClientRect().bottom;
+    return {
+      // Firefox lands the two edges a hair apart (0.00006px) from layout rounding.
+      gap: Math.round(Math.abs(gap) * 100) / 100,
+      aboutFoot: getComputedStyle(about).borderEndStartRadius,
+      workHead: getComputedStyle(work).borderStartStartRadius,
+    };
+  });
+  expect(edges).toEqual({ gap: 0, aboutFoot: '0px', workHead: '0px' });
 });
 
 // Scroll-linked effects. The minifier once folded their timelines into the animation shorthand,
@@ -52,44 +85,104 @@ test('the back-to-top ring closes at the end of the page', async ({ page }) => {
     !supported,
     'This browser has no CSS scroll timeline, so the ring shows only its track',
   );
-  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
   const ring = page.locator('.to-top .done');
-  await expect(ring).toBeVisible();
+  // Sections open as they arrive, so the page grows at the bottom: keep going to the end.
   await expect
-    .poll(async () =>
-      parseFloat(await ring.evaluate((el) => getComputedStyle(el).strokeDashoffset)),
-    )
+    .poll(async () => {
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      return parseFloat(await ring.evaluate((el) => getComputedStyle(el).strokeDashoffset));
+    })
     .toBeLessThan(1);
 });
 
-test('the About statement fills to full colour as it scrolls into view', async ({ page }) => {
-  await page.goto('/');
-  const supported = await page.evaluate(() => CSS.supports('animation-timeline: view()'));
-  test.skip(!supported, 'This browser has no CSS view timeline, so the statement is plain text');
-  const span = page.locator('.statement span');
-  await expect
-    .poll(async () => span.evaluate((el) => getComputedStyle(el).animationTimeline))
-    .toBe('--statement');
-});
-
-// The Skills section: every skill and every certification is a flat chip, straight from the CV.
-test('the Skills section shows each skill, then each certification, as a chip', async ({
+// The greeting, up to the owner's job title, is in full colour from the start; the rest of the
+// statement reads itself in as it scrolls up the screen.
+test('the About statement opens in full colour and fills the rest as it scrolls into view', async ({
   page,
 }) => {
   await page.goto('/');
-  const skills = page.getByRole('region', { name: sectionHeading('skills') });
-  await expect(skills.locator('.chip.skill')).toHaveText(
-    yamlList('src/content/skills.yaml', 'skills'),
-  );
-  await expect(skills.locator('.chip.cert')).toHaveText(
-    yamlList('src/content/skills.yaml', 'certifications'),
+  const lead = page.locator('.statement .lead');
+  await expect(lead).toHaveText(new RegExp(`^Hey, .*${profileValue('jobTitle')}$`));
+  await expect(lead).toHaveCSS('color', 'rgb(10, 10, 10)');
+  await expect(lead).toHaveCSS('animation-name', 'none');
+  const supported = await page.evaluate(() => CSS.supports('animation-timeline: view()'));
+  test.skip(!supported, 'This browser has no CSS view timeline, so the statement is plain text');
+  const rest = page.locator('.statement .rest');
+  await expect
+    .poll(async () => rest.evaluate((el) => getComputedStyle(el).animationTimeline))
+    .toBe('--statement');
+});
+
+// Play my intro and View CV sit on one line: their icons share a centre.
+test('the About row lines up Play my intro with View CV', async ({ page }) => {
+  await page.goto('/');
+  const row = page.locator('#about .contact-row');
+  const play = row.locator('voice-intro .play');
+  await expect(play).toBeVisible();
+  const cv = row.locator('li', { has: page.getByRole('link', { name: 'View CV' }) }).locator('svg');
+  const centre = async (icon: Locator) => {
+    const box = await icon.boundingBox();
+    return box ? box.y + box.height / 2 : Number.NaN;
+  };
+  expect(Math.abs((await centre(play)) - (await centre(cv)))).toBeLessThan(0.5);
+});
+
+// The About stats: one band of the live Blue sky, each number over its label, from the profile.
+test('the About stats sit on one band of the live sky', async ({ page }) => {
+  await page.goto('/');
+  const stats = page.locator('#about .stats');
+  await expect(stats.locator('sky-gradient')).toHaveCount(1);
+  await expect(stats.locator('.stat-num')).toHaveText(
+    yamlValues('src/content/profile.yaml', 'value'),
   );
 });
 
-test('the About card lists the traits as pills that settle in place', async ({ page }) => {
+// The Toolkit (the Skills section): the tools as app icons, the skills as a list and the
+// certifications as credential cards, straight from skills.yaml, one group at a time.
+const SKILLS = 'src/content/skills.yaml';
+// One group shows at a time; the others fade out but stay readable to screen readers, so what
+// counts is each group's opacity.
+const opacity = (page: Page, group: string) => () =>
+  page
+    .locator(`#skills .panel[data-panel="${group}"]`)
+    .evaluate((panel) => getComputedStyle(panel).opacity);
+
+test('the Toolkit shows each tool, skill and certification', async ({ page }) => {
   await page.goto('/');
-  const traits = page.getByRole('list', { name: 'A few words about me' });
-  await traits.scrollIntoViewIfNeeded();
-  await expect(traits.locator('li')).toHaveText(yamlList('src/content/profile.yaml', 'traits'));
-  await expect(traits.locator('li').last()).toHaveCSS('transform', 'none');
+  const toolkit = page.getByRole('region', { name: sectionHeading('skills') });
+  for (const key of ['name', 'logo', 'title', 'issuer']) {
+    expect(yamlValues(SKILLS, key)).not.toEqual([]);
+  }
+  await expect(toolkit.locator('.tool-name')).toHaveText(yamlValues(SKILLS, 'name'));
+  await expect(toolkit.locator('.tool img')).toHaveCount(yamlValues(SKILLS, 'logo').length);
+  await expect(toolkit.locator('.skill')).toHaveText(yamlList(SKILLS, 'skills'));
+  await expect(toolkit.locator('.cert-title')).toHaveText(yamlValues(SKILLS, 'title'));
+  await expect(toolkit.locator('.issuer')).toHaveText(yamlValues(SKILLS, 'issuer'));
+});
+
+// It turns to the next group every three seconds on its own, until the visitor picks one.
+test('the Toolkit turns from group to group until one is picked', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#skills').scrollIntoViewIfNeeded();
+  await page.mouse.move(0, 0);
+  for (const group of ['tools', 'skills', 'certifications', 'tools']) {
+    await expect.poll(opacity(page, group), { timeout: 5000 }).toBe('1');
+  }
+  await page.locator('#skills .switch').getByText('Skills', { exact: true }).click();
+  await page.mouse.move(0, 0);
+  await page.waitForTimeout(4000);
+  expect(await opacity(page, 'skills')()).toBe('1');
+  expect(await opacity(page, 'tools')()).toBe('0');
+  expect(await opacity(page, 'certifications')()).toBe('0');
+});
+
+test.describe('the Toolkit under reduced motion', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test('holds still on the tools', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForTimeout(3500);
+    expect(await opacity(page, 'tools')()).toBe('1');
+    expect(await opacity(page, 'skills')()).toBe('0');
+  });
 });

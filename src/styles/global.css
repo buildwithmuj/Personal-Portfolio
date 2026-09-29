@@ -60,13 +60,27 @@ a {
   outline-offset: 3px;
 }
 
+/*
+ * Pages cross-fade into each other (cross-document view transitions, no script), while the
+ * top bar holds still (TopBar.astro names it). Off under reduced motion.
+ */
+@view-transition {
+  navigation: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}
+
 .container {
   width: min(100% - 2 * var(--gutter), var(--page-max-width));
   margin-inline: auto;
 }
 
 /*
- * The hero's "Pause animations" button holds every looping animation on the page (WCAG 2.2.2).
+ * The footer's "Pause animations" toggle holds every looping animation on the page (WCAG 2.2.2).
  * One-off entrances and scroll-linked effects opt out beside their own keyframes, with
  * `:global(.motion-paused) … { animation-play-state: running !important }`: held, they would
  * freeze on their first frame, hiding the hero headline or pinning the scroll ring at empty.
@@ -122,13 +136,55 @@ a {
 }
 
 .shell {
+  position: relative;
   padding: var(--shell-pad-top) var(--shell-pad) var(--shell-pad);
   border-radius: var(--radius-shell);
   background: var(--color-shell);
 }
 
+/*
+ * The grey shells join up like links in a chain: a neck in the shell's grey bridges each gap to
+ * the next shell, with concave sides (tokens.css --mask-neck). It overlaps each shell by a pixel so
+ * no hairline shows at the joins. The hero stands apart, the inset About card runs straight into
+ * the next shell (below), and the sky-crowned Contact closes the page on its own.
+ */
+.stack > .shell:not(.shell-hero, .shell-inset):has(~ .shell:not(.shell-sky))::after {
+  position: absolute;
+  inset-block-start: calc(100% - 1px);
+  inset-inline-start: 50%;
+  width: calc(var(--shell-gap) * 2);
+  height: calc(var(--shell-gap) + 2px);
+  translate: -50% 0;
+  background: var(--color-shell);
+  content: '';
+  mask: var(--mask-neck);
+}
+
 .shell-inset {
   padding: var(--inset);
+}
+
+/*
+ * As in the Portfolik reference, an inset card (About) flows into the shell after it: no gap, and
+ * square where they meet, so the two read as one grey panel with the card at its head. A section's
+ * own script can sit between the two in the page, so the next shell is found with `~`, and the
+ * shells after it get their usual gap and corners back.
+ */
+.stack > .shell-inset:has(~ .shell) {
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.stack > .shell-inset ~ .shell {
+  margin-block-start: calc(-1 * var(--shell-gap));
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+}
+
+.stack > .shell-inset ~ .shell ~ .shell {
+  margin-block-start: 0;
+  border-start-start-radius: var(--radius-shell);
+  border-start-end-radius: var(--radius-shell);
 }
 
 /*
@@ -151,7 +207,9 @@ a {
   mask-image: var(--mask-fade-down);
 }
 
+/* The hero keeps the reference's tight gap to the About card below, not the chain's wider one. */
 .stack > .shell-hero:first-child {
+  margin-block-end: calc(var(--shell-gap-tight) - var(--shell-gap));
   padding: calc(var(--bar-height) + var(--inset)) var(--inset) var(--inset);
 }
 
@@ -218,6 +276,32 @@ a {
   display: none;
 }
 
+/*
+ * Sections open as they arrive: on the home page's chain (.stack), each collapsible section is
+ * closed below its heading until it scrolls into view, then slides open and stays open (Shell.astro
+ * adds .is-open, then .is-settled once the slide is done, when its content may spill over the
+ * edges again). Only with the scroll reveals, so never without JavaScript or under reduced motion;
+ * focus inside opens a section at once, and a collapsed one ([hidden]) stays collapsed.
+ */
+.reveal-ready .stack > .shell > .shell-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 800ms var(--ease-out);
+}
+
+.reveal-ready .stack > .shell > .shell-body > .shell-body-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.reveal-ready .stack > :is(.is-open, :focus-within) > .shell-body {
+  grid-template-rows: 1fr;
+}
+
+.reveal-ready .stack > .is-settled > .shell-body > .shell-body-inner {
+  overflow: visible;
+}
+
 /* On phones the switch drops below the heading, and the toggle stays beside the title. */
 @media (width < 40rem) {
   .section-head {
@@ -279,6 +363,11 @@ a {
       border-box;
   box-shadow: 0 3px 8px -2px var(--watch-shadow);
   color: var(--color-on-inverse);
+}
+
+/* Interface icons (Icon.astro): a fixed size, never squeezed in a row. */
+.icon {
+  flex: none;
 }
 
 /* Buttons */

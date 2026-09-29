@@ -67,19 +67,19 @@ const minute = parts.find((part) => part.type === 'minute')?.value ?? '00';
     line-height: 1;
   }
 
-  /* The ridged digital crown, with the side button beneath it. */
+  /* The ridged digital crown, centred on the right edge. */
   .watch::after {
     position: absolute;
-    inset-block-start: 4px;
+    inset-block-start: 50%;
     inset-inline-end: -5px;
     width: 3px;
-    height: 8px;
+    height: 10px;
     border-radius: 0 2px 2px 0;
     background: repeating-linear-gradient(
       var(--watch-metal-light) 0 1px,
       var(--watch-metal-dark) 1px 2px
     );
-    box-shadow: 0 12px 0 var(--watch-metal-dark);
+    translate: 0 -50%;
     content: '';
   }
 

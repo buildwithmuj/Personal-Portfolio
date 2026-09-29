@@ -3,147 +3,182 @@ import type { CollectionEntry } from 'astro:content';
 import { withBase } from '../../lib/paths.ts';
 import { socialLabels } from '../../lib/social.ts';
 import BookingPanel from '../BookingPanel.astro';
-import CopyEmail from '../CopyEmail.astro';
+import Icon from '../Icon.astro';
 import Shell from '../Shell.astro';
+import SocialIcon from '../SocialIcon.astro';
 
 interface Props {
   profile: CollectionEntry<'profile'>['data'];
 }
 
 const { profile } = Astro.props;
-const [emailUser, emailDomain] = profile.email.split('@');
 ---
 
+{/*
+  Let's work together, invitation first: under the sky, a card that leads with the call (the
+  availability, a big "Let's talk it through.", the booking button and a "Drop an email" button
+  beside it), then one quiet line with the CV and the social links.
+*/}
 <Shell
   id="contact"
   heading={profile.sections.contact.heading}
   intro={profile.sections.contact.intro}
   sky
 >
-  <div class="fields">
-    <p class="field" data-reveal="rise">
-      <svg
-        viewBox="0 0 24 24"
-        width="18"
-        height="18"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-        focusable="false"
-      >
-        <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-        <path d="m3.5 6.5 8.5 6 8.5-6"></path>
-      </svg>
-      <a class="email" href={`mailto:${profile.email}`}>
-        {emailUser}@<wbr />
-        {emailDomain}
-      </a>
-      <CopyEmail email={profile.email} />
+  <div class="invite" data-reveal="rise">
+    {profile.availability && (
+      <p class="availability">
+        <span class="dot" aria-hidden="true"></span>
+        {profile.availability}
+      </p>
+    )}
+    <p class="big">
+      Let's talk it <em>through.</em>
     </p>
-    <p class="field" data-reveal="rise">
-      <svg
-        viewBox="0 0 24 24"
-        width="18"
-        height="18"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-        focusable="false"
-      >
-        <path d="M7 3h7l5 5v13H7z"></path>
-        <path d="M14 3v5h5M10 13h6M10 17h6"></path>
-      </svg>
-      <a href={withBase('/cv')}>View CV</a>
-    </p>
-    <div class="field wide" data-reveal="rise">
-      <span class="muted">Elsewhere</span>
-      <ul class="socials" role="list">
-        {profile.socials.map((social) => (
-          <li>
-            <a href={social.url}>{socialLabels[social.platform]}</a>
-          </li>
-        ))}
-      </ul>
-    </div>
-    <div class="wide booking" data-reveal="rise">
+    <div class="actions">
       <BookingPanel url={profile.bookingUrl} name={profile.name} />
+      <a class="btn btn-secondary mail" href={`mailto:${profile.email}`}>
+        <Icon name="send-mail" size={22} class="fly" />
+        Drop an email
+      </a>
     </div>
+    <p class="meta">A 30-minute call, booked in a couple of clicks.</p>
+  </div>
+  <div class="details" data-reveal="rise">
+    <ul class="socials" role="list">
+      <li>
+        <a class="social" href={withBase('/cv')} aria-label="View CV" title="View CV" data-cv>
+          <Icon name="cv" />
+        </a>
+      </li>
+      {profile.socials.map((social) => (
+        <li>
+          <a class="social" href={social.url} aria-label={socialLabels[social.platform]}>
+            <SocialIcon platform={social.platform} />
+          </a>
+        </li>
+      ))}
+    </ul>
   </div>
 </Shell>
 
 <style>
-  /* Modelled on the reference's contact form: white 52px fields, 20px apart, then a full-width button. */
-  .fields {
+  .invite {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: var(--space-4);
+    justify-items: start;
+    padding: 30px;
+    border-radius: var(--radius-card);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-secondary);
   }
 
-  .field {
+  .availability {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    margin: 0;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-secondary);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-available);
+    box-shadow: 0 0 0 4px var(--color-available-glow);
+  }
+
+  .big {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 2.5rem);
+    letter-spacing: var(--tracking-tight);
+    line-height: 1.1;
+  }
+
+  .big em {
+    color: var(--color-accent);
+    font-family: var(--font-serif);
+  }
+
+  .actions {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-2) 10px;
-    align-items: center;
-    max-width: none;
-    min-height: 52px;
-    padding: 8px 20px;
-    border-radius: var(--radius-image);
-    background: var(--color-surface);
+    gap: var(--space-3);
+    align-items: flex-start;
+    justify-self: stretch;
   }
 
-  .wide {
-    grid-column: 1 / -1;
+  /* Open, the calendar takes the whole row, and the email button moves beneath it. */
+  .actions > :global(booking-panel:has(details[open])) {
+    flex-basis: 100%;
   }
 
-  .field svg {
-    flex-shrink: 0;
-    color: var(--color-accent);
+  /* Shaped like the booking button, in white, with an envelope that flies forward on hover. */
+  .mail {
+    min-height: 44px;
+    border-radius: var(--radius-pill);
   }
 
-  .field a {
-    color: var(--color-text);
-    text-decoration: none;
+  .fly {
+    transition: translate var(--duration-base) var(--ease-standard);
   }
 
-  .field a:hover {
-    text-decoration: underline;
+  .mail:hover .fly {
+    translate: 3px 0;
   }
 
-  .email {
-    min-width: 0;
-  }
-
-  /* The email line never wraps its copy button onto a second line. */
-  .field:has(.email) {
-    flex-wrap: nowrap;
-    gap: var(--space-2);
-  }
-
-  .muted {
+  .meta {
+    margin: 0;
     color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  /* The quiet line: the CV (it opens over the page) and the social links, as icon chips. */
+  .details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-6);
+    align-items: center;
+    margin-block-start: var(--space-6);
   }
 
   .socials {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2) var(--space-6);
+    gap: var(--space-2);
+    margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .booking {
-    margin-block-start: var(--space-2);
+  .social {
+    display: grid;
+    place-items: center;
+    width: var(--icon-button);
+    height: var(--icon-button);
+    border-radius: var(--radius-icon);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-secondary);
+    color: var(--color-text);
+  }
+
+  .social:hover {
+    color: var(--color-accent);
   }
 
   @media (width < 40rem) {
-    .fields {
-      grid-template-columns: 1fr;
+    .invite {
+      padding: 24px 22px;
+    }
+
+    /* On phones the two buttons stack, each the card's full width. */
+    .actions > :global(*) {
+      flex-basis: 100%;
     }
   }
 </style>

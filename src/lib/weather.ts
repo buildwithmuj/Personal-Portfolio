@@ -1,5 +1,5 @@
 /**
- * The owner's local weather, shown beside the clock and in the hero's ambient layer, from
+ * The owner's local weather, shown beside the clock as an icon and a temperature, from
  * Open-Meteo (free, no key). The build fetches a reading, which is what shows first and all that
  * shows without JavaScript; the top bar then refreshes it live in the visitor's browser (see the
  * privacy notice). Any failure simply keeps the last reading, or shows no weather.
@@ -9,7 +9,7 @@ export interface Weather {
   temperature: number;
   /** A short description, e.g. "Light rain". */
   condition: string;
-  /** Which scene the hero's ambient layer plays. */
+  /** Which icon the top bar shows (TopBar.astro's #weather-* symbols). */
   scene: WeatherScene;
 }
 

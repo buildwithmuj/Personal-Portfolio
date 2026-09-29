@@ -37,8 +37,10 @@ test('Tab reaches every link and button on the home page', async ({ page, browse
   test.skip(browserName === 'webkit', 'WebKit does not move focus to links with Tab by default');
   await page.goto('/');
   // Radios count once per group (the checked one); a collapsed section's controls are skipped.
+  // Ask me's question box is the one text field.
   const focusable =
-    'a[href]:visible, button:visible, summary:visible, input[type="radio"]:checked:visible';
+    'a[href]:visible, button:visible, summary:visible, input[type="radio"]:checked:visible, ' +
+    'input[type="text"]:visible';
   const count = await page.locator(focusable).count();
   const reached = new Set<number>();
   // Where focus went, when Tab lands on something that isn't a link, button or control.
@@ -47,7 +49,7 @@ test('Tab reaches every link and button on the home page', async ({ page, browse
     await page.keyboard.press('Tab');
     const { index, element } = await page.evaluate(() => {
       const active = document.activeElement as Element;
-      const all = [...document.querySelectorAll('a[href], button, summary, input[type="radio"]')];
+      const all = [...document.querySelectorAll('a[href], button, summary, input')];
       return { index: all.indexOf(active), element: `${active.tagName} ${active.className}` };
     });
     reached.add(index);

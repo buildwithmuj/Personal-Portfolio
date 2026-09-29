@@ -1,0 +1,502 @@
+---
+import { getEducation, getExperience, getProfile, getSkills } from '../lib/content.ts';
+import { formatRoleDates } from '../lib/dates.ts';
+import { withBase } from '../lib/paths.ts';
+import Icon from './Icon.astro';
+
+const profile = await getProfile();
+const roles = await getExperience();
+const skills = await getSkills();
+const education = await getEducation();
+const linkedin = profile.socials.find((social) => social.platform === 'linkedin');
+const monthYear = new Intl.DateTimeFormat('en-GB', {
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+---
+
+{/*
+  The CV over the page, after the CV Portfolio Template: a link marked data-cv opens it, with a bar
+  holding the name, Download PDF and a close button above the CV as one document. It closes with
+  the button, Escape or a click beside it. Without JavaScript those links go to the CV page.
+
+  The document keeps to what applicant tracking systems read well: real text in one reading order,
+  the usual section names as headings, and each role as title, employer and dates. The branding is
+  light, in the Blue sky palette: a sky-blue full stop after the name, the job title on a sky
+  marker, section labels led by a short blue bar, blue bullets and tool pills, and a sky orb at the
+  foot.
+*/}
+<dialog class="cv-view" aria-labelledby="cv-view-name">
+  <div class="bar">
+    <p>
+      <b>{profile.name}</b>
+      <span class="doc"> · Curriculum Vitae</span>
+    </p>
+    <a class="btn btn-primary" href={withBase('/cv.pdf')} download>
+      Download PDF
+    </a>
+    <button class="close" type="button" aria-label="Close CV" autofocus>
+      <Icon name="close" />
+    </button>
+  </div>
+  <article class="sheet">
+    <header class="head">
+      <div>
+        <h2 id="cv-view-name">
+          {profile.name}
+          <span class="dot" aria-hidden="true">
+            .
+          </span>
+        </h2>
+        <p class="role">
+          <mark>{profile.jobTitle}</mark>, {profile.worksFor}
+        </p>
+      </div>
+      <ul class="contact" role="list">
+        <li>{profile.locationLabel}</li>
+        <li>
+          <a href={`mailto:${profile.email}`}>{profile.email}</a>
+        </li>
+        {linkedin && (
+          <li>
+            <a href={linkedin.url}>{linkedin.url.replace(/^https:\/\/(www\.)?/, '')}</a>
+          </li>
+        )}
+      </ul>
+    </header>
+    <div class="body">
+      <div class="col">
+        <section>
+          <h3>Profile</h3>
+          <p>{profile.subline}</p>
+        </section>
+        <section>
+          <h3>Experience</h3>
+          {roles.map((role) => (
+            <div class="entry">
+              <div class="top">
+                <h4>{role.role}</h4>
+                <p class="when">{formatRoleDates(role.start, role.end)}</p>
+              </div>
+              <p class="org">{role.employer}</p>
+              <p class="muted">{role.summary}</p>
+              {role.highlights.length > 0 && (
+                <ul class="points">
+                  {role.highlights.map((highlight) => (
+                    <li>{highlight}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </section>
+        <section>
+          <h3>Education</h3>
+          {education.map((entry) => (
+            <div class="entry">
+              <div class="top">
+                <h4>{entry.qualification}</h4>
+                <p class="when">{formatRoleDates(entry.start, entry.end)}</p>
+              </div>
+              <p class="org">{entry.institution}</p>
+            </div>
+          ))}
+        </section>
+      </div>
+      <div class="col">
+        <section>
+          <h3>Skills</h3>
+          <ul class="tags">
+            {[...skills.skills, ...skills.cvOnly].map((skill) => (
+              <li>{skill}</li>
+            ))}
+          </ul>
+        </section>
+        <section>
+          <h3>Tools</h3>
+          <ul class="tags tools">
+            {skills.tools.map((tool) => (
+              <li>{tool.name}</li>
+            ))}
+          </ul>
+        </section>
+        <section>
+          <h3>Certifications</h3>
+          <ul class="certs">
+            {skills.certifications.map((certification) => (
+              <li>
+                {certification.title}
+                <span>{certification.issuer}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <section>
+          <h3>Languages</h3>
+          <ul class="rows">
+            {profile.languages.map(({ language, level }) => (
+              <li>
+                <span>{language}</span>
+                {level}
+              </li>
+            ))}
+          </ul>
+        </section>
+        <section>
+          <h3>Interests</h3>
+          <ul class="tags">
+            {profile.outsideWork.map(({ activity, start }) => (
+              <li>
+                {activity}, since {monthYear.format(new Date(`${start}-01T00:00:00Z`))}
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    </div>
+    <footer class="foot">
+      <span>{profile.name} · Curriculum Vitae</span>
+      <span class="orb" aria-hidden="true"></span>
+      <span>Updated {monthYear.format(profile.cvUpdated)}</span>
+    </footer>
+  </article>
+</dialog>
+
+<script>
+  // Links marked data-cv open the CV over the page, unless the visitor asked for a new tab or
+  // window; the close button and a click on the dimmed page beside it close it (Escape is the
+  // browser's own).
+  const dialog = document.querySelector<HTMLDialogElement>('.cv-view');
+  if (dialog) {
+    for (const link of document.querySelectorAll('[data-cv]')) {
+      link.addEventListener('click', (event) => {
+        const { ctrlKey, metaKey, shiftKey } = event as MouseEvent;
+        if (ctrlKey || metaKey || shiftKey) return;
+        event.preventDefault();
+        dialog.showModal();
+      });
+    }
+    dialog.onclick = ({ target }) => {
+      if (target === dialog || (target as Element).closest('.close')) dialog.close();
+    };
+  }
+</script>
+
+<style>
+  /* A white card over the page dimmed navy, filling the screen but for a margin; the bar stays put
+     while the CV scrolls beneath it. */
+  .cv-view {
+    width: min(100% - 32px, 60rem);
+    max-width: none;
+    height: calc(100dvh - 48px);
+    max-height: none;
+    margin: auto;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-card);
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
+
+  .cv-view[open] {
+    display: flex;
+    flex-direction: column;
+    animation: cv-in 300ms var(--ease-standard);
+  }
+
+  /* A one-off entrance: under paused animations it would freeze unseen on its first frame. */
+  :global(.motion-paused) .cv-view[open] {
+    animation-play-state: running !important;
+  }
+
+  .cv-view::backdrop {
+    background: var(--color-scrim);
+    backdrop-filter: blur(6px);
+  }
+
+  :global(html:has(.cv-view[open])) {
+    overflow: hidden;
+  }
+
+  .bar {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+    padding: 12px 12px 12px 24px;
+    border-block-end: 1px solid var(--color-hairline);
+  }
+
+  .bar p {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--text-sm);
+  }
+
+  .close {
+    display: grid;
+    place-items: center;
+    width: var(--icon-button);
+    height: var(--icon-button);
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--color-shell);
+    color: var(--color-text);
+    cursor: pointer;
+  }
+
+  .sheet {
+    overflow-y: auto;
+    padding: clamp(24px, 5vw, 48px);
+  }
+
+  .sheet p,
+  .sheet ul {
+    margin: 0;
+  }
+
+  .sheet ul {
+    padding: 0;
+    list-style: none;
+  }
+
+  /* The letterhead: the name and role opposite the contact details, over a strong rule. */
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-8);
+    align-items: flex-end;
+    justify-content: space-between;
+    padding-block-end: var(--space-6);
+    border-block-end: 2px solid var(--color-text);
+  }
+
+  h2 {
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    letter-spacing: var(--tracking-tight);
+    line-height: 1;
+  }
+
+  .dot,
+  .org,
+  .contact a {
+    color: var(--color-accent);
+  }
+
+  .role {
+    margin-block-start: var(--space-3);
+  }
+
+  mark {
+    padding: 0 4px;
+    border-radius: 3px;
+    background: var(--color-chip-edge);
+    color: var(--color-text);
+    box-decoration-break: clone;
+  }
+
+  .contact {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    line-height: 1.8;
+    text-align: end;
+  }
+
+  .contact a {
+    text-decoration: none;
+  }
+
+  .body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+    gap: var(--space-8) 40px;
+    margin-block-start: var(--space-6);
+  }
+
+  .col {
+    display: grid;
+    gap: var(--space-8);
+    align-content: start;
+  }
+
+  /* Section labels: small capitals led by a short sky-blue bar. */
+  h3 {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-block-end: var(--space-3);
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  h3::before {
+    width: 22px;
+    height: 2px;
+    background: var(--color-accent);
+    content: '';
+  }
+
+  .entry + .entry {
+    margin-block-start: var(--space-4);
+    padding-block-start: var(--space-4);
+    border-block-start: 1px solid var(--color-hairline);
+  }
+
+  .top {
+    display: flex;
+    gap: var(--space-4);
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  h4 {
+    font-size: var(--text-base);
+  }
+
+  .when,
+  .muted,
+  .points,
+  .certs span,
+  .rows span {
+    color: var(--color-text-muted);
+  }
+
+  .when,
+  .certs span {
+    font-size: var(--text-xs);
+  }
+
+  .when {
+    flex: none;
+  }
+
+  .org,
+  .certs li,
+  .tags li {
+    font-weight: var(--weight-medium);
+  }
+
+  .org {
+    margin-block-end: var(--space-1);
+  }
+
+  .points {
+    display: grid;
+    gap: 6px;
+    margin-block-start: var(--space-2);
+  }
+
+  .points li {
+    position: relative;
+    padding-inline-start: 16px;
+  }
+
+  .points li::before {
+    position: absolute;
+    inset: 0.6em auto auto 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    content: '';
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .tags li {
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--color-chip);
+    font-size: var(--text-xs);
+  }
+
+  .tools li {
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+
+  .certs {
+    display: grid;
+    gap: 10px;
+  }
+
+  .certs span {
+    display: block;
+    font-weight: var(--weight-regular);
+  }
+
+  .rows li {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: space-between;
+    padding-block: 6px;
+    border-block-end: 1px solid var(--color-hairline);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+  }
+
+  .rows span {
+    font-weight: var(--weight-regular);
+  }
+
+  .foot {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+    justify-content: space-between;
+    margin-block-start: var(--space-8);
+    padding-block-start: var(--space-3);
+    border-block-start: 1px solid var(--color-hairline);
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .orb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--gradient-sky);
+  }
+
+  @keyframes cv-in {
+    from {
+      opacity: 0;
+      translate: 0 24px;
+    }
+  }
+
+  @media (width < 48rem) {
+    .body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .contact {
+      text-align: start;
+    }
+  }
+
+  @media (width < 40rem) {
+    .cv-view {
+      width: 100%;
+      height: calc(100dvh - 16px);
+      margin-block-end: 0;
+      border-end-end-radius: 0;
+      border-end-start-radius: 0;
+    }
+
+    .doc {
+      display: none;
+    }
+
+    .top {
+      display: block;
+    }
+  }
+</style>

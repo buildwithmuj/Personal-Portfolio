@@ -14,13 +14,7 @@ interface Props {
 const { studies, heading, intro } = Astro.props;
 ---
 
-<Shell
-  id="work"
-  heading={heading}
-  intro={intro}
-  collapsible="open"
-  icon="M4 8h16v11H4zM9 8V5h6v3M4 13h16"
->
+<Shell id="work" heading={heading} intro={intro} collapsible="open" icon="work">
   <Switch
     slot="actions"
     name="work-filter"

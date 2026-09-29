@@ -7,22 +7,24 @@ interface Props {
   name: string;
   label: string;
   options: { value: string; label: string }[];
+  /** The option picked at first; the first if not given, none if null. */
+  start?: string | null;
 }
 
-const { name, label, options } = Astro.props;
+const { name, label, options, start = options[0]?.value } = Astro.props;
 ---
 
 <fieldset>
   <legend class="visually-hidden">{label}</legend>
   <div class="switch">
-    {options.map((option, index) => (
+    {options.map((option) => (
       <label>
         <input
           class="visually-hidden"
           type="radio"
           name={name}
           value={option.value}
-          checked={index === 0}
+          checked={option.value === start}
         />
         <span>{option.label}</span>
       </label>
