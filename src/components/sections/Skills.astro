@@ -1057,10 +1057,16 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
    * folders three across.
    */
   @media (width < 40rem) {
+    /* The deck sets the card's height: its ribbon and status bar (only the look) give way. */
+    .ribbon,
+    .status {
+      display: none;
+    }
+
     .deck {
       grid-template-columns: minmax(0, 1fr);
-      gap: 12px;
-      padding: 12px;
+      gap: 10px;
+      padding: 10px;
     }
 
     .phases {
@@ -1069,10 +1075,10 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     }
 
     .skill-group {
-      gap: 12px;
+      gap: 10px;
       aspect-ratio: auto;
       min-height: 180px;
-      padding: 16px;
+      padding: 14px;
     }
 
     /* Six skills to a slide: the decorative footer makes way (the thumbnails number the slides). */
@@ -1085,11 +1091,11 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     }
 
     .pills {
-      gap: 6px;
+      gap: 5px;
     }
 
     .skill {
-      padding: 5px 10px;
+      padding: 4px 9px;
       font-size: var(--text-xs);
     }
 
