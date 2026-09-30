@@ -47,7 +47,7 @@ const { title, summary, role, employer, tags, stats, links, cover, coverAlt } = 
           fetchpriority="high"
         />
       </div>
-      {/* The facts, in one strip: the role, who it was with, and what it involved, as words. */}
+      {/* The facts, in one row on the page itself: the role, who it was with, and what it involved. */}
       <dl class="facts">
         <div>
           <dt>Role</dt>
@@ -62,7 +62,7 @@ const { title, summary, role, employer, tags, stats, links, cover, coverAlt } = 
         {tags.length > 0 && (
           <div>
             <dt>Focus</dt>
-            <dd>{tags.join(' · ')}</dd>
+            <dd>{tags.join(', ')}</dd>
           </div>
         )}
       </dl>
@@ -228,22 +228,12 @@ const { title, summary, role, employer, tags, stats, links, cover, coverAlt } = 
     font-size: var(--text-base);
   }
 
-  /* One white strip, its facts side by side with a hairline between them. */
+  /* No card of their own: the story's is the only one on the page. */
   .facts {
-    display: grid;
-    grid-auto-columns: minmax(0, 1fr);
-    grid-auto-flow: column;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-8);
     margin: 0;
-    border-radius: var(--radius-card);
-    background: var(--color-surface);
-  }
-
-  .facts > div {
-    padding: 18px 24px;
-  }
-
-  .facts > div + div {
-    border-inline-start: 1px solid var(--color-shell);
   }
 
   dt {
@@ -257,27 +247,25 @@ const { title, summary, role, employer, tags, stats, links, cover, coverAlt } = 
     font-weight: var(--weight-medium);
   }
 
-  /* Figures, where there are real ones: a large number over what it counts, on the pale sky. */
+  /* Figures, where there are real ones: a large number in the accent over what it counts. */
   .stats {
-    display: grid;
-    grid-auto-columns: minmax(0, 1fr);
-    grid-auto-flow: column;
-    gap: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-16);
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
   .stats li {
-    padding: 18px 24px;
-    border-radius: var(--radius-card);
-    background: var(--color-chip);
-    color: var(--color-sky-ink);
+    max-width: 14rem;
+    color: var(--color-text-muted);
     font-size: var(--text-sm);
   }
 
   .stats b {
     display: block;
+    color: var(--color-accent);
     font-size: var(--text-2xl);
     font-weight: var(--weight-medium);
     letter-spacing: var(--tracking-tight);
@@ -340,14 +328,8 @@ const { title, summary, role, employer, tags, stats, links, cover, coverAlt } = 
   }
 
   @media (width < 48rem) {
-    .facts,
     .stats {
-      grid-auto-flow: row;
-    }
-
-    .facts > div + div {
-      border-block-start: 1px solid var(--color-shell);
-      border-inline-start: 0;
+      column-gap: var(--space-8);
     }
 
     .body {
