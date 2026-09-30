@@ -120,9 +120,6 @@ test('every section is open from the start, and none slides', async ({ page }) =
 async function landsOn(section: Locator): Promise<void> {
   const page = section.page();
   const head = section.locator('.section-head');
-  // On a busy CI runner Firefox can start its smooth scroll late, after the page has already sat
-  // still for a moment: first wait for the heading to arrive (generously), then for the scroll to end.
-  await expect(head).toBeInViewport({ ratio: 1, timeout: 15_000 });
   // The smooth scroll is over once the page holds still for a third of a second.
   await page.waitForFunction(
     () =>
@@ -144,9 +141,15 @@ async function landsOn(section: Locator): Promise<void> {
   expect(box?.y ?? 0).toBeGreaterThanOrEqual((bar?.y ?? 0) + (bar?.height ?? 0));
 }
 
+// The hero's content rises into place as the page loads. Clicked while it still moves, Playwright
+// retries, and each retry first scrolls the link into view; the page scrolls smoothly, so the press
+// and the release land on different elements and the click never reaches the link (Firefox on CI,
+// seen in a diagnostic run). So the test waits for the hero to settle, as a visitor's eye does.
 test("the hero's Book a call lands on Let's work together", async ({ page }) => {
   await page.goto('/');
-  await page.locator('#top').getByRole('link', { name: 'Book a call' }).click();
+  const call = page.locator('#top').getByRole('link', { name: 'Book a call' });
+  await scrollIntoViewSettled(call);
+  await call.click();
   await landsOn(page.locator('#contact'));
 });
 
