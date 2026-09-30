@@ -108,8 +108,9 @@
     radial-gradient(circle at 100% 50%, transparent var(--neck-r), #000 calc(var(--neck-r) + 0.5px))
       right / 50% 100% no-repeat;
 
-  /* The hero band's workflow line-art (Hero.astro .flow): white hairlines, drawn in once */
+  /* The hero band's workflow line-art (Hero.astro .flow): white hairlines, and the light along them */
   --color-flow: rgb(255 255 255 / 55%);
+  --color-flow-pulse: #fff;
 
   /* Type */
   --font-sans: var(--font-mona);

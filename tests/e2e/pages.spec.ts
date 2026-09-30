@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { expect, test } from '@playwright/test';
+import { COUNT_URL } from '../../site.config.ts';
 import { MOTION_SCRIPT } from '../../src/lib/motion.ts';
 import { builtPagePaths, SITE_ORIGIN } from '../support/site.ts';
 import { stubWeather } from '../support/weather.ts';
@@ -123,7 +124,8 @@ for (const path of builtPagePaths()) {
         "base-uri 'self'",
         "form-action 'none'",
         'frame-src https://cal.com https://app.cal.com',
-        "connect-src 'self' https://api.open-meteo.com",
+        // The weather, and the visitor counter once it is switched on (site.config.ts).
+        `connect-src 'self' https://api.open-meteo.com${COUNT_URL ? ` ${new URL(COUNT_URL).origin}` : ''};`,
       ]) {
         expect(content).toContain(directive);
       }

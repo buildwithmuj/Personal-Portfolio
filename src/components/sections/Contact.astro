@@ -43,13 +43,19 @@ const { profile } = Astro.props;
   <div class="details" data-reveal="rise">
     <ul class="socials" role="list">
       <li>
-        <a class="social" href={withBase('/cv.pdf')} aria-label="View CV" title="View CV" data-cv>
+        <a
+          class="icon-tile"
+          href={withBase('/cv.pdf')}
+          aria-label="View CV"
+          title="View CV"
+          data-cv
+        >
           <Icon name="cv" />
         </a>
       </li>
       {profile.socials.map((social) => (
         <li>
-          <a class="social" href={social.url} aria-label={socialLabels[social.platform]}>
+          <a class="icon-tile" href={social.url} aria-label={socialLabels[social.platform]}>
             <SocialIcon platform={social.platform} />
           </a>
         </li>
@@ -130,21 +136,6 @@ const { profile } = Astro.props;
     margin: 0;
     padding: 0;
     list-style: none;
-  }
-
-  .social {
-    display: grid;
-    place-items: center;
-    width: var(--icon-button);
-    height: var(--icon-button);
-    border-radius: var(--radius-icon);
-    background: var(--color-surface);
-    box-shadow: var(--shadow-secondary);
-    color: var(--color-text);
-  }
-
-  .social:hover {
-    color: var(--color-accent);
   }
 
   @media (width < 40rem) {

@@ -10,6 +10,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "check": "astro check",
+    "cv:pdf": "node scripts/cv-pdf.ts",
     "lint": "stylelint --allow-empty-input \"src/**/*.{css,astro}\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

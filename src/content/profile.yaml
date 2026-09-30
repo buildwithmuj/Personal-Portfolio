@@ -7,81 +7,82 @@ main:
   titleTagline: Intelligent Automation & AI Product Builder
   roles:
     - Automation Analyst
-    - AI Product Engineer
-    - Project Manager
-    - Product Owner
-  headline: I turn messy processes into automation and products people actually use.
+    - Consultant
+    - AI Product Builder
+  headline: I redesign messy processes, automate them, and build products people actually use.
   headlineAccent: people actually use.
   availability: Open to new roles and projects
   subline: >-
-    Over ten years untangling complex processes for organisations across the public sector, healthcare,
-    education, financial services and telecoms, and building my own products along the way.
+    Ten years in consulting, the last five in process optimisation and intelligent automation, across
+    the public sector, healthcare, education, financial services and telecoms, and building my own
+    products along the way.
   about: >-
-    Hey, I'm Mujtaba Shah, a Senior Intelligent Automation Analyst who turns complex processes into
-    automation, data and AI products that save time, cut errors and scale.
+    Hey, I'm Muj, a consultant specialising in process optimisation and intelligent automation. I
+    love digging into what AI can do for everyday work, and I build my own products to find out.
   interests: 'Outside work: boxing at Legends MMA, four languages, and building side projects.'
-  # A typical weekday, from Mujtaba's own answers (2026-09-28), in London time. The About card's
-  # board ticks each task off once the next one has started.
+  # A typical weekday, in London time: the shape most days tend to take, not a record of any one
+  # (reworded with the owner in the copy interview, 2026-09-30). The About card's board ticks each
+  # task the moment its time comes.
   day:
-    - { stack: Morning, time: '06:00', task: Gym and sauna }
-    - { stack: Morning, time: '07:45', task: 'Write the day’s goals and actions, by hand' }
+    - { stack: Morning, time: '06:00', task: 'Gym and sauna, to get the head straight' }
+    - { stack: Morning, time: '07:45', task: 'A plan for the day, written by hand' }
     - {
         stack: Building,
         time: '08:30',
-        task: 'Client work: process optimisation and automation advisory',
+        task: 'Client work: workshops, analysis and solution design',
       }
-    - { stack: Building, time: '13:30', task: 'Firm projects, like designing our new website' }
-    - { stack: Building, time: '16:00', task: Mentoring new joiners }
+    - { stack: Building, time: '13:30', task: 'Build time: automations, documents and demos' }
+    - {
+        stack: Building,
+        time: '16:00',
+        task: 'Catch-ups, reviews and collaboration with colleagues',
+      }
     - {
         stack: Learning,
-        time: '19:00',
-        task: 'Tea, notebook open: a side project with Claude or ChatGPT',
+        time: '20:00',
+        task: 'Green tea and a side project, usually something with AI',
       }
-    - { stack: Learning, time: '20:30', task: Design principles and GitHub, via YouTube }
-    - { stack: Learning, time: '21:30', task: Tips and show pieces from the community on X }
-  # Answers for "Ask me", drawn from the CV, skills and method, and live since v1.1.0. They
-  # were drafted for Mujtaba to rewrite in their own words; until then the section only signs them
-  # "Answered by" Mujtaba, with no claim about how they were written (it said "not an AI" until
-  # 29 September 2026).
+    - { stack: Learning, time: '20:30', task: 'Learning: a course, a video or a new tool to try' }
+    - { stack: Learning, time: '21:30', task: Wind down and switch off }
+  # Answers for "Ask me": the questions an interviewer would ask, answered in the owner's own words
+  # (the copy interview, 2026-09-30). The tools answer says "delivered with" on purpose: some were
+  # used hands-on and some alongside developers, and it must not claim otherwise.
   # Set draft back to true to show the section only in preview builds.
   interview:
     draft: false
     questions:
       - question: What role are you after?
         answer: >-
-          A senior role where automation, AI and product meet: leading an intelligent automation
-          programme, or owning an AI product from the first problem to version one. I'm also open to
-          projects where a process needs untangling.
-      - question: Proudest project?
+          A senior role in consulting or intelligent automation, ideally one that gets me closer to
+          AI products. Mainly permanent roles, though I'm open to contracts and to projects where a
+          process needs sorting out.
+      - question: A project you're proud of?
         answer: >-
-          Leading automation for a UK healthcare group, where RPA and workflow tools cut manual work
-          and improved turnaround times. What matters most to me is that it gets used, not just
-          delivered.
+          Leading automation for a UK healthcare group. We cut a lot of manual back-office work and
+          sped up turnaround times. What I liked most is that people actually used it.
       - question: How do you tackle a messy process?
         answer: >-
-          I start with the real process, not the documented one, mapping how the work actually
-          happens with the people who do it. Then I design the future state, build the business case
-          so the right people can say yes, and deliver in small, tested steps. Finally I embed it,
-          with the SOPs and adoption support that make the change stick.
-      - question: How do you build a product?
+          I sit with the people who do the work and map what really happens, not what the document
+          says. Then we agree what's worth fixing, design the better version, and deliver it in small
+          steps, with training so it sticks.
+      - question: How do you build with AI?
         answer: >-
-          From a real problem people actually have, checked before I build anything. I prototype
-          fast with low-code, no-code and AI tools, put it in front of real users early, ship the
-          smallest version that solves it well, then measure, listen and improve, or retire it and
-          carry the lessons forward.
-      - question: Which tools do you use?
+          I start by writing down the problem and what good looks like. Then I build with AI coding
+          tools like Claude Code or Codex, review what they produce, test it properly, and get it in
+          front of real users early. This site was built that way.
+      - question: Which tools have you worked with?
         answer: >-
-          RPA, APIs and Power Apps for automation, Power BI for data products, and low-code, no-code
-          and AI tools to build products fast. I'm a Certified ScrumMaster and Professional Scrum
-          Product Owner, so agile delivery is second nature.
+          I've delivered projects with Microsoft 365, Power Apps, Power BI, RPA platforms and APIs.
+          Some of that was hands-on and some was alongside developers, where my part was the
+          analysis, the design and the testing. For my own builds I use Claude, ChatGPT and Kimi.
       - question: What are you learning?
         answer: >-
-          Agentic AI workflows: automations that can reason about a task instead of only following a
-          script. I'm putting them to work at DigiBlu, and on this site.
+          Agentic AI: automations that can work through a task rather than follow a fixed script.
+          I'm also going deeper on Power Automate.
       - question: Life outside work?
         answer: >-
-          I box at Legends MMA, speak four languages and I'm always building something on the side.
-          Boxing keeps me calm under pressure, which helps on go-live day too.
+          Boxing, which I'm a bit obsessed with, plus the gym and sauna most mornings. I travel when
+          I can, and there's usually a side build on the go in the evenings.
   # For the CV (the pop-up and PDF), from the 2026 CV.
   languages:
     - { language: English, level: Native }
@@ -118,19 +119,19 @@ main:
   sections:
     work:
       heading: Selected work
-      intro: Client programmes and my own products, each turning a messy problem into something people use.
+      intro: What I've delivered for clients, and what I've built for myself.
     skills:
       heading: Toolkit
-      intro: Skills, tools and the certifications behind them.
+      intro: The skills I bring, the tools I've worked with, and the certifications behind them.
     testimonials:
-      heading: What people say
+      heading: Feedback
       intro: From people I've worked with.
     interview:
       heading: Ask me
       intro: 'Pick a question, or type your own.'
     contact:
       heading: Let's work together
-      intro: Hiring, or have a process that needs untangling?
+      intro: Hiring, or have a project in mind?
   email: mujtaba.shah@outlook.com
   bookingUrl: https://cal.com/mujtaba.shah/30min
   avatar: /avatar.webp
@@ -150,6 +151,6 @@ main:
       url: https://github.com/buildwithmuj
   cvUpdated: 2026-09-27
   seo:
-    description: Mujtaba Shah, Senior Intelligent Automation Analyst and AI product builder, turning messy processes into automation and products people use.
+    description: Mujtaba Shah, Senior Intelligent Automation Analyst and AI product builder. I redesign messy processes, automate them, and build products people use.
     image: /og-default.png
-    imageAlt: 'Mujtaba Shah, Intelligent Automation & AI Product Builder: I turn messy processes into automation and products people actually use.'
+    imageAlt: 'Mujtaba Shah, Intelligent Automation & AI Product Builder: I redesign messy processes, automate them, and build products people actually use.'

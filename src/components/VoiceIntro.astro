@@ -2,7 +2,8 @@
 import Icon from './Icon.astro';
 /**
  * A play button for the owner's voice: "Play my intro" in the About row (a list item), and "Hear my
- * answer" under each recorded answer in Ask me (a paragraph). The audio downloads only when
+ * answer" under each recorded answer in Ask me (a paragraph). Its icon sits on the social links'
+ * white tile (global.css), like View CV beside it. The audio downloads only when
  * the visitor presses play, and one recording plays at a time. It stays hidden without JavaScript.
  */
 interface Props {
@@ -18,8 +19,10 @@ const { src, as: Tag = 'li', play = 'Play my intro', pause = 'Pause intro' } = A
 <Tag class="voice" hidden>
   <voice-intro data-src={src} data-play={play} data-pause={pause}>
     <button type="button">
-      <Icon name="play-circle" size={20} class="play" />
-      <Icon name="pause-circle" size={20} class="pause" />
+      <span class="icon-tile">
+        <Icon name="play" size={16} class="play" />
+        <Icon name="pause" size={16} class="pause" />
+      </span>
       <span data-label>{play}</span>
       <span class="bars" aria-hidden="true">
         <span></span>
@@ -133,7 +136,7 @@ const { src, as: Tag = 'li', play = 'Play my intro', pause = 'Pause intro' } = A
 
   button {
     display: inline-flex;
-    gap: var(--space-2);
+    gap: 10px;
     align-items: center;
     padding: 0;
     border: 0;
@@ -141,10 +144,6 @@ const { src, as: Tag = 'li', play = 'Play my intro', pause = 'Pause intro' } = A
     color: var(--color-text);
     font: inherit;
     cursor: pointer;
-  }
-
-  svg {
-    color: var(--color-accent);
   }
 
   button:hover [data-label] {

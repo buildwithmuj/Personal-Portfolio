@@ -13,8 +13,8 @@ const { tasks, place, timeZone } = Astro.props;
 {/*
   The owner's typical day (profile.day) as a Reminders-style widget. A live sky header with the
   local time and how much of the day is done, over "Tasks for today", like a list on a watch: the
-  task under way sits in the middle at full size, its neighbours smaller and fainter. Tasks tick
-  off as the day goes in the owner's time zone, and the list moves on only when the next begins.
+  task under way sits in the middle at full size, its neighbours smaller and fainter. Each task is
+  ticked the moment its time comes in the owner's time zone, and the list moves on as it does.
 */}
 <div class="rem-watch">
   <article class="rem" data-time-zone={timeZone} aria-labelledby="rem-title">
@@ -81,9 +81,9 @@ const { tasks, place, timeZone } = Astro.props;
 <script>
   import { isNight, localTime, taskStates } from '../lib/day.ts';
 
-  // The day as it happens in the owner's time zone: a task is done once the next has started, and
-  // the one under way is "now"; the clock and the count follow. The task under way sits in the
-  // middle, watch-style, and the list moves only when the next one starts. The list is drawn three
+  // The day as it happens in the owner's time zone: a task is ticked the moment its time comes; the
+  // latest to start is "now", the earlier ones "done", and the clock and the count follow. The task
+  // under way sits in the middle, watch-style, and the list moves only when the next one starts. The list is drawn three
   // times (the middle copy is the one screen readers get), so there are always tasks above and
   // below. Without JavaScript the list simply shows, unticked.
   for (const widget of document.querySelectorAll<HTMLElement>('.rem')) {
@@ -121,7 +121,7 @@ const { tasks, place, timeZone } = Astro.props;
       });
       if (clock) clock.textContent = now;
       if (!turned) face(isNight(now));
-      if (done) done.textContent = String(states.filter((state) => state === 'done').length);
+      if (done) done.textContent = String(states.filter(Boolean).length);
       return states;
     };
     let index = count + Math.max(0, tick().indexOf('now'));
@@ -363,13 +363,16 @@ const { tasks, place, timeZone } = Astro.props;
     font-variant-numeric: tabular-nums;
   }
 
-  /* Done: a filled navy tick, the task in full ink. Now: a pulsing dot in an accent ring. */
-  li[data-state='done'] .rem-tick {
+  /*
+   * Ticked from the moment its time comes: a filled navy tick, the task in full ink. The one under
+   * way has its tick in the accent blue, inside a softly pulsing ring.
+   */
+  li:is([data-state='done'], [data-state='now']) .rem-tick {
     border-color: var(--color-accent-hover);
     background: var(--color-accent-hover);
   }
 
-  li[data-state='done'] .rem-tick::after {
+  li:is([data-state='done'], [data-state='now']) .rem-tick::after {
     position: absolute;
     inset-block-start: 3px;
     inset-inline-start: 6.5px;
@@ -388,13 +391,14 @@ const { tasks, place, timeZone } = Astro.props;
 
   li[data-state='now'] .rem-tick {
     border-color: var(--color-accent);
+    background: var(--color-accent);
   }
 
-  li[data-state='now'] .rem-tick::after {
+  li[data-state='now'] .rem-tick::before {
     position: absolute;
-    inset: 4px;
+    inset: -5px;
+    border: 1.5px solid var(--color-accent);
     border-radius: 50%;
-    background: var(--color-accent);
     content: '';
     animation: rem-pulse 1.4s ease-in-out infinite alternate;
   }
@@ -406,7 +410,7 @@ const { tasks, place, timeZone } = Astro.props;
 
   @keyframes rem-pulse {
     from {
-      opacity: 0.35;
+      opacity: 0.15;
     }
   }
 

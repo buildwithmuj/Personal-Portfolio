@@ -15,14 +15,19 @@ interface Props {
 
 const { heading, intro, questions, name, email } = Astro.props;
 const firstName = name.split(' ')[0];
+// On phones this many questions show before the "more" pill.
+const SHOWN = 3;
 ---
 
 {/*
   Ask me: a card after an AI chat, and not one. It opens on a greeting under a ball of the living
   sky; a question pill shows the owner's written answer in the greeting's place, signed by a small
   ball. Typing fades the pills that don't fit, and Enter or the arrow shows the best fit (src/lib/
-  ask.ts); a question with no written answer becomes an email to the owner. Without JavaScript,
-  every question and answer shows in turn. An answer the owner has recorded (its `audio` in
+  ask.ts). A visitor's own question always has somewhere to go: a blue "Ask your own" pill leads to
+  the field; a question with no written answer is quoted back with a button to email it (or to book
+  a call); and under an answer found by typing, a line still offers to send the question as typed.
+  On phones the first three questions show, with a pill that opens the rest in place. Without
+  JavaScript, every question and answer shows in turn. An answer the owner has recorded (its `audio` in
   profile.yaml) gets a "Hear my answer" button under it.
 */}
 <Shell id="interview" heading={heading} intro={intro} collapsible="open">
@@ -50,10 +55,15 @@ const firstName = name.split(' ')[0];
           </article>
         ))}
         <div class="miss" hidden>
-          <p>No written answer for that one yet. Ask me directly and I'll reply myself.</p>
-          <a class="btn btn-primary" href={`mailto:${email}`}>
-            Send me this question
+          <h3 class="quoted"></h3>
+          <p>I haven't written that one up yet, but I'd like to answer it.</p>
+          <a class="btn btn-primary" href={`mailto:${email}`} data-own>
+            Email me this question
           </a>
+          <p class="fine">
+            Opens your email with the question filled in. Or <a href="#contact">book a call</a> and
+            ask me there.
+          </p>
         </div>
       </div>
       <p class="signed">
@@ -64,16 +74,39 @@ const firstName = name.split(' ')[0];
           Answered by <b>{firstName}</b>
         </span>
       </p>
+      <p class="not" hidden>
+        Not what you asked?{' '}
+        <a href={`mailto:${email}`} data-own>
+          Send me your question
+        </a>
+      </p>
     </div>
     <div class="asker" hidden>
       <ul class="pills" role="list" aria-label="Questions I've answered">
-        {questions.map(({ question }) => (
-          <li>
+        {questions.map(({ question }, index) => (
+          <li class:list={{ extra: index >= SHOWN }}>
             <button type="button" aria-pressed="false">
               {question}
             </button>
           </li>
         ))}
+        {questions.length > SHOWN && (
+          <li class="more-item">
+            <button
+              class="more"
+              type="button"
+              aria-expanded="false"
+              data-label={`${questions.length - SHOWN} more questions`}
+            >
+              {questions.length - SHOWN} more questions
+            </button>
+          </li>
+        )}
+        <li>
+          <button class="own" type="button">
+            Ask your own
+          </button>
+        </li>
       </ul>
       <form class="field">
         <input
@@ -103,17 +136,23 @@ const firstName = name.split(' ')[0];
       );
       const form = this.querySelector('form');
       const input = this.querySelector('input');
-      const send = this.querySelector<HTMLAnchorElement>('.miss a');
-      if (!hello || !asker || !signed || !miss || !form || !input || !send) return;
-      const pills = [...this.querySelectorAll<HTMLButtonElement>('.pills button')];
+      const [quoted, not] = ['.quoted', '.not'].map((query) =>
+        this.querySelector<HTMLElement>(query),
+      );
+      const list = this.querySelector('.pills');
+      if (!hello || !asker || !signed || !miss || !form || !input || !quoted || !not || !list)
+        return;
+      // The questions' own pills (pressed or not), apart from "more" and "Ask your own".
+      const pills = [...list.querySelectorAll<HTMLButtonElement>('[aria-pressed]')];
       const answers = [...this.querySelectorAll<HTMLElement>('.answer')];
       const items = answers.map(({ children }) => ({
         question: children[0]?.textContent ?? '',
         answer: children[1]?.textContent ?? '',
       }));
 
-      // Shows answer `index`, or with -1 the offer to email the question instead.
-      const show = (index: number) => {
+      // Shows answer `index`, or with -1 the offer to email the question instead. A typed question
+      // is quoted in that offer, and stays sendable under an answer it found.
+      const show = (index: number, typed = '') => {
         // An answer being read aloud stops as another takes its place.
         this.querySelector<HTMLElement>('voice-intro[data-playing] button')?.click();
         answers.forEach((answer, at) => (answer.hidden = at !== index));
@@ -121,6 +160,12 @@ const firstName = name.split(' ')[0];
         hello.hidden = true;
         miss.hidden = index >= 0;
         signed.hidden = index < 0;
+        not.hidden = index < 0 || !typed;
+        if (!typed) return;
+        quoted.textContent = `“${typed}”`;
+        for (const link of this.querySelectorAll<HTMLAnchorElement>('[data-own]')) {
+          link.href = askMailto(this.dataset['email'] ?? '', typed);
+        }
       };
       const fade = () => {
         const fits = matchQuestions(input.value, items);
@@ -131,13 +176,27 @@ const firstName = name.split(' ')[0];
       input.oninput = fade;
       form.onsubmit = (event) => {
         event.preventDefault();
-        if (!queryWords(input.value).length) return;
-        const [best = -1] = matchQuestions(input.value, items);
-        send.href = askMailto(this.dataset['email'] ?? '', input.value.trim());
-        show(best);
+        const typed = input.value.trim();
+        if (!typed) return;
+        // A question of only common words ("Who are you?") has nothing to search on: it gets the
+        // offer to send it, not silence.
+        const [best = -1] = queryWords(typed).length ? matchQuestions(typed, items) : [];
+        show(best, typed);
         if (best >= 0) input.value = '';
         fade();
       };
+
+      // On phones the questions past the third wait behind this pill, which opens them in place.
+      const more = list.querySelector<HTMLButtonElement>('.more');
+      if (more) {
+        more.onclick = () => {
+          const open = list.classList.toggle('all');
+          more.ariaExpanded = String(open);
+          more.textContent = open ? 'Fewer questions' : (more.dataset['label'] ?? '');
+        };
+      }
+      const own = list.querySelector<HTMLButtonElement>('.own');
+      if (own) own.onclick = () => input.focus();
 
       answers.forEach((answer) => (answer.hidden = true));
       signed.hidden = true;
@@ -326,17 +385,49 @@ const firstName = name.split(' ')[0];
     font-weight: var(--weight-medium);
   }
 
-  /* When nothing answers the question: an offer to send it by email. */
+  /*
+   * When nothing answers the question: it's quoted back, with one clear button to email it and, in
+   * the small print, the call as the other way. Centred, like the greeting whose place it takes
+   * (an answer, being text to read, stays left-aligned).
+   */
   .miss {
     display: grid;
-    gap: var(--space-4);
-    justify-items: start;
+    gap: var(--space-3);
+    justify-items: center;
+    text-align: center;
+  }
+
+  .quoted {
+    margin: 0;
+    font-size: var(--text-xl);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-snug);
   }
 
   .miss p {
-    max-width: 34ch;
+    max-width: 38ch;
     margin: 0;
     color: var(--color-text-muted);
+    text-wrap: balance;
+  }
+
+  .fine,
+  .not {
+    font-size: var(--text-sm);
+  }
+
+  /* Under an answer found by typing: the question as typed can still be sent. */
+  .not {
+    margin: 0;
+    padding-block-start: var(--space-3);
+    border-block-start: 1px solid var(--color-shell);
+    color: var(--color-text-muted);
+  }
+
+  .fine a,
+  .not a {
+    color: var(--color-accent);
+    font-weight: var(--weight-medium);
   }
 
   /* The questions, as pills that wrap; a faded pill doesn't fit what's typed. */
@@ -379,6 +470,29 @@ const firstName = name.split(' ')[0];
   /* Still readable: about 5.2:1 on the white card. */
   .pills .faded {
     opacity: 0.6;
+  }
+
+  /* "N more questions" (phones only, below) in the pale sky; "Ask your own" in the accent. */
+  .more-item {
+    display: none;
+  }
+
+  .pills .more {
+    background: var(--color-chip);
+    color: var(--color-accent-hover);
+    font-weight: var(--weight-medium);
+  }
+
+  .pills .own,
+  .pills .own:hover {
+    background: var(--color-accent);
+    box-shadow: none;
+    color: var(--color-on-accent);
+    font-weight: var(--weight-medium);
+  }
+
+  .pills .own:hover {
+    background: var(--color-accent-hover);
   }
 
   /* The field, with its round send arrow. */
@@ -475,18 +589,35 @@ const firstName = name.split(' ')[0];
       height: 22px;
     }
 
+    /* Three questions, then a pill that opens the rest in place: a short card, nothing sideways. */
     .pills {
-      flex-wrap: nowrap;
+      gap: 8px;
       justify-content: start;
-      margin-inline: calc(-1 * var(--card-pad));
-      padding: 6px var(--card-pad) 10px;
-      overflow-x: auto;
-      overscroll-behavior-x: contain;
-      scrollbar-width: none;
     }
 
-    .pills li {
-      flex: none;
+    /* The Toolkit's phone pill size, so the closing pair ("more", "Ask your own") share a row. */
+    .pills button {
+      padding: 7px 12px;
+      font-size: var(--text-xs);
+      text-align: start;
+    }
+
+    .more-item {
+      display: block;
+    }
+
+    .pills:not(.all) .extra {
+      display: none;
+    }
+
+    .quoted {
+      font-size: var(--text-lg);
+    }
+
+    /* The email button takes the card's width, the clearest thing on it. */
+    .miss .btn {
+      justify-self: stretch;
+      text-align: center;
     }
   }
 </style>

@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { MOTION_SCRIPT } from './src/lib/motion.ts';
 import { assertNoPlaceholders } from './src/lib/placeholders.ts';
 import { resolveSiteMode } from './src/lib/site-mode.ts';
-import { SITE_URL } from './site.config.ts';
+import { COUNT_URL, SITE_URL } from './site.config.ts';
 
 // Cloudflare Workers Builds sets WORKERS_CI=1. Refuse to deploy with the placeholder URL.
 if (process.env['WORKERS_CI'] === '1' && new URL(SITE_URL).hostname === 'example.com') {
@@ -83,8 +83,9 @@ export default defineConfig({
         "form-action 'none'",
         // The Cal.com booking frame, created only when the visitor opens the panel (content spec §5.8).
         'frame-src https://cal.com https://app.cal.com',
-        // Live London weather, fetched by the top bar (privacy notice; foundation spec §15).
-        "connect-src 'self' https://api.open-meteo.com",
+        // Live London weather, fetched by the top bar, and the visitor counter once it is switched on
+        // (privacy notice; foundation spec §15).
+        `connect-src 'self' https://api.open-meteo.com${COUNT_URL ? ` ${new URL(COUNT_URL).origin}` : ''}`,
       ],
       // The one inline script Astro doesn't bundle, and so doesn't hash (src/lib/motion.ts).
       scriptDirective: {

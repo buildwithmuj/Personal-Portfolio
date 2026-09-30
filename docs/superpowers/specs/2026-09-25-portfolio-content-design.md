@@ -350,7 +350,7 @@ The `client` field is removed, because clients are anonymised by rule.
 | `method` | `file('src/content/method.yaml')` | `order`, `title`, `description`, `tags[]` |
 | `experience` | `file('src/content/experience.yaml')` | `employer`, `role`, `start`, `end` (optional), `summary` |
 | `skills` | `file('src/content/skills.yaml')` | `groups[{ name, items[] }]`, `certifications[]` |
-| `testimonials` | `file('src/content/testimonials.yaml')` | `name`, `role`, `quote` (≤ 320 characters), `placeholder` (default `false`) |
+| `testimonials` | `file('src/content/testimonials.yaml')` | `name`, `role` (optional), `quote` (≤ 250 characters), `placeholder` (default `false`) |
 | `pages` | `glob('src/content/pages/*.md')` | `title`, `description`; holds `privacy.md` |
 
 The placeholder "Alex Placeholder" content and the two sample case studies are replaced by the owner's

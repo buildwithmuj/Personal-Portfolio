@@ -59,9 +59,19 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     <div class="panel" data-panel="skills">
       <h3 class="visually-hidden">Skills</h3>
       <WindowBar
+        title="Skills.pptx"
         minimise={{ to: 'tools', label: 'Minimise Skills and go back to Tools' }}
         close={{ to: 'certifications', label: 'Close Skills and show Certifications' }}
       />
+      {/* Only the look of a slide app's tabs. */}
+      <div class="ribbon" aria-hidden="true">
+        <span>File</span>
+        <span class="on">Home</span>
+        <span>Insert</span>
+        <span>Design</span>
+        <span>Slide Show</span>
+        <span>View</span>
+      </div>
       <div class="deck">
         <fieldset class="phases">
           <legend class="visually-hidden">Phase</legend>
@@ -82,20 +92,33 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
           ))}
         </fieldset>
         <div class="skill-groups">
-          {skills.groups.map(({ group, items }, index) => (
+          {skills.groups.map(({ group, lead, items }, index) => (
             <div class="skill-group">
-              <p class="slide-count" aria-hidden="true">
-                {index + 1} of {skills.groups.length}
-              </p>
-              <h4>{group}</h4>
+              <div class="slide-head">
+                <h4>{group}</h4>
+                {lead && <p class="lead">{lead}</p>}
+                <span class="slide-mark" aria-hidden="true">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+              </div>
               <ul class="pills" role="list">
                 {items.map((skill) => (
                   <li class="skill">{skill}</li>
                 ))}
               </ul>
+              <p class="slide-foot" aria-hidden="true">
+                <span>{skills.groups.map(({ group: name }) => name).join(' → ')}</span>
+                <span class="slide-count">
+                  {index + 1} of {skills.groups.length}
+                </span>
+              </p>
             </div>
           ))}
         </div>
+      </div>
+      <div class="status" aria-hidden="true">
+        <span>{skills.groups.length} slides</span>
+        <span class="zoom">100%</span>
       </div>
     </div>
     <div class="panel" data-panel="certifications">
@@ -286,6 +309,7 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     --slot: min(44px, 12cqi);
 
     display: flex;
+    flex-wrap: wrap;
     gap: 4px;
     align-items: start;
     justify-content: center;
@@ -316,9 +340,8 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
   }
 
   /*
-   * Each tool's name is always there to read: under its icon on a narrow bar (a phone), beside it
-   * where the bar has room, as Windows shows an app's name on its taskbar button. Under a pointer
-   * the whole button lights up.
+   * Each tool's name is always there to read, under its icon; on a narrow bar (a phone) the tools
+   * run on to a second row. Under a pointer the whole button lights up.
    */
   .tool {
     display: grid;
@@ -346,19 +369,6 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     white-space: nowrap;
   }
 
-  @container (width >= 620px) {
-    .tool {
-      display: flex;
-      align-items: center;
-      padding-inline-end: 12px;
-    }
-
-    .tool-name {
-      padding: 0;
-      font-size: var(--text-xs);
-    }
-  }
-
   @media (hover: hover) {
     .tool:hover {
       background: var(--taskbar-hover);
@@ -368,13 +378,52 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
   /*
    * Skills: a slide deck open in a Windows window, the card as the window. Its slides are the
    * phases, in the order a project runs (skills.yaml's groups): their thumbnails down the side are
-   * the phases' own radios, and the slide picked fills the canvas, its skills as white pills with
-   * Ask me's glow. Pointing at a pill lights it blue. On phones the thumbnails run beneath.
+   * the phases' own radios, each a small slide, and the slide picked fills the canvas: its title
+   * and a line about the phase beside a large pale slide number, its skills as white pills with Ask
+   * me's glow, and a footer along its foot with the phases in order and its place in the deck.
+   * Pointing at a pill lights it blue. On phones the thumbnails run beneath.
    */
   .panel[data-panel='skills'] {
     display: grid;
-    grid-template-rows: auto 1fr;
+    grid-template-rows: auto auto 1fr auto;
     margin: calc(-1 * var(--card-pad));
+  }
+
+  /*
+   * The rest of the window, so the grey workspace sits inside a whole one: the app's tabs under the
+   * title bar, the open one underlined in the deck's orange, and a status bar along the foot with
+   * the number of slides and the zoom. Both are only the look.
+   */
+  .ribbon,
+  .status {
+    display: flex;
+    gap: var(--space-4);
+    overflow: hidden;
+    padding: 7px 16px;
+    color: var(--color-text-muted);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .on {
+    color: var(--color-text);
+    box-shadow: 0 7px 0 -5px var(--slide-picked);
+  }
+
+  .status {
+    justify-content: space-between;
+  }
+
+  /* The zoom's slider: a line with its knob in the middle. */
+  .zoom::before {
+    display: inline-block;
+    width: 64px;
+    height: 7px;
+    margin-inline-end: var(--space-2);
+    background:
+      radial-gradient(circle, currentcolor 3px, transparent 3.5px),
+      linear-gradient(currentcolor 0 0) center / 100% 1px no-repeat;
+    content: '';
   }
 
   .deck {
@@ -410,6 +459,8 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
 
   .thumb {
     display: grid;
+    gap: 5px;
+    place-content: center;
     place-items: center;
     aspect-ratio: 16 / 9;
     padding: 4px;
@@ -420,6 +471,16 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     font-size: 11px;
     font-weight: var(--weight-medium);
     text-align: center;
+  }
+
+  /* Two faint lines under the word: the slide's pills, in miniature. */
+  .thumb::after {
+    width: 34px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--color-chip-edge);
+    box-shadow: 0 6px var(--color-chip);
+    content: '';
   }
 
   .phases input:checked ~ .thumb {
@@ -437,35 +498,64 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     gap: 16px;
   }
 
+  /* The slide: its head, its pills, and its footer held to the foot. */
   .skill-group {
     display: grid;
-    gap: 12px;
-    align-content: start;
+    grid-template-rows: auto 1fr auto;
+    gap: 16px;
     aspect-ratio: 16 / 9;
-    padding: 20px 24px;
+    padding: 20px 24px 14px;
     border-radius: 2px;
     background: var(--color-surface);
     box-shadow: 0 2px 10px var(--slide-shadow);
   }
 
-  .slide-count {
-    margin: 0;
-    color: var(--color-text-muted);
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+  /* The title and its line at the left, the slide's number large and pale at the right. */
+  .slide-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px var(--space-4);
+    padding-block-end: 12px;
+    border-block-end: 3px solid;
+    border-image: var(--gradient-sky) 1;
   }
 
   .skill-group h4 {
     margin: 0;
-    padding-block-end: 10px;
-    border-block-end: 3px solid;
-    border-image: var(--gradient-sky) 1;
     color: var(--color-accent);
     font-family: var(--font-serif);
     font-size: 1.5rem;
     font-style: italic;
     font-weight: var(--weight-regular);
+  }
+
+  .lead {
+    max-width: none;
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .slide-mark {
+    grid-area: 1 / 2 / span 2;
+    align-self: end;
+    color: var(--color-chip-edge);
+    font-size: 2.5rem;
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-tight);
+    line-height: 0.9;
+  }
+
+  .slide-foot {
+    display: flex;
+    gap: var(--space-4);
+    justify-content: space-between;
+    max-width: none;
+    margin: 0;
+    padding-block-start: 10px;
+    border-block-start: 1px solid var(--color-hairline);
+    color: var(--color-text-muted);
+    font-size: 11px;
   }
 
   /* One slide at a time where :has() can tell which is picked; without it, every slide in turn. */
@@ -491,6 +581,7 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+    align-content: start;
   }
 
   .skill {
@@ -512,7 +603,7 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
   }
 
   /*
-   * Certifications: soft folders, Apple Files style, four across (two by two on phones), one calm
+   * Certifications: soft folders, Apple Files style, in one row (three across on phones), one calm
    * pale-sky shape each with the name and issuer set beneath. Pointing at one (or focusing it)
    * tips its front forward and a certificate rises out. The card is a Windows window around them:
    * minimise, maximise and close on its title bar (WindowBar.astro), and no title.
@@ -528,7 +619,7 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
 
   .cert-cards {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
     gap: var(--space-6) var(--space-4);
     align-self: center;
     padding: var(--space-6) var(--card-pad) var(--card-pad);
@@ -805,7 +896,8 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     }
 
     .cert-cards {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: var(--space-2);
     }
 
     .desk {

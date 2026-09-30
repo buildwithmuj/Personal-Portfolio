@@ -1,6 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import { visibleInterview } from '../lib/content.ts';
+import { getTestimonials, visibleInterview } from '../lib/content.ts';
 import { ICONS, ICON_VIEWBOX } from '../lib/icons.ts';
 import { withBase } from '../lib/paths.ts';
 import { socialLabels } from '../lib/social.ts';
@@ -21,12 +21,16 @@ const weather =
 const scenes: WeatherScene[] = ['clear', 'cloud', 'fog', 'drizzle', 'rain', 'storm', 'snow'];
 // Home leads back to the top from anywhere, the case studies and All work included.
 const nav = [
-  { href: withBase('/#page-top'), label: 'Home' },
+  { href: withBase('/#home'), label: 'Home' },
   { href: withBase('/#about'), label: 'About' },
   { href: withBase('/#work'), label: 'Work' },
   { href: withBase('/#skills'), label: 'Toolkit' },
   // Ask me, in one word, while the section shows.
   ...(visibleInterview(profile) ? [{ href: withBase('/#interview'), label: 'Ask' }] : []),
+  // The recommendations, under their section's heading, while there is one to show.
+  ...((await getTestimonials()).length > 0
+    ? [{ href: withBase('/#testimonials'), label: profile.sections.testimonials.heading }]
+    : []),
   { href: withBase('/#contact'), label: 'Contact' },
 ];
 ---
@@ -67,7 +71,7 @@ const nav = [
       <span>
         <span data-temp>{weather?.temperature}</span>°
       </span>
-      <span class="condition">{weather?.condition}</span>
+      <span class="condition visually-hidden">{weather?.condition}</span>
     </span>
   </p>
   <!-- The weather icons (Framework7, src/lib/icons.ts); the weather shows the one for now. -->
@@ -105,14 +109,14 @@ const nav = [
       <ul class="socials" role="list">
         {/* The CV first: on the home page it opens over the page (CvViewer.astro). */}
         <li>
-          <a class="icon-button" href={withBase('/cv.pdf')} aria-label="View CV" data-cv>
+          <a class="icon-tile" href={withBase('/cv.pdf')} aria-label="View CV" data-cv>
             <Icon name="cv" />
           </a>
         </li>
         {profile.socials.map((social) => (
           <li>
             <a
-              class="icon-button"
+              class="icon-tile"
               href={social.url}
               aria-label={`${profile.name} on ${socialLabels[social.platform]}`}
             >
@@ -217,7 +221,9 @@ const nav = [
    * A strip in the page colour, from the top of the window to the bar's lower edge and past the
    * cards' edges, sits behind the bar: sections scrolling up disappear under it, and nothing shows
    * around the bar's rounded corners. At the top of the page it only covers what is page colour
-   * anyway, around the hero's frame.
+   * anyway, around the hero's frame. Once the bar floats, the strip reaches a little below it too
+   * (bar-clear, below): what scrolls underneath then ends in a straight line clear of the bar, where
+   * slivers of it once showed in the notches around the bar's lower corners.
    */
   .top-bar::before {
     position: absolute;
@@ -251,19 +257,31 @@ const nav = [
     }
   }
 
+  @keyframes bar-clear {
+    to {
+      inset-block-end: calc(-1 * var(--shell-gap-tight));
+    }
+  }
+
   @supports (animation-timeline: scroll()) {
+    .top-bar::before {
+      animation: bar-clear linear both;
+    }
+
     .top-bar::after {
       animation: bar-float linear both;
     }
 
     /* Own rule, more specific: the shorthand can't reset the timeline (see ScrollTop). */
+    :global(body) .top-bar::before,
     :global(body) .top-bar::after {
       animation-timeline: scroll(root);
       animation-range: 0 var(--bar-offset);
     }
   }
 
-  /* It follows the scroll, not the clock, so pausing animations leaves it running (global.css). */
+  /* They follow the scroll, not the clock, so pausing animations leaves them running (global.css). */
+  :global(.motion-paused) .top-bar::before,
   :global(.motion-paused) .top-bar::after {
     animation-play-state: running !important;
   }
@@ -297,7 +315,10 @@ const nav = [
     letter-spacing: normal;
   }
 
-  /* London's weather: an icon for the conditions, the temperature, and (on wide screens) a word. */
+  /*
+   * London's weather: an icon for the conditions and the temperature. The word for it ("Light rain")
+   * is there for screen readers only: seven links leave it no room.
+   */
   .weather {
     display: inline-flex;
     gap: 5px;
@@ -343,17 +364,6 @@ const nav = [
     gap: var(--space-2);
   }
 
-  .icon-button {
-    display: grid;
-    place-items: center;
-    width: var(--icon-button);
-    height: var(--icon-button);
-    border-radius: var(--radius-icon);
-    background: var(--color-surface);
-    box-shadow: var(--shadow-secondary);
-    color: var(--color-text);
-  }
-
   .menu {
     display: none;
   }
@@ -385,14 +395,7 @@ const nav = [
     display: block;
   }
 
-  /* The weather's description needs room; below this the temperature shows alone. */
-  @media (width < 60rem) {
-    .condition {
-      display: none;
-    }
-  }
-
-  /* Six links, the weather and four icons need the full column; narrower, the bar uses the menu. */
+  /* Seven links and the weather need the full column; narrower, the bar uses the menu. */
   @media (width < 48rem) {
     .top-bar {
       grid-template-columns: auto 1fr auto;

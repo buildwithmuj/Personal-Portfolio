@@ -16,8 +16,9 @@ const { class: className, scale = 1 } = Astro.props;
   // The "Blue sky" gradient from the owner's Feral UI export (Live Sky): bands of blue that burn
   // into one another, warped by drifting noise and grain. WebGL draws it; without WebGL the CSS
   // gradient underneath shows instead. It holds still under reduced motion or the footer's pause
-  // button, and stops drawing off screen or in a background tab. The export's 2% grain overlay is
-  // left out: it needs a data: image, which the CSP blocks, and the shader has its own grain.
+  // button, and stops drawing off screen, in a background tab or behind a pop-up. The export's 2%
+  // grain overlay is left out: it needs a data: image, which the CSP blocks, and the shader has its
+  // own grain.
   const TONES = {
     main: [0.7019607843137254, 0.8509803921568627, 1], // #B3D9FF
     low: [0.4, 0.6, 0.9019607843137255], // #6699E6
@@ -159,6 +160,15 @@ void main(){
     return data;
   }
 
+  // A pop-up over the page (the CV, a certificate) dims and blurs what's behind it, so the skies
+  // hold still until it closes: one watch on every dialog's `open`, shared by all the skies.
+  let covered = false;
+  const skies = new Set<() => void>();
+  new MutationObserver(() => {
+    covered = Boolean(document.querySelector('dialog[open]'));
+    for (const sync of skies) sync();
+  }).observe(document.body, { attributes: true, attributeFilter: ['open'], subtree: true });
+
   class SkyGradient extends HTMLElement {
     // A sky sets up its graphics only as it nears the screen: the skies below the fold cost the
     // page nothing as it loads, and a hidden one (Ask me's balls) nothing until it shows.
@@ -290,6 +300,7 @@ void main(){
       const moving = () =>
         ready &&
         visible &&
+        !covered &&
         !document.hidden &&
         !reduce.matches &&
         !root.classList.contains('motion-paused');
@@ -346,6 +357,7 @@ void main(){
       new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['class'] });
       document.addEventListener('visibilitychange', sync);
       reduce.addEventListener('change', sync);
+      skies.add(sync);
       start();
     }
   }

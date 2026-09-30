@@ -17,37 +17,53 @@ main:
     - Agile methods (Scrum and Kanban)
   # The Toolkit's Skills tab: every skill above, the CV-only ones included, as pills under three
   # headings in the order a project runs. Each skill sits in exactly one group (the schema checks).
+  # `lead` is the line under each slide's title, chosen by the owner in the copy interview.
   groups:
     - group: Understand
+      lead: I find out how the work actually gets done.
       items:
         - Process mapping and requirements
         - Business cases and ROI
         - Business analysis
         - Stakeholder management
     - group: Build
+      lead: I design a better way and help build it.
       items:
         - RPA, APIs and Power Apps
         - Power BI and data products
         - Low-code, no-code and AI building
         - Technical writing (SOPs)
     - group: Deliver
+      lead: I see it through until people are using it.
       items:
         - Agile delivery and product ownership
         - Agile methods (Scrum and Kanban)
         - Project management
   # The home page's tools, each logo in its brand colours (public/tools/, CC0 from SVG Logos and
   # Simple Icons; Kimi and OpenAI's marks are black by their own brand guides).
+  # The owner's list (2026-09-30), from the CV and LinkedIn: tools worked with, hands-on or
+  # alongside the team that built with them. The Microsoft 365 and Power Apps marks are Simple Icons
+  # 9.21.0 (CC0) in their brand colours; APIs and RPA (which stands for the platforms used: UiPath,
+  # Blue Prism, Power Automate) are drawn for this site.
   tools:
+    - name: Microsoft 365
+      logo: /tools/microsoft-365.svg
+    - name: Power Apps
+      logo: /tools/power-apps.svg
+    - name: Power BI
+      logo: /tools/power-bi.svg
+    - name: RPA
+      logo: /tools/rpa.svg
+    - name: APIs
+      logo: /tools/apis.svg
+    - name: Jira
+      logo: /tools/jira.svg
     - name: Claude
       logo: /tools/claude.svg
     - name: ChatGPT
       logo: /tools/chatgpt.svg
     - name: Kimi
       logo: /tools/kimi.svg
-    - name: Jira
-      logo: /tools/jira.svg
-    - name: Power BI
-      logo: /tools/power-bi.svg
   # Each opens as a certificate from its folder; add image: /certificates/<name>.webp once it is in public/.
   certifications:
     - title: Certified ScrumMaster (CSM)
@@ -56,9 +72,12 @@ main:
     - title: Professional Scrum Product Owner (PSPO I)
       issuer: Scrum.org
       short: PSPO I
-    - title: Microsoft Power BI Data Analyst Associate
-      issuer: Microsoft
-      short: Power BI Data Analyst
     - title: 'AI Fluency: Framework & Foundations'
       issuer: Anthropic
       short: AI Fluency
+    - title: 'AI Fluency: AI Capabilities & Limitations'
+      issuer: Anthropic
+      short: AI Capabilities
+    - title: Claude 101
+      issuer: Anthropic
+      short: Claude 101

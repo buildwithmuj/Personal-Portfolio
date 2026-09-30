@@ -16,9 +16,10 @@ export async function getCaseStudies(): Promise<CollectionEntry<'caseStudies'>[]
 
 /** Testimonials; placeholders only outside production (content spec §5.6). */
 export async function getTestimonials(): Promise<CollectionEntry<'testimonials'>['data'][]> {
-  return visibleTestimonials(await getCollection('testimonials'), !isProduction).map(
-    (entry) => entry.data,
-  );
+  // Real ones first, so a preview's made-up ones never lead.
+  return visibleTestimonials(await getCollection('testimonials'), !isProduction)
+    .map((entry) => entry.data)
+    .toSorted((a, b) => Number(a.placeholder) - Number(b.placeholder));
 }
 
 /** Roles, newest first. */

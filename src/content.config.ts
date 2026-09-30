@@ -149,6 +149,11 @@ const caseStudies = defineCollection({
         status: z.enum(caseStudyStatuses).optional(),
         employer: z.string().min(1).optional(),
         tags: z.array(z.string().min(1)).default([]),
+        // Real figures only, shown as a row under the facts: a number and what it counts.
+        stats: z
+          .array(z.object({ value: z.string().min(1).max(8), label: z.string().min(1).max(48) }))
+          .max(3)
+          .default([]),
         links: z.array(z.object({ label: z.string().min(1), url: httpsUrl })).default([]),
         featured: z.boolean().default(false),
         order: z.number().int().default(100),
@@ -169,8 +174,9 @@ const testimonials = defineCollection({
   schema: z
     .object({
       name: z.string().min(1),
-      role: z.string().min(1),
-      quote: z.string().min(1).max(320),
+      // Their title, under the name; left out until the owner has it.
+      role: z.string().min(1).optional(),
+      quote: z.string().min(1).max(250),
       // Where it was given, named at the foot of the card ("LinkedIn", "Posted on X"), or
       // an email (not named).
       source: z.enum(['linkedin', 'x', 'email']).optional(),
@@ -223,7 +229,14 @@ const skills = defineCollection({
       // The Toolkit's Skills tab: every skill and CV-only skill once, under a heading each.
       // The skills' phases, each a slide in the Toolkit's deck (its CSS shows up to four).
       groups: z
-        .array(z.object({ group: z.string().min(1), items: z.array(z.string().min(1)).min(1) }))
+        .array(
+          z.object({
+            group: z.string().min(1),
+            // One line under the slide's title, saying what the phase is about.
+            lead: z.string().min(1).max(110).optional(),
+            items: z.array(z.string().min(1)).min(1),
+          }),
+        )
         .min(1)
         .max(4),
       // The home page's tools: a name and a logo in public/tools/.

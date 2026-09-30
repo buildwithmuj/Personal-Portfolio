@@ -6,6 +6,7 @@ import Seo from '../components/Seo.astro';
 import Footer from '../components/Footer.astro';
 import ScrollTop from '../components/ScrollTop.astro';
 import TopBar from '../components/TopBar.astro';
+import VisitCount from '../components/VisitCount.astro';
 import { readFileSync } from 'node:fs';
 import { getProfile } from '../lib/content.ts';
 import { isProduction } from '../lib/mode.ts';
@@ -59,7 +60,7 @@ const ogSize = { width: ogPng.readUInt32BE(16), height: ogPng.readUInt32BE(20) }
       {...(structuredData ? { structuredData } : {})}
     />
   </head>
-  <body id="page-top">
+  <body id="home">
     <a class="skip-link" href="#main">
       Skip to content
     </a>
@@ -71,6 +72,7 @@ const ogSize = { width: ogPng.readUInt32BE(16), height: ogPng.readUInt32BE(20) }
       <Footer name={profile.name} />
     </div>
     <ScrollTop />
+    <VisitCount />
     <script>
       // Scroll reveals (global.css). Anything already on screen stays put; the rest rises in on entry.
       if (

@@ -88,12 +88,15 @@ const flow = [
       {flow.map((d) => (
         <path d={d} pathLength="1" />
       ))}
+      {flow.map((d) => (
+        <path class="pulse" d={d} pathLength="1" />
+      ))}
     </svg>
     <ul class="band-socials" role="list">
       {profile.socials.map((social) => (
         <li>
           <a
-            class="band-icon"
+            class="icon-tile"
             href={social.url}
             aria-label={`${profile.name} on ${socialLabels[social.platform]}`}
           >
@@ -163,8 +166,9 @@ const flow = [
   }
 
   /*
-   * The workflow line-art over the sky: white hairlines draw themselves in once, from the tangle
-   * through the social links and out along the clean side, then rest.
+   * The workflow line-art over the sky: white hairlines draw themselves in once, then a light runs
+   * slowly along each now and then, from the tangle through the social links and out along the clean
+   * side (a nine-second loop, each line's light starting at its own moment).
    */
   .flow {
     position: absolute;
@@ -185,6 +189,30 @@ const flow = [
     animation: flow-draw 2s var(--ease-out) 300ms both;
   }
 
+  .flow .pulse {
+    stroke: var(--color-flow-pulse);
+    stroke-width: 2;
+    stroke-dasharray: 0.06 1.2;
+    stroke-dashoffset: 0.06;
+    animation: flow-pulse 9s linear 2.4s infinite;
+  }
+
+  .flow .pulse:nth-of-type(7) {
+    animation-delay: 5.2s;
+  }
+
+  .flow .pulse:nth-of-type(8) {
+    animation-delay: 7.6s;
+  }
+
+  .flow .pulse:nth-of-type(9) {
+    animation-delay: 4s;
+  }
+
+  .flow .pulse:nth-of-type(10) {
+    animation-delay: 9s;
+  }
+
   @keyframes flow-draw {
     from {
       stroke-dashoffset: 1;
@@ -195,8 +223,14 @@ const flow = [
     }
   }
 
-  /* The lines draw in once and rest; a one-off entrance, so it finishes even with animations paused. */
-  :global(.motion-paused) .flow path {
+  @keyframes flow-pulse {
+    to {
+      stroke-dashoffset: -1;
+    }
+  }
+
+  /* The drawing-in is a one-off entrance, so it finishes even with animations paused. */
+  :global(.motion-paused) .flow path:not(.pulse) {
     animation-play-state: running !important;
   }
 
@@ -211,21 +245,6 @@ const flow = [
     padding: 0;
     translate: 0 -50%;
     list-style: none;
-  }
-
-  .band-icon {
-    display: grid;
-    place-items: center;
-    width: var(--icon-button);
-    height: var(--icon-button);
-    border-radius: var(--radius-icon);
-    background: var(--color-surface);
-    box-shadow: var(--shadow-secondary);
-    color: var(--color-text);
-  }
-
-  .band-icon:hover {
-    color: var(--color-accent);
   }
 
   /*
@@ -356,7 +375,7 @@ const flow = [
       inset-block-start: calc(var(--cover) * 0.56);
     }
 
-    /* Phones keep the hero calm: the sky, without the workflow line-art. */
+    /* Phones keep the hero calm: the sky, without the workflow line-art and its light. */
     .flow {
       display: none;
     }

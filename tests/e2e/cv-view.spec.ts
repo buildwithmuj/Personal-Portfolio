@@ -1,5 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { CV_FINGERPRINT, cvFingerprint } from '../../scripts/cv-pdf.ts';
 import { profileValue } from '../support/content.ts';
 import { scrollIntoViewSettled } from '../support/settle.ts';
 
@@ -84,6 +86,17 @@ test('the CV lists each role with its highlights, and the education and language
   }
   await expect(section('Education').locator('.entry').first()).toBeVisible();
   await expect(section('Languages').locator('li').first()).toBeVisible();
+});
+
+// The PDF download is printed from this pop-up (scripts/cv-pdf.ts), which notes a fingerprint of
+// the words it printed. If the CV's words have changed since, the PDF is out of date.
+test('the PDF download was made from the CV as it reads now', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'The CV reads the same in every browser');
+  await page.goto('/');
+  expect(
+    await cvFingerprint(page),
+    'The CV has changed since public/cv.pdf was made. Run `pnpm build`, then `pnpm cv:pdf`.',
+  ).toBe(readFileSync(CV_FINGERPRINT, 'utf8').trim());
 });
 
 test.describe('without JavaScript', () => {

@@ -1,20 +1,23 @@
 ---
 /**
- * A Windows window's title bar: minimise, maximise and close at its right, and no title (the
- * Toolkit's tab already names what's inside). Minimise and close work: each shows another Toolkit
- * group (Skills.astro's script), so closing one window brings up the next. Maximise is only the look,
- * so it's hidden from assistive technology and doesn't react to the pointer. Without JavaScript the
- * buttons stay disabled.
+ * A Windows window's title bar: minimise, maximise and close at its right. Minimise and close work.
+ * In the Toolkit each shows another group (`to`, Skills.astro's script), so closing one window
+ * brings up the next, and there's no title, since the tab already names what's inside. In What
+ * people say they put the window away by collapsing the section (Testimonials.astro's script), and
+ * a quiet title sits at the left. Maximise is only the look, so it's hidden from assistive
+ * technology and doesn't react to the pointer. Without JavaScript the buttons stay disabled.
  */
 interface Props {
-  minimise: { to: string; label: string };
-  close: { to: string; label: string };
+  title?: string;
+  minimise: { to?: string; label: string };
+  close: { to?: string; label: string };
 }
 
-const { minimise, close } = Astro.props;
+const { title, minimise, close } = Astro.props;
 ---
 
 <div class="window-bar">
+  {title && <span class="name">{title}</span>}
   <button type="button" data-show={minimise.to} aria-label={minimise.label} disabled>
     <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
       <path d="M0 5h10" stroke="currentColor"></path>
@@ -45,6 +48,14 @@ const { minimise, close } = Astro.props;
     width: 46px;
     height: 32px;
     color: var(--color-text);
+  }
+
+  .window-bar > .name {
+    width: auto;
+    margin-inline-end: auto;
+    padding-inline-start: 14px;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
   }
 
   button {

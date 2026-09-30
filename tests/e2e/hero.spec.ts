@@ -47,6 +47,77 @@ test('a sky sets up its graphics only as it nears the screen', async ({ page }) 
   await expect(desk).toHaveAttribute('data-asked');
 });
 
+// A pop-up over the page (the CV, a certificate) dims and blurs what's behind it, so the skies there
+// hold still until it closes. Headless browsers have no graphics card, so a stand-in one counts the
+// frames each sky draws.
+test('the skies hold still while the CV covers the page', async ({ page }) => {
+  await page.addInitScript(() => {
+    const counter = window as unknown as { draws: number };
+    counter.draws = 0;
+    const card = new Proxy(
+      {},
+      {
+        get: (_, key) => {
+          if (key === 'drawArrays') return () => counter.draws++;
+          if (key === 'getParameter') return () => 'Test graphics card';
+          if (key === 'getProgramParameter') return () => true;
+          if (key === 'isContextLost') return () => false;
+          if (key === 'getExtension') return () => null;
+          // Constants (VERTEX_SHADER, …) are numbers; every other call succeeds quietly.
+          return typeof key === 'string' && key === key.toUpperCase() ? 1 : () => ({});
+        },
+      },
+    );
+    HTMLCanvasElement.prototype.getContext = (() =>
+      card) as unknown as typeof HTMLCanvasElement.prototype.getContext;
+  });
+  await page.goto('/');
+  const draws = () => page.evaluate(() => (window as unknown as { draws: number }).draws);
+  const drawnIn = async (ms: number) => {
+    const before = await draws();
+    await page.waitForTimeout(ms);
+    return (await draws()) - before;
+  };
+  await expect.poll(() => drawnIn(200)).toBeGreaterThan(0);
+  await page.locator('#about').getByRole('link', { name: 'View CV' }).click();
+  const cv = page.getByRole('dialog', { name: profileValue('name') });
+  await expect(cv).toBeVisible();
+  await expect.poll(() => drawnIn(200)).toBe(0);
+  await page.keyboard.press('Escape');
+  await expect(cv).toBeHidden();
+  await expect.poll(() => drawnIn(200)).toBeGreaterThan(0);
+});
+
+// The top bar's clock keeps London time to the minute, and only touches the page when the minute
+// changes (it once rewrote itself every second).
+test('the clock changes on the minute, and is left alone in between', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-09-28T13:00:00Z') }); // 14:00 in London
+  await page.setViewportSize({ width: 1280, height: 800 });
+  // A page with little else on it: the home page's animations make the stand-in time crawl.
+  await page.goto('/privacy');
+  // From here the test alone moves the time on.
+  await page.clock.pauseAt(new Date('2026-09-28T13:00:30Z'));
+  const clock = page.locator('.top-bar live-clock');
+  await expect(clock).toHaveText('14:00');
+  await clock.evaluate((element) => {
+    const counter = window as unknown as { writes: number };
+    counter.writes = 0;
+    new MutationObserver((records) => (counter.writes += records.length)).observe(element, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+  });
+  const writes = () => page.evaluate(() => (window as unknown as { writes: number }).writes);
+  await page.clock.runFor(20_000);
+  await expect(clock).toHaveText('14:00');
+  expect(await writes()).toBe(0);
+  await page.clock.runFor(15_000);
+  await expect(clock).toHaveText('14:01');
+  await page.clock.runFor(60_000);
+  await expect(clock).toHaveText('14:02');
+});
+
 test('the hero headline reads exactly as written', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#top .headline')).toHaveText(profileValue('headline'));
@@ -133,7 +204,7 @@ for (const path of ['/projects', '/work/amniki']) {
 test('Home in the top bar leads back to the home page from All work', async ({ page }) => {
   await page.goto('/projects');
   await page.locator('.top-bar .links').getByRole('link', { name: 'Home' }).click();
-  await expect(page).toHaveURL(/\/#page-top$/);
+  await expect(page).toHaveURL(/\/#home$/);
   await expect(page.locator('#top .headline')).toBeVisible();
 });
 
@@ -145,15 +216,56 @@ test('the top bar links to each part of the home page, in order', async ({ page 
     'Work',
     'Toolkit',
     'Ask',
+    sectionHeading('testimonials'),
     'Contact',
   ]);
-  await expect(page.locator('.top-bar .links').getByRole('link', { name: 'Ask' })).toHaveAttribute(
+  const links = page.locator('.top-bar .links');
+  await expect(links.getByRole('link', { name: 'Ask' })).toHaveAttribute('href', '/#interview');
+  // The recommendations, under their section's heading, while there is one to show.
+  await expect(links.getByRole('link', { name: sectionHeading('testimonials') })).toHaveAttribute(
     'href',
-    '/#interview',
+    '/#testimonials',
   );
 });
 
-// The clock, six centred links and the weather only fit from 768px; narrower, the bar uses its
+// Seven links leave no room for the weather's word, so the bar shows its icon and the temperature;
+// the word stays for screen readers.
+test('the weather shows as an icon and a temperature, its word kept for screen readers', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/');
+  const weather = page.locator('.top-bar .weather');
+  test.skip(await weather.isHidden(), 'No weather reading was available when the site was built');
+  const word = weather.locator('.condition');
+  await expect(word).toHaveText(/\S/);
+  const box = await word.boundingBox();
+  expect(box?.width).toBeLessThanOrEqual(1);
+});
+
+// Scrolled, the bar floats as a pill with rounded corners. The page-coloured strip behind it then
+// reaches a little below it, so whatever scrolls underneath ends in a straight line clear of the bar:
+// before, slivers of the page showed in the notches around its lower corners.
+test('the floating bar keeps a clear band beneath it', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/');
+  const timelines = await page.evaluate(() => CSS.supports('animation-timeline: scroll()'));
+  test.skip(!timelines, 'Without scroll timelines the bar keeps its square corners');
+  // Whether the bar (its strip) is what sits just under its own lower-left corner.
+  const clear = () =>
+    page.evaluate(() => {
+      const bar = document.querySelector('.top-bar');
+      const box = bar?.getBoundingClientRect();
+      if (!bar || !box) return null;
+      return bar.contains(document.elementFromPoint(box.left + 4, box.bottom + 4));
+    });
+  // At the top of the page the bar is the top of the hero's frame, and joins it.
+  expect(await clear()).toBe(false);
+  await page.evaluate(() => scrollTo(0, 400));
+  await expect.poll(clear).toBe(true);
+});
+
+// The clock, seven centred links and the weather only fit from 768px; narrower, the bar uses its
 // menu. The links sit in the middle, clear of the clock and the weather.
 for (const width of [770, 960, 1280]) {
   test(`at ${width}px the top bar fits its links between the clock and the weather`, async ({
@@ -206,17 +318,23 @@ test('the availability pill says the whole line, still, even on the smallest pho
   expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(320);
 });
 
-// The hero's workflow line-art runs over the sky on wider screens; phones keep the sky alone.
-test('the hero line-art shows on desktop and rests on phones', async ({ page }) => {
+// The hero's workflow line-art runs over the sky on wider screens, a light travelling slowly along
+// each line (a nine-second loop); phones keep the sky alone.
+test('the hero line-art shows on desktop, its light slow, and rests on phones', async ({
+  page,
+}) => {
   await page.goto('/');
   await expect(page.locator('.hero .flow')).toBeVisible();
+  const light = page.locator('.hero .flow .pulse').first();
+  await expect(light).toHaveCSS('animation-name', 'flow-pulse');
+  await expect(light).toHaveCSS('animation-duration', '9s');
   await page.setViewportSize({ width: 375, height: 812 });
   await expect(page.locator('.hero .flow')).toBeHidden();
   await expect(page.locator('.hero .band-socials')).toBeVisible();
 });
 
-// The About card's typical day ticks itself off on London time: every task before the one under
-// way is done, and the rest are still to come. (The scrolling list is drawn twice; screen readers
+// The About card's typical day ticks itself off on London time: a task is ticked the moment its
+// time comes, the one under way included, and the rest are still to come. (The scrolling list is drawn twice; screen readers
 // and this test read the first copy.)
 test('the About card ticks off a typical day on London time', async ({ page }) => {
   await page.clock.setFixedTime(new Date('2026-09-28T13:00:00Z')); // 14:00 in London
@@ -238,6 +356,15 @@ test('the About card ticks off a typical day on London time', async ({ page }) =
     if (time === current) continue;
     expect(state).toBe((time ?? '') < current ? 'done' : '');
   }
+  // Ticked as its time comes: the count takes in the task under way, which wears a tick in the
+  // accent blue where the earlier ones are navy.
+  const started = tasks.filter(([time]) => (time ?? '') <= '14:00').length;
+  expect(started).toBeGreaterThan(0);
+  await expect(day.locator('[data-done-count]')).toHaveText(String(started));
+  await expect(day.locator('li:not([aria-hidden])[data-state="now"] .rem-tick')).toHaveCSS(
+    'background-color',
+    'rgb(38, 97, 186)',
+  );
   await expect(day).toContainText(/\d+ of \d+ done/);
   await expect(day.getByRole('link', { name: "Let's talk" })).toHaveAttribute('href', '#contact');
 });

@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { ICONS } from '../../src/lib/icons.ts';
-import { profileValue, sectionHeading, yamlList, yamlValues } from '../support/content.ts';
+import { profileParagraph, sectionHeading, yamlList, yamlValues } from '../support/content.ts';
 import { scrollIntoViewSettled } from '../support/settle.ts';
 
 // Play my intro shows only once the owner's recording is in the profile.
@@ -24,7 +24,7 @@ test('Selected work starts open and can be hidden', async ({ page }) => {
 // Every toggle is a plain chevron: up while its section is open, down while it's collapsed.
 test('each section toggle is a chevron', async ({ page }) => {
   await page.goto('/');
-  // Three in production, where What people say waits for real testimonials; four in previews.
+  // Work, the Toolkit, Ask me and Feedback (which shows once it has a real testimonial).
   const toggles = page.locator('.stack .collapse');
   await expect(toggles.first()).toBeVisible();
   expect(await toggles.count()).toBeGreaterThanOrEqual(3);
@@ -47,7 +47,8 @@ test('each section toggle is a chevron', async ({ page }) => {
     await scrollIntoViewSettled(toggle);
     await toggle.click();
   }
-  expect(await shown()).toEqual(new Set([shape('chevron-down')]));
+  // Under load a click's effect can land a moment after the click returns.
+  await expect.poll(shown).toEqual(new Set([shape('chevron-down')]));
 });
 
 // Collapsed, a section is a bar with its title and intro centred top to bottom, not sitting low.
@@ -62,8 +63,13 @@ for (const viewport of [
     await page.goto('/');
     const section = page.locator('#skills');
     await scrollIntoViewSettled(section);
-    await page.getByRole('button', { name: sectionHeading('skills'), exact: true }).click();
-    await expect(page.locator('#skills-body')).toBeHidden();
+    // Under a full parallel run WebKit now and then lands the click while the page is still
+    // shifting, and the section stays open: click until it has closed.
+    const toggle = page.getByRole('button', { name: sectionHeading('skills'), exact: true });
+    await expect(async () => {
+      if (await page.locator('#skills-body').isVisible()) await toggle.click();
+      await expect(page.locator('#skills-body')).toBeHidden({ timeout: 1500 });
+    }).toPass();
     const gaps = await section.evaluate((shell) => {
       const bar = shell.getBoundingClientRect();
       const title = shell.querySelector('.section-title')?.getBoundingClientRect();
@@ -225,7 +231,7 @@ test('the back-to-top ring closes at the end of the page', async ({ page }) => {
 test('the About statement reads in full colour and holds still', async ({ page }) => {
   await page.goto('/');
   const statement = page.locator('#about .statement');
-  await expect(statement).toHaveText(new RegExp(`^Hey, .*${profileValue('jobTitle')}`));
+  await expect(statement).toHaveText(profileParagraph('about'));
   await expect(statement).toHaveCSS('color', 'rgb(10, 10, 10)');
   await expect(statement).toHaveCSS('animation-name', 'none');
   await expect(statement.locator('span')).toHaveCount(0);
@@ -263,6 +269,91 @@ test('the About row lines up Play my intro with View CV', async ({ page }) => {
   expect(Math.abs((await centre(play)) - (await centre(cv)))).toBeLessThan(0.5);
 });
 
+// Feedback (what people say) is a calm call in a window like the Toolkit's: its bar across the top, a seat for
+// each person and one for the owner, listening, and beneath them the words of whoever is speaking.
+// It works the same on a phone and a computer: picking a seat shows that person's words.
+for (const viewport of [
+  { width: 375, height: 812 },
+  { width: 1280, height: 800 },
+]) {
+  test(`Feedback seats each person and shows the words of the one picked (${viewport.width}px)`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    const section = page.locator('#testimonials');
+    await scrollIntoViewSettled(section);
+    await expect(section.locator('.window-bar')).toContainText('Recommendations');
+    const names = await section.locator('.words b').allTextContents();
+    const seats = section.locator('label.seat input');
+    await expect(seats).toHaveCount(names.length);
+    // Each seat is a radio named for its person.
+    await expect(section.getByRole('radio')).toHaveCount(names.length);
+    await expect(seats.first()).toHaveAccessibleName(names[0] ?? '');
+    // The owner has a seat too, listening: it isn't one to pick.
+    await expect(section.locator('.seat.me')).toBeVisible();
+    await expect(section.locator('.seat.me input')).toHaveCount(0);
+    // The first person speaks first; only their words show. (Lists, since for a moment, as one
+    // person's words fade out and the next one's in, both are on screen.)
+    const speaking = section.locator('.words:visible');
+    await expect(speaking.locator('b')).toHaveText([names[0] ?? '']);
+    await expect(seats.first()).toBeChecked();
+    test.skip(names.length < 2, 'A single testimonial leaves no one else to pick');
+    await section.locator('label.seat').nth(1).click();
+    await expect(seats.nth(1)).toBeChecked();
+    await expect(speaking.locator('b')).toHaveText([names[1] ?? '']);
+    // Every recommendation says where it was given.
+    await expect(speaking.locator('.source')).toHaveText(['LinkedIn']);
+    const sideways = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth,
+    );
+    expect(sideways).toBeLessThanOrEqual(0);
+  });
+}
+
+// Its close and minimise buttons put the window away: the section collapses, as its own toggle does,
+// and focus goes to that toggle, which opens it again.
+for (const name of ['Close', 'Minimise'].map(
+  (verb) => `${verb} ${sectionHeading('testimonials')}`,
+)) {
+  test(`"${name}" collapses the section`, async ({ page }) => {
+    await page.goto('/');
+    const section = page.locator('#testimonials');
+    await scrollIntoViewSettled(section);
+    await section.getByRole('button', { name }).click();
+    await expect(page.locator('#testimonials-body')).toBeHidden();
+    const toggle = section.locator('.collapse');
+    await expect(toggle).toBeFocused();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await toggle.click();
+    await expect(page.locator('#testimonials-body')).toBeVisible();
+  });
+}
+
+// One look for every small icon on the site: View CV in About sits on the same white tile as the
+// social links in Let's work together (as does Play my intro, once recorded), its words beside it.
+test('View CV in About wears the same icon tile as the social links', async ({ page }) => {
+  await page.goto('/');
+  const look = (tile: Locator) =>
+    tile.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return [
+        style.width,
+        style.height,
+        style.borderRadius,
+        style.backgroundColor,
+        style.boxShadow,
+        style.color,
+      ].join(' | ');
+    });
+  const cv = page.locator('#about').getByRole('link', { name: 'View CV' });
+  await expect(cv).toHaveText('View CV');
+  const tile = cv.locator('.icon-tile');
+  await expect(tile.locator('svg')).toHaveCount(1);
+  expect(await look(tile)).toBe(await look(page.locator('#contact .socials a').last()));
+  expect(await look(tile)).toBe(await look(page.locator('.hero .band-socials a').first()));
+});
+
 // The About stats: one band of the live Blue sky, each number over its label, from the profile.
 test('the About stats sit on one band of the live sky', async ({ page }) => {
   await page.goto('/');
@@ -291,9 +382,9 @@ const shown = (page: Page, group: string) => () =>
     .locator(`#skills .panel[data-panel="${group}"]`)
     .evaluate((panel) => getComputedStyle(panel).visibility);
 
-// Tools: a Windows taskbar on a patch of the live sky, each tool's name always there to read:
-// beside its icon where the bar has room, as Windows shows an app's name on its taskbar button.
-test('the tools sit on a Windows taskbar, their names beside them, lighting up when pointed at', async ({
+// Tools: a Windows taskbar on a patch of the live sky, each tool's name always there to read,
+// under its icon. All of them sit in one row on a computer.
+test('the tools sit on a Windows taskbar, their names beneath them, lighting up when pointed at', async ({
   page,
 }) => {
   await page.goto('/');
@@ -307,7 +398,14 @@ test('the tools sit on a Windows taskbar, their names beside them, lighting up w
   await expect(tool.locator('.tool-name')).toBeVisible();
   const icon = await tool.locator('.tool-icon').boundingBox();
   const name = await tool.locator('.tool-name').boundingBox();
-  expect(name?.x ?? 0).toBeGreaterThanOrEqual((icon?.x ?? 0) + (icon?.width ?? 0) - 1);
+  expect(name?.y ?? 0).toBeGreaterThanOrEqual((icon?.y ?? 0) + (icon?.height ?? 0) - 1);
+  const tops = await taskbar
+    .locator('.tool-icon')
+    .evaluateAll((icons) => icons.map((one) => Math.round(one.getBoundingClientRect().top)));
+  expect(new Set(tops).size).toBe(1);
+  // Nothing spills out of the bar.
+  const spill = await taskbar.evaluate((bar) => bar.scrollWidth - bar.clientWidth);
+  expect(spill).toBeLessThanOrEqual(0);
   await scrollIntoViewSettled(tool);
   await tool.hover();
   await expect(tool).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.7)');
@@ -324,6 +422,16 @@ test.describe('the tools on a touch screen', () => {
     const icon = await tool.locator('.tool-icon').boundingBox();
     const name = await tool.locator('.tool-name').boundingBox();
     expect(name?.y ?? 0).toBeGreaterThanOrEqual((icon?.y ?? 0) + (icon?.height ?? 0) - 1);
+    // On a phone the bar takes as many rows as the tools need, and none is cut off.
+    const bar = page.locator('#skills .taskbar');
+    const box = await bar.boundingBox();
+    for (const one of await bar.locator('.tool').all()) {
+      const at = await one.boundingBox();
+      expect(at?.x ?? -1).toBeGreaterThanOrEqual((box?.x ?? 0) - 0.5);
+      expect((at?.x ?? 0) + (at?.width ?? 0)).toBeLessThanOrEqual(
+        (box?.x ?? 0) + (box?.width ?? 0) + 0.5,
+      );
+    }
     await page.locator('#skills .toolkit').scrollIntoViewIfNeeded();
     await expect(tool.locator('.tool-icon')).toHaveCSS('animation-name', 'none');
   });
@@ -402,8 +510,11 @@ test('a certification card opens its certificate, and the viewer slides through'
   await expect(count).toHaveText(`2 of ${total}`);
   await viewer.getByRole('button', { name: 'Next certificate' }).click();
   await expect(count).toHaveText(`3 of ${total}`);
-  await page.keyboard.press('ArrowRight');
-  await expect(count).toHaveText(`4 of ${total}`);
+  // On to the last with the arrow key, however many there are, then round to the first.
+  for (let at = 4; at <= total; at++) {
+    await page.keyboard.press('ArrowRight');
+    await expect(count).toHaveText(`${at} of ${total}`);
+  }
   await page.keyboard.press('ArrowRight');
   await expect(count).toHaveText(`1 of ${total}`);
   await viewer.getByRole('button', { name: 'Previous certificate' }).click();
@@ -456,6 +567,37 @@ test('the skills are a slide deck, its slides the phases', async ({ page }) => {
     toolkit.locator('.skill-group').filter({ has: page.getByRole('heading', { name }) });
   await expect(slide(first)).toBeVisible();
   await expect(slide(first).locator('.slide-count')).toHaveText(/^1 of \d$/);
+  // A finished slide: a line saying what the phase is about, and a footer along its foot with the
+  // slide's place in the deck.
+  await expect(slide(first).locator('.lead')).toHaveText(yamlValues(SKILLS, 'lead')[0] ?? '');
+  const edges = await slide(first).evaluate((element) => {
+    const foot = element.querySelector('.slide-foot')?.getBoundingClientRect();
+    const pills = element.querySelector('.pills')?.getBoundingClientRect();
+    const box = element.getBoundingClientRect();
+    return foot && pills ? { gap: box.bottom - foot.bottom, below: foot.top - pills.bottom } : null;
+  });
+  expect(edges?.gap).toBeLessThanOrEqual(28);
+  expect(edges?.below).toBeGreaterThanOrEqual(0);
+  // A whole window around the slides: the file's name in the title bar, a ribbon of tabs under it
+  // and a status bar along the foot, each reaching the window's edges. The ribbon and status bar are
+  // only the look, so they're kept from assistive technology.
+  const panel = toolkit.locator('.panel[data-panel="skills"]');
+  await expect(panel.locator('.window-bar .name')).toHaveText('Skills.pptx');
+  await expect(panel.locator('.status')).toContainText(
+    `${yamlValues(SKILLS, 'group').length} slides`,
+  );
+  const frame = await panel.boundingBox();
+  for (const part of ['.ribbon', '.status']) {
+    await expect(panel.locator(part)).toHaveAttribute('aria-hidden', 'true');
+    const box = await panel.locator(part).boundingBox();
+    expect(box?.x).toBeCloseTo(frame?.x ?? -1, 0);
+    expect(box?.width).toBeCloseTo(frame?.width ?? -1, 0);
+  }
+  const foot = await panel.locator('.status').boundingBox();
+  expect((foot?.y ?? 0) + (foot?.height ?? 0)).toBeCloseTo(
+    (frame?.y ?? 0) + (frame?.height ?? 0),
+    0,
+  );
   await expect(slide(second)).toBeHidden();
   await phases.getByText(second, { exact: true }).click();
   await expect(slide(second)).toBeVisible();
