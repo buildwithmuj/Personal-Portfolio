@@ -1,68 +1,44 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { withBase } from '../../lib/paths.ts';
 import { splitQuote } from '../../lib/testimonials.ts';
 import Shell from '../Shell.astro';
 import SocialIcon from '../SocialIcon.astro';
-import Icon from '../Icon.astro';
+import WindowBar from '../WindowBar.astro';
 
 interface Props {
   testimonials: CollectionEntry<'testimonials'>['data'][];
   heading: string;
   intro: string;
+  /** The owner, who sits in on the call, listening. */
+  owner: { name: string; avatar?: string | undefined };
 }
 
-const { testimonials, heading, intro } = Astro.props;
+const { testimonials, heading, intro, owner } = Astro.props;
 const initials = (name: string) =>
   name
     .split(/\s+/)
     .map((part) => part[0] ?? '')
     .join('')
     .slice(0, 2);
+const firstName = (name: string) => name.split(/\s+/)[0];
 ---
 
+{/*
+  Feedback (what people say), as a calm call in a window like the Toolkit's (WindowBar): a seat for each person
+  and one for the owner, listening, and beneath them the words of whoever is speaking. Picking a
+  seat makes that person speak: the seats are native radio buttons, so it works the same on every
+  screen and without JavaScript. Only the window's minimise and close buttons need the script.
+*/}
 <Shell id="testimonials" heading={heading} intro={intro} collapsible="open">
-  <div class="wall">
-    <ul class="posts" role="list">
-      {testimonials.map((testimonial, index) => (
-        <li class="post">
-          <figure>
-            <figcaption class="author">
-              <span class="avatar" data-tone={(index % 4) + 1} aria-hidden="true">
-                {initials(testimonial.name)}
-              </span>
-              <span class="who">
-                <span class="name">{testimonial.name}</span>
-                <span class="role">{testimonial.role}</span>
-              </span>
-            </figcaption>
-            <blockquote>
-              <p>
-                {splitQuote(testimonial.quote, testimonial.highlight).map((part, at) =>
-                  at === 1 && part ? <mark>{part}</mark> : part,
-                )}
-              </p>
-            </blockquote>
-            {(testimonial.source === 'linkedin' || testimonial.source === 'x') &&
-              (testimonial.url ? (
-                <a class="source" href={testimonial.url}>
-                  <SocialIcon platform={testimonial.source} />
-                  {testimonial.source === 'x' ? 'See it on X' : 'Verified on LinkedIn'}
-                </a>
-              ) : (
-                <p class="source">
-                  <SocialIcon platform={testimonial.source} />
-                  {testimonial.source === 'x' ? 'Posted on X' : 'LinkedIn'}
-                </p>
-              ))}
-          </figure>
-        </li>
-      ))}
-    </ul>
-    {testimonials.length > 1 && (
-      <fieldset class="pager">
+  <div class="window">
+    {/* No title in the bar: the section's heading already says what this is. */}
+    <WindowBar minimise={{ label: `Minimise ${heading}` }} close={{ label: `Close ${heading}` }} />
+    <div class="call">
+      <fieldset class="seats">
         <legend class="visually-hidden">Choose whose words to read</legend>
         {testimonials.map((testimonial, index) => (
-          <label>
+          <label class="seat">
             <input
               class="visually-hidden"
               type="radio"
@@ -70,96 +46,140 @@ const initials = (name: string) =>
               value={String(index)}
               checked={index === 0}
             />
-            <span class="dot" aria-hidden="true"></span>
-            <span class="visually-hidden">{testimonial.name}</span>
+            <span class="avatar" data-tone={(index % 4) + 1} aria-hidden="true">
+              {initials(testimonial.name)}
+            </span>
+            <span class="seat-name">
+              <span class="bars" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+              </span>
+              <span aria-hidden="true">{firstName(testimonial.name)}</span>
+              <span class="visually-hidden">{testimonial.name}</span>
+            </span>
           </label>
         ))}
-        <button class="pause" type="button" hidden>
-          <Icon name="pause" size={14} class="when-playing" />
-          <Icon name="play" size={14} class="when-paused" />
-          <span class="visually-hidden">Pause testimonials</span>
-        </button>
+        <span class="seat me" aria-hidden="true">
+          {owner.avatar && (
+            <img class="avatar" src={withBase(owner.avatar)} alt="" width="48" height="48" />
+          )}
+          <span class="seat-name">{firstName(owner.name)}</span>
+        </span>
       </fieldset>
-    )}
+      <ul class="said" role="list">
+        {testimonials.map((testimonial) => (
+          <li class="words">
+            <figure>
+              <blockquote>
+                <p>
+                  {splitQuote(testimonial.quote, testimonial.highlight).map((part, at) =>
+                    at === 1 && part ? <mark>{part}</mark> : part,
+                  )}
+                </p>
+              </blockquote>
+              <figcaption>
+                <span>
+                  <b>{testimonial.name}</b>
+                  {testimonial.role && ` · ${testimonial.role}`}
+                </span>
+                {(testimonial.source === 'linkedin' || testimonial.source === 'x') &&
+                  (testimonial.url ? (
+                    <a class="source" href={testimonial.url}>
+                      <SocialIcon platform={testimonial.source} />
+                      {testimonial.source === 'x' ? 'See it on X' : 'Verified on LinkedIn'}
+                    </a>
+                  ) : (
+                    <span class="source">
+                      <SocialIcon platform={testimonial.source} />
+                      {testimonial.source === 'x' ? 'Posted on X' : 'LinkedIn'}
+                    </span>
+                  ))}
+              </figcaption>
+            </figure>
+          </li>
+        ))}
+      </ul>
+    </div>
   </div>
 </Shell>
 
 <script>
-  // On phones one card shows at a time, and every three seconds the next one takes its place,
-  // looping. It waits while the pointer or keyboard focus is inside, the button pauses it, and
-  // picking a dot pauses it too (WCAG 2.2.2). Wider screens show every card, so it never runs there,
-  // nor under reduced motion or the footer's pause button.
-  const wall = document.querySelector<HTMLElement>('.wall');
-  const button = wall?.querySelector<HTMLButtonElement>('.pause');
-  const label = button?.querySelector('span');
-  const radios = [...(wall?.querySelectorAll<HTMLInputElement>('.pager input') ?? [])];
-  const phone = matchMedia('(width < 48rem)');
-  if (wall && button && label && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const pause = (paused: boolean) => {
-      button.toggleAttribute('data-paused', paused);
-      label.textContent = `${paused ? 'Play' : 'Pause'} testimonials`;
+  // The window's minimise and close buttons (WindowBar.astro) put it away: the section collapses,
+  // as its own toggle does, and focus goes to that toggle, which opens it again.
+  const toggle = document.querySelector<HTMLButtonElement>('#testimonials .collapse');
+  for (const button of document.querySelectorAll<HTMLButtonElement>(
+    '#testimonials .window-bar button',
+  )) {
+    if (!toggle) break;
+    button.onclick = () => {
+      toggle.click();
+      toggle.focus();
     };
-    button.hidden = false;
-    button.addEventListener('click', () => pause(!button.hasAttribute('data-paused')));
-    wall.addEventListener('change', () => pause(true));
-    window.setInterval(() => {
-      if (!phone.matches || button.hasAttribute('data-paused')) return;
-      if (wall.matches(':hover, :focus-within')) return;
-      if (document.documentElement.classList.contains('motion-paused')) return;
-      const next = radios[(radios.findIndex((radio) => radio.checked) + 1) % radios.length];
-      if (next) next.checked = true;
-    }, 3000);
+    button.disabled = false;
   }
 </script>
 
 <style>
-  /*
-   * Testimonials as social posts: an author row (initials avatar, name, and the role where a handle
-   * would be), a faint rule, the words with their key phrase in a sky highlighter, then where it
-   * was given ("Verified on LinkedIn", a link to it, when the recommendation's address is known). On wide
-   * screens the cards sit in a grid of equal rows; on phones they stack in one place and show one
-   * at a time, chosen by the dots (native radio buttons, so it works without JavaScript). Sizes
-   * follow the Portfolik reference at 1440px: 14px words on 21px lines, a 14px name over a 12px
-   * role, a 42px avatar, 28px of padding and 10px between cards.
-   */
-  .posts {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-auto-rows: 1fr;
-    gap: 10px;
-    padding: 0;
-    list-style: none;
-  }
-
-  figure {
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    gap: var(--space-4);
-    height: 100%;
-    margin: 0;
-    padding: 28px;
+  .window {
+    overflow: hidden;
     border-radius: var(--radius-card);
     background: var(--color-surface);
   }
 
-  .author {
-    display: flex;
-    gap: var(--space-3);
-    align-items: center;
-    padding-block-end: var(--space-4);
-    border-block-end: 1px dashed var(--color-hairline);
+  .call {
+    display: grid;
+    gap: var(--space-6);
+    padding: 28px 32px 30px;
+  }
+
+  /* The seats: as many to a row as fit, the owner's last. */
+  .seats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .seat {
+    display: grid;
+    gap: var(--space-2);
+    justify-items: center;
+    padding: 14px 6px 10px;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    background: var(--color-shell);
+    font-size: var(--text-xs);
+    transition:
+      background-color var(--duration-base) var(--ease-standard),
+      border-color var(--duration-base) var(--ease-standard);
+  }
+
+  label {
+    cursor: pointer;
+  }
+
+  .me {
+    color: var(--color-text-muted);
+  }
+
+  /* The one speaking: a pale sky seat, their name in blue beside three small sound bars. */
+  .seat:has(:checked) {
+    border-color: var(--color-chip-edge);
+    background: var(--color-chip);
   }
 
   .avatar {
     display: grid;
-    flex-shrink: 0;
     place-items: center;
-    width: 42px;
-    height: 42px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background: var(--color-avatar-1);
     color: var(--color-avatar-text);
-    font-size: var(--text-sm);
+    font-size: var(--text-base);
     font-weight: var(--weight-medium);
   }
 
@@ -177,34 +197,90 @@ const initials = (name: string) =>
     color: var(--color-avatar-text-light);
   }
 
-  .who {
-    display: grid;
-    flex: 1;
-    gap: 2px;
-    min-width: 0;
-    line-height: 1.3;
+  /* The owner's photo is a cut-out, so it sits on the sky like the hero's. */
+  img.avatar {
+    background: var(--gradient-sky);
+    object-fit: cover;
   }
 
-  .name {
-    font-size: var(--text-sm);
+  input:focus-visible + .avatar {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  .seat-name {
+    display: inline-flex;
+    gap: 5px;
+    align-items: center;
+  }
+
+  :checked ~ .seat-name {
+    color: var(--color-accent-hover);
     font-weight: var(--weight-medium);
   }
 
-  .role {
-    color: var(--color-text-muted);
-    font-size: var(--text-xs);
+  .bars {
+    display: none;
+    gap: 2px;
+    align-items: center;
+    height: 9px;
+  }
+
+  :checked ~ .seat-name .bars {
+    display: inline-flex;
+  }
+
+  .bars i {
+    width: 2px;
+    height: 100%;
+    border-radius: 1px;
+    background: var(--color-accent);
+    animation: seat-speak 1100ms ease-in-out infinite alternate;
+  }
+
+  .bars i:nth-child(2) {
+    animation-delay: -370ms;
+  }
+
+  .bars i:nth-child(3) {
+    animation-delay: -740ms;
+  }
+
+  @keyframes seat-speak {
+    from {
+      transform: scaleY(0.35);
+    }
+  }
+
+  /* What's said: every person's words, in turn, until :has() can show only the speaker's (below). */
+  .said {
+    display: grid;
+    gap: var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  figure {
+    margin: 0;
   }
 
   blockquote {
     margin: 0;
-    font-size: var(--text-sm);
-    line-height: var(--leading-body);
+    font-size: var(--text-xl);
+    letter-spacing: -0.011em;
+    line-height: 1.5;
+  }
+
+  blockquote p {
+    max-width: none;
+    margin: 0;
   }
 
   /*
    * The marker: a sky highlighter stroke under the key phrase, in the chips' sky edge colour. With
-   * motion allowed, it sweeps across line by line as the card comes up the screen. A browser without
-   * scroll-driven animation plays it in no time at all, so there it simply shows.
+   * motion allowed, it sweeps across line by line as the words come up the screen. A browser
+   * without scroll-driven animation plays it in no time at all, so there it simply shows.
    */
   mark {
     margin: 0 -2px;
@@ -237,14 +313,29 @@ const initials = (name: string) =>
     animation-play-state: running !important;
   }
 
-  /* Where it was given: a link to it when its address is known, or just its name. */
+  /* Who said it and, at the right, where: a link to it when its address is known, or its name. */
+  figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    align-items: center;
+    justify-content: space-between;
+    margin-block-start: var(--space-4);
+    padding-block-start: var(--space-4);
+    border-block-start: 1px dashed var(--color-hairline);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  figcaption b {
+    color: var(--color-text);
+    font-weight: var(--weight-medium);
+  }
+
   .source {
     display: inline-flex;
     gap: 6px;
     align-items: center;
-    justify-self: start;
-    margin: 0;
-    color: var(--color-text-muted);
     font-size: var(--text-xs);
     font-weight: var(--weight-medium);
   }
@@ -254,99 +345,38 @@ const initials = (name: string) =>
     text-decoration: none;
   }
 
-  /* The dots and the pause button: phones only. */
-  .pager {
-    display: none;
+  /* Only the speaker's words show, all in one grid cell (as tall as the tallest, so nothing jumps). */
+  @supports selector(:has(*)) {
+    .words {
+      grid-area: 1 / 1;
+      transition:
+        opacity var(--duration-base) var(--ease-standard),
+        visibility var(--duration-base);
+    }
+
+    .call:has(label:nth-of-type(1) :checked) .words:not(:nth-child(1)),
+    .call:has(label:nth-of-type(2) :checked) .words:not(:nth-child(2)),
+    .call:has(label:nth-of-type(3) :checked) .words:not(:nth-child(3)),
+    .call:has(label:nth-of-type(4) :checked) .words:not(:nth-child(4)),
+    .call:has(label:nth-of-type(5) :checked) .words:not(:nth-child(5)),
+    .call:has(label:nth-of-type(6) :checked) .words:not(:nth-child(6)) {
+      visibility: hidden;
+      opacity: 0;
+    }
   }
 
   @media (width < 48rem) {
-    figure {
-      padding: var(--space-6);
+    .call {
+      padding: 18px 16px 22px;
     }
 
-    .pager {
-      display: flex;
-      gap: var(--space-2);
-      align-items: center;
-      justify-content: center;
-      margin: var(--space-4) 0 0;
-      padding: 0;
-      border: 0;
+    /* Three seats to a row. */
+    .seats {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    label {
-      display: grid;
-      place-items: center;
-      min-width: 24px;
-      min-height: 24px;
-      cursor: pointer;
-    }
-
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: var(--radius-pill);
-      background: var(--color-chip-edge);
-      transition:
-        width var(--duration-base) var(--ease-standard),
-        background-color var(--duration-base) var(--ease-standard);
-    }
-
-    input:checked + .dot {
-      width: 20px;
-      background: var(--color-accent);
-    }
-
-    input:focus-visible + .dot {
-      outline: 3px solid var(--color-focus);
-      outline-offset: 3px;
-    }
-
-    .pause {
-      display: grid;
-      place-items: center;
-      width: 32px;
-      height: 32px;
-      margin-inline-start: var(--space-2);
-      padding: 0;
-      border: 0;
-      border-radius: 50%;
-      background: var(--color-surface);
-      color: var(--color-text);
-      cursor: pointer;
-    }
-
-    .pause[hidden] {
-      display: none;
-    }
-
-    .pause[data-paused] .when-playing,
-    .pause:not([data-paused]) .when-paused {
-      display: none;
-    }
-
-    /* One card at a time, all in one grid cell (as tall as the tallest); without :has(), a list. */
-    @supports selector(:has(*)) {
-      .posts {
-        grid-template-columns: minmax(0, 1fr);
-      }
-
-      .post {
-        grid-area: 1 / 1;
-        transition:
-          opacity var(--duration-base) var(--ease-standard),
-          visibility var(--duration-base);
-      }
-
-      .wall:has(.pager label:nth-of-type(1) input:checked) .post:not(:nth-child(1)),
-      .wall:has(.pager label:nth-of-type(2) input:checked) .post:not(:nth-child(2)),
-      .wall:has(.pager label:nth-of-type(3) input:checked) .post:not(:nth-child(3)),
-      .wall:has(.pager label:nth-of-type(4) input:checked) .post:not(:nth-child(4)),
-      .wall:has(.pager label:nth-of-type(5) input:checked) .post:not(:nth-child(5)),
-      .wall:has(.pager label:nth-of-type(6) input:checked) .post:not(:nth-child(6)) {
-        visibility: hidden;
-        opacity: 0;
-      }
+    blockquote {
+      font-size: var(--text-base);
     }
   }
 </style>

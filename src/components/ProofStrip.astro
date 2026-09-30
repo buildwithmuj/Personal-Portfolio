@@ -114,8 +114,11 @@ const logos = items.map(({ name, logo, scale = 1 }) => {
     }
   }
 
-  /* Under reduced motion the list wraps statically inside the card. */
-  @media (prefers-reduced-motion: reduce) {
+  /*
+   * Only phones scroll the strip, where the logos can't all fit; wider screens, and reduced motion,
+   * show them still, wrapped inside the card.
+   */
+  @media (prefers-reduced-motion: reduce), (width >= 40rem) {
     .marquee {
       display: block;
       mask-image: none;

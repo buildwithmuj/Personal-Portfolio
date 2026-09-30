@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../support/test.ts';
 import { profileValue, sectionHeading } from '../support/content.ts';
 import { scrollIntoViewSettled } from '../support/settle.ts';
 
@@ -47,6 +47,77 @@ test('a sky sets up its graphics only as it nears the screen', async ({ page }) 
   await expect(desk).toHaveAttribute('data-asked');
 });
 
+// A pop-up over the page (the CV, a certificate) dims and blurs what's behind it, so the skies there
+// hold still until it closes. Headless browsers have no graphics card, so a stand-in one counts the
+// frames each sky draws.
+test('the skies hold still while the CV covers the page', async ({ page }) => {
+  await page.addInitScript(() => {
+    const counter = window as unknown as { draws: number };
+    counter.draws = 0;
+    const card = new Proxy(
+      {},
+      {
+        get: (_, key) => {
+          if (key === 'drawArrays') return () => counter.draws++;
+          if (key === 'getParameter') return () => 'Test graphics card';
+          if (key === 'getProgramParameter') return () => true;
+          if (key === 'isContextLost') return () => false;
+          if (key === 'getExtension') return () => null;
+          // Constants (VERTEX_SHADER, …) are numbers; every other call succeeds quietly.
+          return typeof key === 'string' && key === key.toUpperCase() ? 1 : () => ({});
+        },
+      },
+    );
+    HTMLCanvasElement.prototype.getContext = (() =>
+      card) as unknown as typeof HTMLCanvasElement.prototype.getContext;
+  });
+  await page.goto('/');
+  const draws = () => page.evaluate(() => (window as unknown as { draws: number }).draws);
+  const drawnIn = async (ms: number) => {
+    const before = await draws();
+    await page.waitForTimeout(ms);
+    return (await draws()) - before;
+  };
+  await expect.poll(() => drawnIn(200)).toBeGreaterThan(0);
+  await page.locator('#about').getByRole('link', { name: 'View CV' }).click();
+  const cv = page.getByRole('dialog', { name: profileValue('name') });
+  await expect(cv).toBeVisible();
+  await expect.poll(() => drawnIn(200)).toBe(0);
+  await page.keyboard.press('Escape');
+  await expect(cv).toBeHidden();
+  await expect.poll(() => drawnIn(200)).toBeGreaterThan(0);
+});
+
+// The top bar's clock keeps London time to the minute, and only touches the page when the minute
+// changes (it once rewrote itself every second).
+test('the clock changes on the minute, and is left alone in between', async ({ page }) => {
+  await page.clock.install({ time: new Date('2026-09-28T13:00:00Z') }); // 14:00 in London
+  await page.setViewportSize({ width: 1280, height: 800 });
+  // A page with little else on it: the home page's animations make the stand-in time crawl.
+  await page.goto('/privacy');
+  // From here the test alone moves the time on.
+  await page.clock.pauseAt(new Date('2026-09-28T13:00:30Z'));
+  const clock = page.locator('.top-bar live-clock');
+  await expect(clock).toHaveText('14:00');
+  await clock.evaluate((element) => {
+    const counter = window as unknown as { writes: number };
+    counter.writes = 0;
+    new MutationObserver((records) => (counter.writes += records.length)).observe(element, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+  });
+  const writes = () => page.evaluate(() => (window as unknown as { writes: number }).writes);
+  await page.clock.runFor(20_000);
+  await expect(clock).toHaveText('14:00');
+  expect(await writes()).toBe(0);
+  await page.clock.runFor(15_000);
+  await expect(clock).toHaveText('14:01');
+  await page.clock.runFor(60_000);
+  await expect(clock).toHaveText('14:02');
+});
+
 test('the hero headline reads exactly as written', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#top .headline')).toHaveText(profileValue('headline'));
@@ -59,35 +130,59 @@ test('section headings read exactly as written', async ({ page }) => {
   }
 });
 
-test('the phone menu opens the navigation and closes when a link is followed', async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 812 });
-  await page.goto('/');
-  const menu = page.locator('.top-bar details');
-  await menu.locator('summary').click();
-  const panel = menu.getByRole('navigation', { name: 'Main' });
-  await expect(panel.getByRole('link', { name: 'Work' })).toBeVisible();
-  await panel.getByRole('link', { name: 'Work' }).click();
-  await expect(menu).not.toHaveAttribute('open');
-  await expect(page).toHaveURL(/#work$/);
-});
+// The menu is the navigation on every screen: seven links in a row across the bar were a lot to take
+// in, so the bar keeps the clock, the weather and one button, on a computer as on a phone.
+for (const viewport of [
+  { width: 375, height: 812 },
+  { width: 1280, height: 800 },
+]) {
+  test(`the menu opens the navigation and closes when a link is followed (${viewport.width}px)`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    // No row of links in the bar itself: the only navigation is the menu's.
+    await expect(page.locator('.top-bar nav')).toHaveCount(1);
+    const menu = page.locator('.top-bar details');
+    const panel = menu.getByRole('navigation', { name: 'Main' });
+    await expect(panel).toBeHidden();
+    await menu.locator('summary').click();
+    await expect(panel.getByRole('link', { name: 'Work' })).toBeVisible();
+    // The panel hangs from the bar, as wide as the bar, inside the window.
+    const bar = await page.locator('.top-bar').boundingBox();
+    const box = await menu.locator('.panel').boundingBox();
+    expect(box?.x).toBeCloseTo(bar?.x ?? -1, 0);
+    expect(box?.width).toBeCloseTo(bar?.width ?? -1, 0);
+    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(viewport.height);
+    await panel.getByRole('link', { name: 'Work' }).click();
+    await expect(menu).not.toHaveAttribute('open');
+    await expect(page).toHaveURL(/#work$/);
+  });
+}
 
-// The phone menu drops from the bar with the call beneath its links; Escape or a tap outside it
-// closes it.
-test('the phone menu offers the call, and closes on Escape or a tap outside it', async ({
-  page,
-}) => {
+// The menu drops from the bar with the call as its last link, in blue and in the same large
+// type as the rest; Escape or a tap outside it closes it.
+test('the menu offers the call, and closes on Escape or a tap outside it', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto('/');
   const menu = page.locator('.top-bar details');
   await menu.locator('summary').click();
-  await expect(menu.getByRole('link', { name: 'Book a 30-minute call' })).toBeVisible();
+  const links = menu.getByRole('navigation', { name: 'Main' }).getByRole('link');
+  const call = links.last();
+  await expect(call).toHaveText('Book a call');
+  await expect(call).toHaveAttribute('href', '/#contact');
+  await expect(call).toHaveCSS('color', 'rgb(38, 97, 186)');
+  await expect(call).toHaveCSS(
+    'font-size',
+    await links.first().evaluate((a) => getComputedStyle(a).fontSize),
+  );
   await page.keyboard.press('Escape');
   await expect(menu).not.toHaveAttribute('open');
   await expect(menu.locator('summary')).toBeFocused();
   await menu.locator('summary').click();
   // Tapping inside the panel, away from its links, leaves it open.
-  const card = await menu.locator('.menu-card').boundingBox();
-  await page.mouse.click((card?.x ?? 0) + 8, (card?.y ?? 0) + 8);
+  const inside = await menu.locator('.panel').boundingBox();
+  await page.mouse.click((inside?.x ?? 0) + 8, (inside?.y ?? 0) + (inside?.height ?? 0) - 8);
   await expect(menu).toHaveAttribute('open');
   // Below the panel, on the page.
   const panel = await menu.locator('.panel').boundingBox();
@@ -95,8 +190,34 @@ test('the phone menu offers the call, and closes on Escape or a tap outside it',
   await expect(menu).not.toHaveAttribute('open');
 });
 
-// The phone menu leads its icons with the CV, which opens over the home page.
-test('the phone menu offers the CV beside the social links', async ({ page }) => {
+// On a short screen (a phone on its side) the open menu scrolls within itself, so its last links
+// stay reachable: the bar is sticky, so the page's own scroll can't bring them into view.
+test('on a short screen the open menu scrolls to its last link', async ({ page }) => {
+  await page.setViewportSize({ width: 812, height: 375 });
+  await page.goto('/');
+  const menu = page.locator('.top-bar details');
+  await menu.locator('summary').click();
+  const last = menu.locator('.socials a').last();
+  await last.scrollIntoViewIfNeeded();
+  await expect(last).toBeInViewport({ ratio: 1 });
+  const panel = await menu.locator('.panel').boundingBox();
+  expect((panel?.y ?? 0) + (panel?.height ?? 0)).toBeLessThanOrEqual(375);
+});
+
+// Tabbing on past the menu's last link closes it, so focus never lands on the page hidden under it.
+test('tabbing out of the menu closes it', async ({ page, browserName }) => {
+  test.skip(browserName === 'webkit', 'Safari tabs only to form controls by default');
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/');
+  const menu = page.locator('.top-bar details');
+  await menu.locator('summary').click();
+  await menu.locator('.socials a').last().focus();
+  await page.keyboard.press('Tab');
+  await expect(menu).not.toHaveAttribute('open');
+});
+
+// The menu leads its icons with the CV, which opens over the home page.
+test('the menu offers the CV beside the social links', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto('/');
   const menu = page.locator('.top-bar details');
@@ -106,7 +227,12 @@ test('the phone menu offers the CV beside the social links', async ({ page }) =>
   await expect(icons).toHaveCount(5);
   await icons.first().click();
   await expect(menu).not.toHaveAttribute('open');
-  await expect(page.getByRole('dialog', { name: profileValue('name') })).toBeVisible();
+  const cv = page.getByRole('dialog', { name: profileValue('name') });
+  await expect(cv).toBeVisible();
+  // Closed, the CV hands focus back to the menu button, not to the link hidden in the closed menu.
+  await page.keyboard.press('Escape');
+  await expect(cv).toBeHidden();
+  await expect(menu.locator('summary')).toBeFocused();
 });
 
 for (const path of ['/projects', '/work/amniki']) {
@@ -117,45 +243,102 @@ for (const path of ['/projects', '/work/amniki']) {
   });
 }
 
-test('Home in the top bar leads back to the home page from All work', async ({ page }) => {
+test('Home in the menu leads back to the home page from All work', async ({ page }) => {
   await page.goto('/projects');
-  await page.locator('.top-bar .links').getByRole('link', { name: 'Home' }).click();
-  await expect(page).toHaveURL(/\/#page-top$/);
+  await page.locator('.top-bar summary').click();
+  await page.locator('.top-bar .panel-links').getByRole('link', { name: 'Home' }).click();
+  await expect(page).toHaveURL(/\/#home$/);
   await expect(page.locator('#top .headline')).toBeVisible();
 });
 
-test('the top bar links to each part of the home page, in order', async ({ page }) => {
+test('the menu links to each part of the home page, in order, then the call', async ({ page }) => {
   await page.goto('/projects');
-  await expect(page.locator('.top-bar .links a')).toHaveText([
+  await page.locator('.top-bar summary').click();
+  await expect(page.locator('.top-bar .panel-links a')).toHaveText([
     'Home',
     'About',
     'Work',
     'Toolkit',
     'Ask',
-    'Contact',
+    sectionHeading('testimonials'),
+    'Book a call',
   ]);
-  await expect(page.locator('.top-bar .links').getByRole('link', { name: 'Ask' })).toHaveAttribute(
+  const links = page.locator('.top-bar .panel-links');
+  // One way to the contact section, not two: Book a call leads there.
+  await expect(links.getByRole('link', { name: 'Contact' })).toHaveCount(0);
+  await expect(links.getByRole('link', { name: 'Book a call' })).toHaveAttribute(
     'href',
-    '/#interview',
+    '/#contact',
+  );
+  await expect(links.getByRole('link', { name: 'Ask' })).toHaveAttribute('href', '/#interview');
+  // The recommendations, under their section's heading, while there is one to show.
+  await expect(links.getByRole('link', { name: sectionHeading('testimonials') })).toHaveAttribute(
+    'href',
+    '/#testimonials',
   );
 });
 
-// The clock, six centred links and the weather only fit from 768px; narrower, the bar uses its
-// menu. The links sit in the middle, clear of the clock and the weather.
-for (const width of [770, 960, 1280]) {
-  test(`at ${width}px the top bar fits its links between the clock and the weather`, async ({
+// The bar shows London's weather as an icon and the temperature; the word for it stays for screen
+// readers. (Every test gets a fixed reading in place of Open-Meteo's, so it always shows here.)
+test('the weather shows as an icon and a temperature, its word kept for screen readers', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/');
+  const weather = page.locator('.top-bar .weather');
+  await expect(weather).toBeVisible();
+  await expect(weather.locator('[data-temp]')).toHaveText('18');
+  await expect(weather.locator('use')).toHaveAttribute('href', '#weather-cloud');
+  const icon = await weather.locator('svg').boundingBox();
+  expect(icon?.width).toBe(16);
+  const word = weather.locator('.condition');
+  await expect(word).toHaveText(/\S/);
+  const box = await word.boundingBox();
+  expect(box?.width).toBeLessThanOrEqual(1);
+});
+
+// Scrolled, the bar floats as a pill with rounded corners. The page-coloured strip behind it then
+// reaches a little below it, so whatever scrolls underneath ends in a straight line clear of the bar:
+// before, slivers of the page showed in the notches around its lower corners.
+test('the floating bar keeps a clear band beneath it', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/');
+  const timelines = await page.evaluate(() => CSS.supports('animation-timeline: scroll()'));
+  test.skip(!timelines, 'Without scroll timelines the bar keeps its square corners');
+  // Whether the bar (its strip) is what sits just under its own lower-left corner.
+  const clear = () =>
+    page.evaluate(() => {
+      const bar = document.querySelector('.top-bar');
+      const box = bar?.getBoundingClientRect();
+      if (!bar || !box) return null;
+      return bar.contains(document.elementFromPoint(box.left + 4, box.bottom + 4));
+    });
+  // At the top of the page the bar is the top of the hero's frame, and joins it.
+  expect(await clear()).toBe(false);
+  await page.evaluate(() => scrollTo(0, 400));
+  await expect.poll(clear).toBe(true);
+});
+
+// The bar holds three things on every screen, clear of one another: the clock, the weather beside
+// it, and the menu button at the right.
+for (const width of [320, 770, 1280]) {
+  test(`at ${width}px the top bar holds the clock, the weather and the menu button`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height: 800 });
     await page.goto('/');
+    await expect(page.locator('.top-bar .weather')).toBeVisible();
     const bar = await page.locator('.top-bar').boundingBox();
     const clock = await page.locator('.top-bar live-clock').boundingBox();
-    const links = await page.locator('.top-bar .links').boundingBox();
     const weather = await page.locator('.top-bar .where').boundingBox();
-    if (!bar || !clock || !links || !weather) throw new Error('top bar not laid out');
-    expect(clock.x + clock.width).toBeLessThanOrEqual(links.x);
-    expect(links.x + links.width).toBeLessThanOrEqual(weather.x);
-    expect(weather.x + weather.width).toBeLessThanOrEqual(bar.x + bar.width);
+    const button = await page.locator('.top-bar summary').boundingBox();
+    if (!bar || !clock || !weather || !button) throw new Error('top bar not laid out');
+    expect(clock.x + clock.width).toBeLessThanOrEqual(weather.x);
+    expect(weather.x + weather.width).toBeLessThanOrEqual(button.x);
+    expect(button.x + button.width).toBeLessThanOrEqual(bar.x + bar.width);
+    // The button is a comfortable target, at the bar's right edge.
+    expect(button.width).toBeGreaterThanOrEqual(40);
+    expect(bar.x + bar.width - (button.x + button.width)).toBeLessThanOrEqual(16);
   });
 }
 
@@ -178,35 +361,38 @@ test('the hero shows availability', async ({ page }) => {
   await expect(page.locator('.hero .availability')).toHaveText(/\S/);
 });
 
-// Wide screens show the whole availability line. Phones show a shorter one whose last word rotates
-// (roles, projects, …), while screen readers still get the whole line.
-test('the availability pill shortens on phones and rotates its last word', async ({ page }) => {
+// The pill says the same whole line on every screen, and nothing in it moves.
+test('the availability pill says the whole line, still, even on the smallest phone', async ({
+  page,
+}) => {
   const line = profileValue('availability');
+  await page.setViewportSize({ width: 320, height: 700 });
   await page.goto('/');
   const pill = page.locator('.hero .availability');
-  await expect(pill.locator('.availability-full')).toBeVisible();
-  await expect(pill.locator('.availability-short')).toBeHidden();
-
-  await page.setViewportSize({ width: 375, height: 812 });
-  await expect(pill.locator('.availability-short')).toBeVisible();
-  await expect(pill.locator('.availability-short')).toHaveAttribute('aria-hidden', 'true');
-  await expect(pill.locator('.availability-full')).toHaveText(line);
-  const word = pill.locator('role-rotator > span').first();
-  const first = (await word.textContent()) ?? '';
-  await expect(word).not.toHaveText(first, { timeout: 6000 });
+  await expect(pill).toHaveText(line);
+  await expect(pill.locator('role-rotator')).toHaveCount(0);
+  await expect(pill.locator('.available-dot')).toHaveCSS('animation-name', 'none');
+  const box = await pill.boundingBox();
+  expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(320);
 });
 
-// The hero's workflow line-art runs over the sky on wider screens; phones keep the sky alone.
-test('the hero line-art shows on desktop and rests on phones', async ({ page }) => {
+// The hero's workflow line-art runs over the sky on wider screens, a light travelling slowly along
+// each line (a nine-second loop); phones keep the sky alone.
+test('the hero line-art shows on desktop, its light slow, and rests on phones', async ({
+  page,
+}) => {
   await page.goto('/');
   await expect(page.locator('.hero .flow')).toBeVisible();
+  const light = page.locator('.hero .flow .pulse').first();
+  await expect(light).toHaveCSS('animation-name', 'flow-pulse');
+  await expect(light).toHaveCSS('animation-duration', '9s');
   await page.setViewportSize({ width: 375, height: 812 });
   await expect(page.locator('.hero .flow')).toBeHidden();
   await expect(page.locator('.hero .band-socials')).toBeVisible();
 });
 
-// The About card's typical day ticks itself off on London time: every task before the one under
-// way is done, and the rest are still to come. (The scrolling list is drawn twice; screen readers
+// The About card's typical day ticks itself off on London time: a task is ticked the moment its
+// time comes, the one under way included, and the rest are still to come. (The scrolling list is drawn twice; screen readers
 // and this test read the first copy.)
 test('the About card ticks off a typical day on London time', async ({ page }) => {
   await page.clock.setFixedTime(new Date('2026-09-28T13:00:00Z')); // 14:00 in London
@@ -228,6 +414,15 @@ test('the About card ticks off a typical day on London time', async ({ page }) =
     if (time === current) continue;
     expect(state).toBe((time ?? '') < current ? 'done' : '');
   }
+  // Ticked as its time comes: the count takes in the task under way, which wears a tick in the
+  // accent blue where the earlier ones are navy.
+  const started = tasks.filter(([time]) => (time ?? '') <= '14:00').length;
+  expect(started).toBeGreaterThan(0);
+  await expect(day.locator('[data-done-count]')).toHaveText(String(started));
+  await expect(day.locator('li:not([aria-hidden])[data-state="now"] .rem-tick')).toHaveCSS(
+    'background-color',
+    'rgb(38, 97, 186)',
+  );
   await expect(day).toContainText(/\d+ of \d+ done/);
   await expect(day.getByRole('link', { name: "Let's talk" })).toHaveAttribute('href', '#contact');
 });
@@ -295,24 +490,14 @@ test('with animations paused, entrances still finish and only loops are held', a
 
   // Bring every scroll reveal on screen until the reveal observer has seen it (its .in class), then
   // list what the pause holds. Reveals in a hidden tab (the other side of the Work switch) can't
-  // scroll into view; skip them. A reveal inside a section that is still sliding open is clipped
-  // until the slide is done, so wait for its section to settle first. Each wait is on the page's own
-  // state, checked frame by frame, not a set number of frames: under a full parallel run WebKit
-  // draws only six or seven frames a second.
+  // scroll into view; skip them. Each wait is on the page's own state, checked frame by frame, not a
+  // set number of frames: under a full parallel run WebKit draws only six or seven frames a second.
   await page.evaluate(async () => {
     const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
-    const until = async (done: () => boolean) => {
-      while (!done()) await frame();
-    };
     for (const element of document.querySelectorAll('[data-reveal]')) {
       if (element.getClientRects().length === 0) continue;
       element.scrollIntoView({ block: 'center' });
-      const section = element.closest('.stack > .shell');
-      if (section?.querySelector(':scope > .shell-body')) {
-        await until(() => section.classList.contains('is-settled'));
-        element.scrollIntoView({ block: 'center' });
-      }
-      await until(() => element.classList.contains('in'));
+      while (!element.classList.contains('in')) await frame();
     }
   });
   await page.waitForFunction(() =>

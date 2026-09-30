@@ -62,6 +62,11 @@ describe('caseStudyLabel (content spec §5.4)', () => {
       caseStudyLabel({ kind: 'product', status: 'retired' }),
       'Personal project · Retired',
     );
+    // An idea not yet built says so wherever it is listed.
+    assert.equal(
+      caseStudyLabel({ kind: 'product', status: 'concept' }),
+      'Personal project · Concept',
+    );
   });
 
   it('falls back to the kind alone', () => {

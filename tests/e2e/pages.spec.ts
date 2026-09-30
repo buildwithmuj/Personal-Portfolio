@@ -1,4 +1,7 @@
-import { expect, test } from '@playwright/test';
+import { createHash } from 'node:crypto';
+import { expect, test } from '../support/test.ts';
+import { COUNT_URL } from '../../site.config.ts';
+import { MOTION_SCRIPT } from '../../src/lib/motion.ts';
 import { builtPagePaths, SITE_ORIGIN } from '../support/site.ts';
 
 for (const path of builtPagePaths()) {
@@ -26,17 +29,44 @@ for (const path of builtPagePaths()) {
       expect(errors).toEqual([]);
     });
 
+    // Stand-in content is fine while drafting, but the word itself must never be published: not in
+    // the text (hidden parts included), an image's description or a link preview's tags.
+    test('publishes no placeholder wording', async ({ page }) => {
+      await page.goto(path);
+      const published = await page.evaluate(() => {
+        const words: string[] = [];
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          if (!node.parentElement?.closest('script, style')) words.push(node.textContent ?? '');
+        }
+        for (const image of document.querySelectorAll('img')) words.push(image.alt);
+        for (const meta of document.querySelectorAll('meta[content]')) {
+          words.push(meta.getAttribute('content') ?? '');
+        }
+        return words.join('\n');
+      });
+      expect(published).not.toMatch(/placeholder/i);
+    });
+
     test('has one h1 and complete SEO metadata', async ({ page }) => {
       await page.goto(path);
       await expect(page.locator('h1')).toHaveCount(1);
-      await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+      await expect(page.locator('html')).toHaveAttribute('lang', 'en-GB');
       expect(await page.title()).toMatch(/ — /);
       const description = await page.locator('meta[name="description"]').getAttribute('content');
       expect(description?.length ?? 0).toBeGreaterThan(0);
       expect(description?.length ?? 0).toBeLessThanOrEqual(160);
       const canonical = path === '/' ? `${SITE_ORIGIN}/` : `${SITE_ORIGIN}${path}`;
       await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', canonical);
-      for (const property of ['og:title', 'og:description', 'og:url', 'og:image', 'og:image:alt']) {
+      for (const property of [
+        'og:title',
+        'og:description',
+        'og:url',
+        'og:image',
+        'og:image:alt',
+        'og:image:width',
+        'og:image:height',
+      ]) {
         await expect(page.locator(`meta[property="${property}"]`)).toHaveCount(1);
       }
       await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', canonical);
@@ -62,14 +92,14 @@ for (const path of builtPagePaths()) {
     test('does not scroll sideways at 320px', async ({ page }) => {
       await page.setViewportSize({ width: 320, height: 800 });
       await page.goto(path);
-      // Measured once every section has slid open and settled: a settled section lets its content
-      // spill over its edges, and what spills could widen the page (Ask me's text box once did).
+      // Measured once every section has been on screen, so anything that starts as it's reached
+      // (a sky, a reveal) has started, and could widen the page (Ask me's text box once did).
       await page.evaluate(async () => {
         const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
         for (const section of document.querySelectorAll('.stack > .shell')) {
           section.scrollIntoView({ block: 'center' });
-          if (!section.querySelector(':scope > .shell-body')) continue;
-          while (!section.classList.contains('is-settled')) await frame();
+          await frame();
+          await frame();
         }
       });
       const overflow = await page.evaluate(
@@ -89,10 +119,15 @@ for (const path of builtPagePaths()) {
         "base-uri 'self'",
         "form-action 'none'",
         'frame-src https://cal.com https://app.cal.com',
-        "connect-src 'self' https://api.open-meteo.com",
+        // The weather, and the visitor counter once it is switched on (site.config.ts).
+        `connect-src 'self' https://api.open-meteo.com${COUNT_URL ? ` ${new URL(COUNT_URL).origin}` : ''};`,
       ]) {
         expect(content).toContain(directive);
       }
+      // The one inline script Astro doesn't hash itself (src/lib/motion.ts, astro.config.ts).
+      expect(content).toContain(
+        `'sha256-${createHash('sha256').update(MOTION_SCRIPT).digest('base64')}'`,
+      );
       expect(content).toMatch(/script-src[^;]*/);
       expect(content).toMatch(/style-src[^;]*/);
       expect(content).toContain("style-src 'self' 'sha256-");

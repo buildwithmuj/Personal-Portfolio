@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../support/test.ts';
 import { EXPECTED_HEADERS } from '../support/headers.ts';
 import { SERVER_ONLY, SITE_ORIGIN } from '../support/site.ts';
 
@@ -22,6 +22,15 @@ test('robots.txt allows crawling in production and names the sitemap', async ({
   test.skip(browserName !== 'chromium', SERVER_ONLY);
   const text = await (await request.get('/robots.txt')).text();
   expect(text).toBe(`User-agent: *\nAllow: /\n\nSitemap: ${SITE_ORIGIN}/sitemap-index.xml\n`);
+});
+
+// Google Search Console checks that this file is on the site to confirm who owns it.
+test('the Search Console ownership file is served', async ({ request, browserName }) => {
+  test.skip(browserName !== 'chromium', SERVER_ONLY);
+  const file = 'google3e3daf617cf37724.html';
+  const response = await request.get(`/${file}`);
+  expect(response.status()).toBe(200);
+  expect((await response.text()).trim()).toBe(`google-site-verification: ${file}`);
 });
 
 test('the skip link comes first and moves focus to main', async ({ page, browserName }) => {

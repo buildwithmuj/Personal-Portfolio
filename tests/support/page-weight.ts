@@ -1,4 +1,5 @@
 import { brotliCompressSync } from 'node:zlib';
+import { COUNT_URL } from '../../site.config.ts';
 
 export interface LoadedResource {
   url: string;
@@ -25,8 +26,14 @@ export const WEIGHT_BUDGET = {
   totalBytes: 500 * 1024,
 } as const;
 
-/** Other origins a page may contact: Open-Meteo, for the live weather (foundation spec §15). */
-export const ALLOWED_ORIGINS: readonly string[] = ['https://api.open-meteo.com'];
+/**
+ * Other origins a page may contact: Open-Meteo, for the live weather, and the visitor counter once
+ * it is switched on (foundation spec §15).
+ */
+export const ALLOWED_ORIGINS: readonly string[] = [
+  'https://api.open-meteo.com',
+  ...(COUNT_URL ? [new URL(COUNT_URL).origin] : []),
+];
 
 /** Brotli-compressed size of each text, summed: each file travels as its own response. */
 export function compressedSize(texts: readonly string[]): number {
@@ -54,7 +61,8 @@ export function checkPageWeight(
   const total = resources.reduce((sum, r) => sum + r.bytes, 0);
   if (total > WEIGHT_BUDGET.totalBytes)
     failures.push(`total: ${total} B > ${WEIGHT_BUDGET.totalBytes} B`);
-  // Floor 3: nothing may come from another origin, except the live weather (spec §15).
+  // Floor 3: nothing may come from another origin, except the live weather and the visitor counter
+  // (spec §15).
   for (const r of resources) {
     const from = new URL(r.url).origin;
     if (from !== origin && !ALLOWED_ORIGINS.includes(from)) {

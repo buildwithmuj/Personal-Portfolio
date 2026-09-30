@@ -281,32 +281,6 @@ a {
   display: none;
 }
 
-/*
- * Sections open as they arrive: on the home page's chain (.stack), each collapsible section is
- * closed below its heading until it scrolls into view, then slides open and stays open (Shell.astro
- * adds .is-open, then .is-settled once the slide is done, when its content may spill over the
- * edges again). Only with the scroll reveals, so never without JavaScript or under reduced motion;
- * focus inside opens a section at once, and a collapsed one ([hidden]) stays collapsed.
- */
-.reveal-ready .stack > .shell > .shell-body {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 800ms var(--ease-out);
-}
-
-.reveal-ready .stack > .shell > .shell-body > .shell-body-inner {
-  min-height: 0;
-  overflow: hidden;
-}
-
-.reveal-ready .stack > :is(.is-open, :focus-within) > .shell-body {
-  grid-template-rows: 1fr;
-}
-
-.reveal-ready .stack > .is-settled > .shell-body > .shell-body-inner {
-  overflow: visible;
-}
-
 /* On phones the switch drops below the heading, and the toggle stays beside the title. */
 @media (width < 40rem) {
   .section-head {
@@ -351,6 +325,27 @@ a {
   padding: var(--card-pad);
   border-radius: var(--radius-card);
   background: var(--color-surface);
+}
+
+/*
+ * The small white tile every icon sits on: the social links, View CV, the play button. One look, so
+ * the icons read as a set wherever they are.
+ */
+.icon-tile {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--icon-button);
+  height: var(--icon-button);
+  border-radius: var(--radius-icon);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-secondary);
+  color: var(--color-text);
+}
+
+.icon-tile:hover,
+:is(a, button):hover > .icon-tile {
+  color: var(--color-accent);
 }
 
 /* A digital watch face (the clock, the About stats): black glass with a sheen, in a metal bezel. */
@@ -437,79 +432,18 @@ a {
 
 /*
  * Scroll reveals. Base.astro adds .reveal-ready to <html> (never under reduced motion) and .in to
- * each [data-reveal] element as it enters the viewport. Transform only, so text never loses contrast.
+ * each [data-reveal] element as it enters the viewport: a card or a heading rises a few pixels, once,
+ * quickly and all of a piece, so nothing is still moving by the time it's read. Transform only, so
+ * text never loses contrast. (Headings still wrap each word in a .w span, which no longer moves.)
  */
-.w {
-  display: inline-block;
-  margin-block-end: -0.12em;
-  padding-block-end: 0.12em;
-  overflow: hidden;
-  vertical-align: bottom;
+
+.reveal-ready [data-reveal] {
+  transform: translateY(12px);
 }
 
-.w > span {
-  display: inline-block;
-}
-
-.reveal-ready [data-reveal='rise'] {
-  transform: translateY(40px);
-}
-
-.reveal-ready [data-reveal='heading'] .w > span {
-  transform: translateY(110%);
-}
-
-.reveal-ready [data-reveal='heading'] p {
-  transform: translateY(16px);
-}
-
-.reveal-ready [data-reveal='rise'] .media img {
-  transform: scale(1.12);
-}
-
-.reveal-ready [data-reveal].in,
-.reveal-ready [data-reveal].in .w > span,
-.reveal-ready [data-reveal].in p,
-.reveal-ready [data-reveal].in .media img {
+.reveal-ready [data-reveal].in {
   transform: none;
-  transition: transform 900ms var(--ease-out) calc(var(--i, 0) * 70ms);
-}
-
-.reveal-ready [data-reveal].in .media img {
-  transition-duration: 1400ms;
-}
-
-/* Stagger: words in a heading, and items in a list, start one after another. */
-:is(.w, [data-reveal]):nth-child(2) {
-  --i: 1;
-}
-
-:is(.w, [data-reveal]):nth-child(3) {
-  --i: 2;
-}
-
-:is(.w, [data-reveal]):nth-child(4) {
-  --i: 3;
-}
-
-:is(.w, [data-reveal]):nth-child(5) {
-  --i: 4;
-}
-
-:is(.w, [data-reveal]):nth-child(6) {
-  --i: 5;
-}
-
-:is(.w, [data-reveal]):nth-child(7) {
-  --i: 6;
-}
-
-:is(.w, [data-reveal]):nth-child(8) {
-  --i: 7;
-}
-
-:is(.w, [data-reveal]):nth-child(n + 9) {
-  --i: 8;
+  transition: transform 400ms var(--ease-out);
 }
 
 @media (prefers-reduced-motion: reduce) {

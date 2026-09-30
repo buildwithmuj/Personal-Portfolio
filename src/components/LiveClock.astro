@@ -24,7 +24,9 @@ const minute = parts.find((part) => part.type === 'minute')?.value ?? '00';
 </live-clock>
 
 <script>
-  // A small digital watch face: hours and minutes in the owner's time zone.
+  // A small digital watch face: hours and minutes in the owner's time zone. It wakes as each minute
+  // turns, which every time zone does together, and when the page comes back into view, and leaves
+  // the page alone in between.
   class LiveClock extends HTMLElement {
     connectedCallback(): void {
       const hour = this.querySelector('[data-hour]');
@@ -37,13 +39,22 @@ const minute = parts.find((part) => part.type === 'minute')?.value ?? '00';
         hour12: false,
         timeZone,
       });
+      let timer = 0;
       const tick = () => {
+        window.clearTimeout(timer);
         const parts = format.formatToParts(new Date());
-        hour.textContent = parts.find((part) => part.type === 'hour')?.value ?? '';
-        minute.textContent = parts.find((part) => part.type === 'minute')?.value ?? '';
+        for (const [element, type] of [
+          [hour, 'hour'],
+          [minute, 'minute'],
+        ] as const) {
+          const value = parts.find((part) => part.type === type)?.value ?? '';
+          if (element.textContent !== value) element.textContent = value;
+        }
+        timer = window.setTimeout(tick, 60_000 - (Date.now() % 60_000));
       };
       tick();
-      window.setInterval(tick, 1000);
+      // A sleeping laptop or a background tab can hold the timer back: catch up on return.
+      document.addEventListener('visibilitychange', tick);
     }
   }
 

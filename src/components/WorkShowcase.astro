@@ -11,6 +11,8 @@ interface Props {
 }
 
 const { studies, limit } = Astro.props;
+// The bento's two big tiles: the featured project, and the wide one along the foot.
+const BIG = [0, 3];
 const groups = (['client', 'product'] as const).map((kind) => ({
   kind,
   studies: studies.filter((study) => study.data.kind === kind).slice(0, limit),
@@ -21,7 +23,9 @@ const groups = (['client', 'product'] as const).map((kind) => ({
   Selected work: a bento grid on desktop (the featured project large, beside two tiles and over a
   wide one), two columns on tablets, and on phones a swipe deck of the same tiles that snaps card
   by card, with a dot per card. Covers up front, the title in white on a navy fade, the sector (or
-  status) as a chip. The whole tile is the link; its name stays the title.
+  status) as a chip. The two big tiles, the first and the fourth, also carry the project's one-line
+  summary and a picture large enough to fill them. The whole tile is the link; its name stays the
+  title.
 */}
 {groups.map((group) => (
   <div class="showcase" data-kind={group.kind}>
@@ -32,10 +36,10 @@ const groups = (['client', 'product'] as const).map((kind) => ({
             <Image
               src={study.data.cover}
               alt=""
-              widths={index === 0 ? [720, 1440] : [480, 960]}
+              widths={BIG.includes(index) ? [720, 1440] : [480, 960]}
               sizes={
-                index === 0
-                  ? '(min-width: 64rem) 640px, (min-width: 40rem) 100vw, 84vw'
+                BIG.includes(index)
+                  ? '(min-width: 64rem) 720px, (min-width: 40rem) 100vw, 84vw'
                   : '(min-width: 64rem) 320px, (min-width: 40rem) 50vw, 84vw'
               }
               loading="lazy"
@@ -48,7 +52,7 @@ const groups = (['client', 'product'] as const).map((kind) => ({
             <h3 class="tile-title">
               <a href={withBase(`/work/${study.id}`)}>{study.data.title}</a>
             </h3>
-            {index === 0 && <p class="summary">{study.data.summary}</p>}
+            {BIG.includes(index) && <p class="summary">{study.data.summary}</p>}
           </div>
         </li>
       ))}
@@ -253,6 +257,11 @@ const groups = (['client', 'product'] as const).map((kind) => ({
       scroll-snap-stop: always;
     }
 
+    /* Swiped in sideways, the cards skip the scroll reveal: its rise jolted each as it slid in. */
+    :global(.reveal-ready) .tile {
+      transform: none;
+    }
+
     .tile:is(:first-child, :nth-child(4)) {
       grid-row: auto;
       grid-column: auto;
@@ -335,6 +344,11 @@ const groups = (['client', 'product'] as const).map((kind) => ({
     .dots span:nth-child(4) {
       animation-timeline: --tile-4;
       animation-range: entry 55% exit 50%;
+    }
+
+    /* The dots follow the swipe, not the clock, so Pause animations leaves them to it. */
+    :global(.motion-paused) .dots span {
+      animation-play-state: running !important;
     }
   }
 </style>

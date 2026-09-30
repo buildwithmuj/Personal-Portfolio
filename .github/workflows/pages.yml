@@ -13,19 +13,53 @@ on:
 permissions:
   contents: read
 
+# One deploy at a time, each allowed to finish: a deploy cancelled part-way can leave Pages
+# half-published. A newer run waits instead.
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  build:
-    name: build
+  # Only the commit main points at now goes live. Re-running an older ci run (it passes again, and
+  # fires this workflow) must not roll the live site back to that commit.
+  current:
+    name: current
     # After ci: only a successful run for a push to main in this repository (never a fork's branch).
     if: >-
       github.event_name != 'workflow_run' ||
       (github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      deploy: ${{ steps.main.outputs.deploy }}
+    steps:
+      - id: main
+        env:
+          TESTED: ${{ github.event.workflow_run.head_sha }}
+          REPOSITORY: ${{ github.repository }}
+        # Named, bash runs with pipefail (the default is bash -e without it), so a failed ls-remote
+        # fails the step, loudly.
+        shell: bash
+        run: |
+          main=$(git ls-remote "https://github.com/$REPOSITORY" refs/heads/main | cut -f1)
+          if [ -z "$main" ]; then
+            echo "::error::Could not read main's commit, so nothing was deployed."
+            exit 1
+          fi
+          # A manual run has no tested commit, and builds main itself.
+          if [ -z "$TESTED" ] || [ "$TESTED" = "$main" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Not deploying $TESTED: main is now $main."
+          fi
+
+  build:
+    name: build
+    needs: current
+    if: needs.current.outputs.deploy == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:

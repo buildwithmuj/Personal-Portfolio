@@ -1,10 +1,12 @@
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig, envField, fontProviders } from 'astro/config';
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import { MOTION_SCRIPT } from './src/lib/motion.ts';
 import { assertNoPlaceholders } from './src/lib/placeholders.ts';
 import { resolveSiteMode } from './src/lib/site-mode.ts';
-import { SITE_URL } from './site.config.ts';
+import { COUNT_URL, SITE_URL } from './site.config.ts';
 
 // Cloudflare Workers Builds sets WORKERS_CI=1. Refuse to deploy with the placeholder URL.
 if (process.env['WORKERS_CI'] === '1' && new URL(SITE_URL).hostname === 'example.com') {
@@ -17,8 +19,10 @@ if (process.env['WORKERS_CI'] === '1' && new URL(SITE_URL).hostname === 'example
 const isProductionBuild =
   resolveSiteMode({ dev: false, branch: process.env['WORKERS_CI_BRANCH'] }) === 'production';
 
-// A production deploy must not ship placeholder contact details (content spec §13).
-if (process.env['WORKERS_CI'] === '1' && isProductionBuild) {
+// A production build must not ship placeholders (content spec §13): the live GitHub Pages build, CI's
+// builds and local ones alike, so one is caught long before it could deploy. Only `astro build`:
+// the dev server and `astro check` load this file too, and drafting may mark placeholders.
+if (isProductionBuild && process.argv.includes('build')) {
   const PROFILE = 'src/content/profile.yaml';
   assertNoPlaceholders(PROFILE, readFileSync(PROFILE, 'utf8'));
 }
@@ -79,9 +83,14 @@ export default defineConfig({
         "form-action 'none'",
         // The Cal.com booking frame, created only when the visitor opens the panel (content spec §5.8).
         'frame-src https://cal.com https://app.cal.com',
-        // Live London weather, fetched by the top bar (privacy notice; foundation spec §15).
-        "connect-src 'self' https://api.open-meteo.com",
+        // Live London weather, fetched by the top bar, and the visitor counter once it is switched on
+        // (privacy notice; foundation spec §15).
+        `connect-src 'self' https://api.open-meteo.com${COUNT_URL ? ` ${new URL(COUNT_URL).origin}` : ''}`,
       ],
+      // The one inline script Astro doesn't bundle, and so doesn't hash (src/lib/motion.ts).
+      scriptDirective: {
+        hashes: [`sha256-${createHash('sha256').update(MOTION_SCRIPT).digest('base64')}`],
+      },
     },
   },
 });

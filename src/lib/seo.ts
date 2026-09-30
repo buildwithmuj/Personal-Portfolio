@@ -8,8 +8,8 @@ export interface SeoInput {
   /** Page title; omit on the home page. */
   title?: string;
   description: string;
-  /** Absolute or root-relative image URL. */
-  image: { url: string; alt: string };
+  /** Absolute or root-relative image URL, with its size when known (link previews draw sooner). */
+  image: { url: string; alt: string; width?: number; height?: number };
   noindex: boolean;
   type: 'website' | 'article';
 }
@@ -58,12 +58,19 @@ export function buildSeo(input: SeoInput): SeoTags {
     { name: 'description', content: input.description },
     ...(input.noindex ? [{ name: 'robots', content: 'noindex, nofollow' }] : []),
     { property: 'og:type', content: input.type },
+    { property: 'og:locale', content: 'en_GB' },
     { property: 'og:site_name', content: input.siteName },
     { property: 'og:title', content: title },
     { property: 'og:description', content: input.description },
     { property: 'og:url', content: canonical },
     { property: 'og:image', content: image },
     { property: 'og:image:alt', content: input.image.alt },
+    ...(input.image.width && input.image.height
+      ? [
+          { property: 'og:image:width', content: String(input.image.width) },
+          { property: 'og:image:height', content: String(input.image.height) },
+        ]
+      : []),
     { name: 'twitter:card', content: 'summary_large_image' },
   ];
   return { title, canonical, meta };

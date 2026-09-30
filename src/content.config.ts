@@ -31,10 +31,6 @@ const profile = defineCollection({
     headlineAccent: z.string().min(1).optional(),
     // A short availability line for the hero's pill, e.g. "Open to new roles and projects".
     availability: z.string().min(1).optional(),
-    // On phones the pill shortens to a lead and one word that rotates, e.g. "Open to new" + roles.
-    availabilityShort: z
-      .object({ lead: z.string().min(1), words: z.array(z.string().min(1)).min(2) })
-      .optional(),
     subline: z.string().min(1),
     about: z.string().min(1),
     interests: z.string().min(1),
@@ -68,6 +64,8 @@ const profile = defineCollection({
       })
       .optional(),
     // For the CV (CvViewer.astro).
+    // The CV's opening paragraph, as the owner's formal CV words it (the hero's line is for the site).
+    cvProfile: z.string().min(1),
     languages: z.array(z.object({ language: z.string().min(1), level: z.string().min(1) })),
     outsideWork: z.array(
       z.object({ activity: z.string().min(1), start: z.string().regex(/^\d{4}-\d{2}$/) }),
@@ -123,7 +121,6 @@ const profile = defineCollection({
       .object({ latitude: z.number().min(-90).max(90), longitude: z.number().min(-180).max(180) })
       .optional(),
     socials: z.array(z.object({ platform: z.enum(socialPlatforms), url: httpsUrl })),
-    cvUpdated: z.coerce.date(),
     seo: z.object({
       description: z.string().min(1).max(160),
       image: publicImage,
@@ -153,6 +150,11 @@ const caseStudies = defineCollection({
         status: z.enum(caseStudyStatuses).optional(),
         employer: z.string().min(1).optional(),
         tags: z.array(z.string().min(1)).default([]),
+        // Real figures only, shown as a row under the facts: a number and what it counts.
+        stats: z
+          .array(z.object({ value: z.string().min(1).max(8), label: z.string().min(1).max(48) }))
+          .max(3)
+          .default([]),
         links: z.array(z.object({ label: z.string().min(1), url: httpsUrl })).default([]),
         featured: z.boolean().default(false),
         order: z.number().int().default(100),
@@ -173,8 +175,9 @@ const testimonials = defineCollection({
   schema: z
     .object({
       name: z.string().min(1),
-      role: z.string().min(1),
-      quote: z.string().min(1).max(320),
+      // Their title, under the name; left out until the owner has it.
+      role: z.string().min(1).optional(),
+      quote: z.string().min(1).max(250),
       // Where it was given, named at the foot of the card ("LinkedIn", "Posted on X"), or
       // an email (not named).
       source: z.enum(['linkedin', 'x', 'email']).optional(),
@@ -200,8 +203,7 @@ const experience = defineCollection({
     role: z.string().min(1),
     start: yearMonth,
     end: yearMonth.optional(),
-    summary: z.string().min(1),
-    // Key achievements, shown under the summary in the CV.
+    // What was done in the role, as the owner's formal CV words it.
     highlights: z.array(z.string().min(1)).default([]),
   }),
 });
@@ -224,16 +226,29 @@ const skills = defineCollection({
       skills: z.array(z.string().min(1)).min(1),
       // From the CV: listed in the CV, and among the Toolkit's grouped skills (below).
       cvOnly: z.array(z.string().min(1)).default([]),
+      // The CV's own skills list, as the owner's formal CV words it.
+      cvSkills: z.array(z.string().min(1)).min(1),
       // The Toolkit's Skills tab: every skill and CV-only skill once, under a heading each.
-      groups: z.array(
-        z.object({ group: z.string().min(1), items: z.array(z.string().min(1)).min(1) }),
-      ),
+      // The skills' phases, each a slide in the Toolkit's deck (its CSS shows up to four).
+      groups: z
+        .array(
+          z.object({
+            group: z.string().min(1),
+            // One line under the slide's title, saying what the phase is about.
+            lead: z.string().min(1).max(110).optional(),
+            items: z.array(z.string().min(1)).min(1),
+          }),
+        )
+        .min(1)
+        .max(4),
       // The home page's tools: a name and a logo in public/tools/.
       tools: z
         .array(
           z.object({
             name: z.string().min(1),
             logo: z.string().regex(/^\/tools\/[a-z0-9-]+\.svg$/, 'An SVG in public/tools/'),
+            // Kept in the taskbar's tray, behind its arrow, rather than pinned to the bar itself.
+            tray: z.boolean().default(false),
           }),
         )
         .default([]),

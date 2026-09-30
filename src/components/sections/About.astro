@@ -12,12 +12,6 @@ interface Props {
 }
 
 const { profile } = Astro.props;
-// The statement's greeting, up to the owner's job title, shows in full from the start; the rest
-// reads itself in. If the title isn't in the statement, all of it reads itself in.
-const titleEnd = profile.about.indexOf(profile.jobTitle);
-const split = titleEnd < 0 ? 0 : titleEnd + profile.jobTitle.length;
-const lead = profile.about.slice(0, split);
-const rest = profile.about.slice(split);
 ---
 
 <Shell id="about" labelledBy="about-heading" inset>
@@ -25,15 +19,14 @@ const rest = profile.about.slice(split);
     <h2 id="about-heading" class="label">
       About me
     </h2>
-    <p class="statement">
-      {lead && <span class="lead">{lead}</span>}
-      <span class="rest">{rest}</span>
-    </p>
+    <p class="statement">{profile.about}</p>
     <ul class="contact-row" role="list">
       {profile.voiceIntro && <VoiceIntro src={withBase(profile.voiceIntro)} />}
       <li>
-        <Icon name="cv" size={20} class="row-icon" />
         <a href={withBase('/cv.pdf')} data-cv>
+          <span class="icon-tile">
+            <Icon name="cv" />
+          </span>
           View CV
         </a>
       </li>
@@ -83,22 +76,18 @@ const rest = profile.about.slice(split);
     list-style: none;
   }
 
+  /* Each action leads with its icon on the social links' white tile (global.css), words beside it. */
   .contact-row > :global(li) {
-    display: inline-flex;
-    gap: var(--space-2);
-    align-items: center;
     font-size: var(--text-sm);
     letter-spacing: -0.01em;
     line-height: var(--leading-tight);
   }
 
-  .contact-row svg {
-    color: var(--color-accent);
-  }
-
   .contact-row a {
+    display: inline-flex;
+    gap: 10px;
+    align-items: center;
     color: var(--color-text);
-    overflow-wrap: anywhere;
     text-decoration: none;
   }
 
@@ -109,55 +98,6 @@ const rest = profile.about.slice(split);
   /* The typical day (DayReminders), under the stats. */
   .day {
     margin-block-start: var(--space-8);
-  }
-
-  /*
-   * The statement reads itself in: after the greeting, which is full colour from the start, it starts
-   * a light grey and fills to full colour in reading order as it scrolls up the screen, from the
-   * lower middle (just below where it sits on load, even on a tall screen) over a short stretch of
-   * scrolling. The gradient spans the whole inline text, so it runs line by line. Without
-   * scroll-driven animation support, or with reduced motion, the text is simply full colour.
-   */
-  @keyframes fill {
-    from {
-      background-size:
-        0% 100%,
-        100% 100%;
-    }
-
-    to {
-      background-size:
-        100% 100%,
-        100% 100%;
-    }
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    @supports (animation-timeline: view()) {
-      .statement {
-        view-timeline-name: --statement;
-      }
-
-      .statement .rest {
-        background:
-          linear-gradient(var(--color-text), var(--color-text)) 0 0 / 0% 100% no-repeat,
-          linear-gradient(var(--color-text-unread), var(--color-text-unread));
-        background-clip: text;
-        color: transparent;
-        animation: fill linear both;
-      }
-
-      /* In a rule of its own, so the minifier can't fold it into the shorthand (see ScrollTop). */
-      .about .statement .rest {
-        animation-timeline: --statement;
-        animation-range: cover 40% cover 58%;
-      }
-    }
-  }
-
-  /* With animations paused, which holds only loops (global.css), the statement still fills. */
-  :global(.motion-paused) .statement .rest {
-    animation-play-state: running !important;
   }
 
   @media (width < 40rem) {

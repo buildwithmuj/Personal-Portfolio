@@ -74,21 +74,42 @@ the build with a message naming the file and the field.
 - **Email address**: when it changes, also update `Contact:` in `public/.well-known/security.txt`. A
   test checks that they match.
 
-### Replacing the CV
+### Updating the CV
 
-1. Export the new CV to `public/cv.pdf`, without your home address or phone number.
-2. Strip its hidden metadata. `exiftool` removes the fields, and `qpdf` rewrites the file so the old
-   values are really gone:
+The CV lives in one place: the View CV pop-up, built from `src/content/` (`cvProfile` in the profile,
+`experience.yaml`, `cvSkills` and the certifications in `skills.yaml`, and `education.yaml`), in the
+words of the formal CV. The PDF download is printed from that pop-up, so the two always say the same
+thing.
+
+1. Edit the content.
+2. Build the site, then print the PDF:
 
    ```bash
-   exiftool -all:all= -overwrite_original public/cv.pdf
-   qpdf --linearize --replace-input public/cv.pdf
-   exiftool -a -G1 public/cv.pdf
+   pnpm build
+   pnpm cv:pdf
    ```
 
-   The last command should list only file details, with no author or software name.
+   This writes `public/cv.pdf` (A4, real text, with the site's address added to the contact
+   details) and `scripts/cv-pdf.sha256`, a fingerprint of the words it printed. Commit both.
 
-3. Update `cvUpdated` in `src/content/profile.yaml`.
+A test fails if the pop-up's words change and the PDF isn't printed again. The PDF carries no hidden
+details: its only metadata is the title, the date it was made and the software that made it.
+
+### Visitor counts
+
+Page views can be counted by [GoatCounter](https://www.goatcounter.com/), which uses no cookies and
+keeps nothing in the visitor's browser. It's off until `COUNT_URL` in `site.config.ts` holds the
+GoatCounter site's endpoint (`https://<code>.goatcounter.com/count`). Setting it:
+
+- lets pages contact that address (the CSP's `connect-src`), and sends one request per page view,
+  from the live site only: never from a local build, a preview or a test;
+- needs the privacy notice (`src/content/pages/privacy.md`) to say so. A test fails until it names
+  GoatCounter, and fails again if the counter is switched off while the notice still does.
+
+### Search Console
+
+`public/google3e3daf617cf37724.html` tells Google Search Console who owns the site. Keep it: Google
+checks for it from time to time, and removing it drops the verification.
 
 ### Renewing security.txt
 
@@ -129,9 +150,10 @@ both branches: neither can be deleted or force-pushed, and `main` needs a pull r
   styles, and a `<meta name="referrer">` sets the referrer policy. GitHub Pages can't send custom
   headers, so `public/_headers` (`frame-ancestors` and the other security headers) only takes effect
   after a move to Cloudflare; see the foundation spec §15, 2026-09-26. Tests fail on any CSP violation.
-- **Almost nothing third-party:** no cookies, no analytics, no forms. The one request to another site
-  is the live London weather from Open-Meteo (see the privacy notice); the Cal.com calendar loads only
-  when a visitor opens it.
+- **Almost nothing third-party:** no cookies and no forms. The requests to other sites are the live
+  London weather from Open-Meteo and, once switched on, one page-view count to GoatCounter (see the
+  privacy notice); the Cal.com calendar loads only when a visitor opens it. No third-party script
+  runs on the page.
 - **Dependencies:**
   - pnpm won't install a version younger than 7 days (`minimumReleaseAge`).
   - It runs no install scripts except for the packages listed in `pnpm-workspace.yaml`.

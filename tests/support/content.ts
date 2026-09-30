@@ -12,6 +12,17 @@ export function profileValue(key: string): string {
   return clean(match[1]);
 }
 
+/** A folded (`>-`) paragraph of the `main` entry in profile.yaml, e.g. `about`, as one line. */
+export function profileParagraph(key: string): string {
+  const match = read(PROFILE).match(new RegExp(`^ {2}${key}: >-\\n((?: {4}.+\\n)+)`, 'm'));
+  if (!match?.[1]) throw new Error(`${PROFILE} has no folded "${key}"`);
+  return match[1]
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join(' ');
+}
+
 /** A section heading from `profile.sections`, e.g. `sectionHeading('work')`. */
 export function sectionHeading(section: string): string {
   const match = read(PROFILE).match(new RegExp(`^ {4}${section}:\\n {6}heading: (.+)$`, 'm'));

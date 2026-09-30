@@ -4,7 +4,6 @@ import type { CollectionEntry } from 'astro:content';
 import BackLink from '../components/BackLink.astro';
 import CaseStudyCard from '../components/CaseStudyCard.astro';
 import Shell from '../components/Shell.astro';
-import TagList from '../components/TagList.astro';
 import { caseStudyLabel } from '../lib/case-studies.ts';
 import { withBase } from '../lib/paths.ts';
 import Base from './Base.astro';
@@ -14,40 +13,29 @@ interface Props {
   /** The next four studies after this one, in order and wrapping round, for the cards at its end. */
   more: CollectionEntry<'caseStudies'>[];
   ogImageUrl: string;
+  ogImageSize: { width: number; height: number };
   structuredData: string;
 }
 
-const { study, more, ogImageUrl, structuredData } = Astro.props;
-const { title, summary, role, employer, tags, links, cover, coverAlt } = study.data;
+const { study, more, ogImageUrl, ogImageSize, structuredData } = Astro.props;
+const { title, summary, role, employer, tags, stats, links, cover, coverAlt } = study.data;
 ---
 
 <Base
   title={title}
   description={summary}
-  image={{ url: ogImageUrl, alt: coverAlt }}
+  image={{ url: ogImageUrl, alt: coverAlt, ...ogImageSize }}
   type="article"
   structuredData={structuredData}
 >
   <Shell id="case-study" labelledBy="case-study-title">
     <BackLink slot="lead" />
     <article class="case-study">
+      {/* The head is three lines: what it is, its title, and one line about it. */}
       <header class="head">
         <p class="label">{caseStudyLabel(study.data)}</p>
         <h1 id="case-study-title">{title}</h1>
         <p class="summary">{summary}</p>
-        <dl class="facts">
-          <div>
-            <dt>Role</dt>
-            <dd>{role}</dd>
-          </div>
-          {employer && (
-            <div>
-              <dt>Employer</dt>
-              <dd>{employer}</dd>
-            </div>
-          )}
-        </dl>
-        <TagList tags={tags} />
       </header>
       <div class="cover sky-grade">
         <Image
@@ -59,6 +47,35 @@ const { title, summary, role, employer, tags, links, cover, coverAlt } = study.d
           fetchpriority="high"
         />
       </div>
+      {/* The facts, in one row on the page itself: the role, who it was with, and what it involved. */}
+      <dl class="facts">
+        <div>
+          <dt>Role</dt>
+          <dd>{role}</dd>
+        </div>
+        {employer && (
+          <div>
+            <dt>With</dt>
+            <dd>{employer}</dd>
+          </div>
+        )}
+        {tags.length > 0 && (
+          <div>
+            <dt>Focus</dt>
+            <dd>{tags.join(', ')}</dd>
+          </div>
+        )}
+      </dl>
+      {stats.length > 0 && (
+        <ul class="stats" role="list">
+          {stats.map(({ value, label }) => (
+            <li>
+              <b>{value}</b> {label}
+            </li>
+          ))}
+        </ul>
+      )}
+      {/* The story, as numbered steps: each heading at the left, what it covers beside it. */}
       <div class="card body">
         <slot />
       </div>
@@ -210,21 +227,51 @@ const { title, summary, role, employer, tags, links, cover, coverAlt } = study.d
     font-size: var(--text-base);
   }
 
+  /* No card of their own: the story's is the only one on the page. */
   .facts {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-6);
+    gap: var(--space-4) var(--space-8);
+    margin: 0;
   }
 
   dt {
     color: var(--color-text-muted);
+    font-size: var(--text-xs);
   }
 
   dd {
     margin: 0;
+    font-size: var(--text-sm);
     font-weight: var(--weight-medium);
   }
 
+  /* Figures, where there are real ones: a large number in the accent over what it counts. */
+  .stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-16);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .stats li {
+    max-width: 14rem;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .stats b {
+    display: block;
+    color: var(--color-accent);
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-tight);
+    line-height: 1.1;
+  }
+
+  /* A band, not a poster: the story starts within the first screen. */
   .cover {
     overflow: hidden;
     border-radius: var(--radius-image);
@@ -233,18 +280,71 @@ const { title, summary, role, employer, tags, links, cover, coverAlt } = study.d
   .cover img {
     display: block;
     width: 100%;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 2 / 1;
     object-fit: cover;
   }
 
+  /*
+   * The story's headings run down the left, each numbered, with what they cover beside them and a
+   * hairline between one step and the next. The words are whatever the case study holds (paragraphs,
+   * lists, figures), so they're placed by the grid itself: a heading takes the first column, and
+   * everything up to the next heading follows in the second.
+   */
   .body {
     display: grid;
-    gap: var(--space-4);
+    grid-template-columns: 11rem minmax(0, 1fr);
+    row-gap: var(--space-3);
     font-size: var(--text-base);
+    counter-reset: step;
   }
 
-  .body :global(h2) {
-    font-size: var(--text-xl);
+  .body > :global(*) {
+    grid-column: 2;
+  }
+
+  .body > :global(h2) {
+    grid-column: 1;
+    padding-inline-end: var(--space-6);
+    font-size: var(--text-lg);
+    counter-increment: step;
+  }
+
+  .body > :global(h2)::before {
+    display: block;
+    margin-block-end: 2px;
+    color: var(--color-accent);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: 0.08em;
+    content: counter(step, decimal-leading-zero);
+  }
+
+  .body > :global(h2 ~ h2),
+  .body > :global(h2 ~ h2 + *) {
+    margin-block-start: var(--space-3);
+    padding-block-start: var(--space-6);
+    border-block-start: 1px solid var(--color-shell);
+  }
+
+  @media (width < 48rem) {
+    .stats {
+      column-gap: var(--space-8);
+    }
+
+    .body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .body > :global(*),
+    .body > :global(h2) {
+      grid-column: 1;
+    }
+
+    .body > :global(h2 ~ h2 + *) {
+      margin-block-start: 0;
+      padding-block-start: 0;
+      border-block-start: 0;
+    }
   }
 
   .body :global(p),

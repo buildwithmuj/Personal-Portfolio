@@ -1,7 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../support/test.ts';
 import { profileValue } from '../support/content.ts';
 import { SERVER_ONLY } from '../support/site.ts';
-import { stubWeather } from '../support/weather.ts';
 
 const EMAIL = profileValue('email');
 const NAME = profileValue('name');
@@ -78,7 +77,6 @@ test('nothing loads from Cal.com until the booking panel opens', async ({ page }
   page.on('request', (request) => {
     if (CAL.test(request.url())) calRequests.push(request.url());
   });
-  await stubWeather(page); // so the quiet-network wait never hangs on Open-Meteo
   await page.goto('/');
   await page.waitForLoadState('networkidle');
   expect(calRequests).toEqual([]);

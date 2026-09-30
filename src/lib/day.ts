@@ -4,7 +4,11 @@
  */
 export type TaskState = 'done' | 'now' | '';
 
-/** Each task's state at `now`: done once the next task has started, "now" while it runs. */
+/**
+ * Each task's state at `now`: nothing until its time comes, then "now" while it is the latest to
+ * have started, and "done" once the next has. Both are shown ticked: a task is ticked the moment
+ * its time comes (DayReminders.astro).
+ */
 export function taskStates(times: readonly string[], now: string): TaskState[] {
   return times.map((time, index) => {
     const next = times[index + 1] ?? '24:00';

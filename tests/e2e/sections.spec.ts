@@ -1,7 +1,10 @@
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '../support/test.ts';
 import { ICONS } from '../../src/lib/icons.ts';
-import { profileValue, sectionHeading, yamlList, yamlValues } from '../support/content.ts';
+import { profileParagraph, sectionHeading, yamlList, yamlValues } from '../support/content.ts';
 import { scrollIntoViewSettled } from '../support/settle.ts';
+
+// Play my intro shows only once the owner's recording is in the profile.
+const INTRO = yamlValues('src/content/profile.yaml', 'voiceIntro').length > 0;
 
 // Long sections can be collapsed with a round toggle (named after the section, announcing whether
 // it's expanded).
@@ -21,7 +24,7 @@ test('Selected work starts open and can be hidden', async ({ page }) => {
 // Every toggle is a plain chevron: up while its section is open, down while it's collapsed.
 test('each section toggle is a chevron', async ({ page }) => {
   await page.goto('/');
-  // Three in production, where What people say waits for real testimonials; four in previews.
+  // Work, the Toolkit, Ask me and Feedback (which shows once it has a real testimonial).
   const toggles = page.locator('.stack .collapse');
   await expect(toggles.first()).toBeVisible();
   expect(await toggles.count()).toBeGreaterThanOrEqual(3);
@@ -39,8 +42,13 @@ test('each section toggle is a chevron', async ({ page }) => {
       ),
     );
   expect(await shown()).toEqual(new Set([shape('chevron-up')]));
-  for (const toggle of await toggles.all()) await toggle.click();
-  expect(await shown()).toEqual(new Set([shape('chevron-down')]));
+  // Each heading rises into place as it scrolls into view, so each click waits for it to settle.
+  for (const toggle of await toggles.all()) {
+    await scrollIntoViewSettled(toggle);
+    await toggle.click();
+  }
+  // Under load a click's effect can land a moment after the click returns.
+  await expect.poll(shown).toEqual(new Set([shape('chevron-down')]));
 });
 
 // Collapsed, a section is a bar with its title and intro centred top to bottom, not sitting low.
@@ -55,8 +63,13 @@ for (const viewport of [
     await page.goto('/');
     const section = page.locator('#skills');
     await scrollIntoViewSettled(section);
-    await page.getByRole('button', { name: sectionHeading('skills'), exact: true }).click();
-    await expect(page.locator('#skills-body')).toBeHidden();
+    // Under a full parallel run WebKit now and then lands the click while the page is still
+    // shifting, and the section stays open: click until it has closed.
+    const toggle = page.getByRole('button', { name: sectionHeading('skills'), exact: true });
+    await expect(async () => {
+      if (await page.locator('#skills-body').isVisible()) await toggle.click();
+      await expect(page.locator('#skills-body')).toBeHidden({ timeout: 1500 });
+    }).toPass();
     const gaps = await section.evaluate((shell) => {
       const bar = shell.getBoundingClientRect();
       const title = shell.querySelector('.section-title')?.getBoundingClientRect();
@@ -68,10 +81,18 @@ for (const viewport of [
 
 test('clicking a collapsible section title toggles it too', async ({ page }) => {
   await page.goto('/');
-  await page.locator('#skills .section-title').click();
-  await expect(page.locator('#skills-body')).toBeHidden();
-  await page.locator('#skills h2').click();
-  await expect(page.locator('#skills-body')).toBeVisible();
+  const body = page.locator('#skills-body');
+  await scrollIntoViewSettled(page.locator('#skills'));
+  // Under a full parallel run WebKit now and then drops a click that lands mid-layout, so each
+  // click is repeated until it has taken.
+  await expect(async () => {
+    if (await body.isVisible()) await page.locator('#skills .section-title').click();
+    await expect(body).toBeHidden({ timeout: 1000 });
+  }).toPass();
+  await expect(async () => {
+    if (await body.isHidden()) await page.locator('#skills h2').click();
+    await expect(body).toBeVisible({ timeout: 1000 });
+  }).toPass();
 });
 
 test.describe('without JavaScript', () => {
@@ -85,17 +106,76 @@ test.describe('without JavaScript', () => {
   });
 });
 
-// On the home page, a collapsible section is closed below its heading until it scrolls into view,
-// then slides open and stays open.
-test('sections open as they scroll into view', async ({ page }) => {
+// Every section is open from the start: nothing slides open as the page scrolls, so what's below
+// never moves while the visitor reads (the chevrons still hide a section by hand).
+test('every section is open from the start, and none slides', async ({ page }) => {
   await page.goto('/');
-  const body = page.locator('#skills-body');
-  const height = async () => (await body.boundingBox())?.height ?? 0;
-  expect(await height()).toBe(0);
-  await page.locator('#skills').scrollIntoViewIfNeeded();
-  await expect.poll(height).toBeGreaterThan(100);
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await expect.poll(height).toBeGreaterThan(100);
+  expect((await page.locator('#skills-body').boundingBox())?.height).toBeGreaterThan(100);
+  expect((await page.locator('#interview-body').boundingBox())?.height ?? 0).toBeGreaterThan(100);
+  await expect(page.locator('#skills-body')).toHaveCSS('transition-duration', '0s');
+});
+
+// A jump to a section lands on it, heading in view and clear of the sticky top bar. (Sections once
+// opened as the page scrolled past them, which pushed the one jumped to out of sight.)
+async function landsOn(section: Locator): Promise<void> {
+  const page = section.page();
+  const head = section.locator('.section-head');
+  // On a busy CI runner Firefox can start its smooth scroll late, after the page has already sat
+  // still for a moment: first wait for the heading to arrive (generously), then for the scroll to end.
+  await expect(head).toBeInViewport({ ratio: 1, timeout: 15_000 });
+  // The smooth scroll is over once the page holds still for a third of a second.
+  await page.waitForFunction(
+    () =>
+      new Promise<boolean>((resolve) => {
+        let last = -1;
+        let since = 0;
+        const check = (now: number) => {
+          if (window.scrollY !== last) [last, since] = [window.scrollY, now];
+          if (now - since > 330) resolve(true);
+          else requestAnimationFrame(check);
+        };
+        requestAnimationFrame(check);
+      }),
+  );
+  await expect(head).toBeInViewport({ ratio: 1 });
+  // Clear of the sticky top bar, not tucked beneath it.
+  const bar = await page.locator('.top-bar').boundingBox();
+  const box = await head.boundingBox();
+  expect(box?.y ?? 0).toBeGreaterThanOrEqual((bar?.y ?? 0) + (bar?.height ?? 0));
+}
+
+test("the hero's Book a call lands on Let's work together", async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#top').getByRole('link', { name: 'Book a call' }).click();
+  await landsOn(page.locator('#contact'));
+});
+
+test('a link in the menu lands on its section', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('.top-bar summary').click();
+  await page.locator('.top-bar .panel-links').getByRole('link', { name: 'Toolkit' }).click();
+  await landsOn(page.locator('#skills'));
+});
+
+test("arriving from another page at a section's address lands on it", async ({ page }) => {
+  await page.goto('/#interview');
+  await landsOn(page.locator('#interview'));
+});
+
+// A visitor who paused animations finds the next page paused from its first frame: the class is on
+// the page once the document is read, before any deferred script runs.
+test('paused animations stay paused from the first frame of the next page', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('motion', 'paused');
+    document.addEventListener('readystatechange', () => {
+      if (document.readyState !== 'interactive') return;
+      document.documentElement.dataset['pausedOnRead'] = String(
+        document.documentElement.classList.contains('motion-paused'),
+      );
+    });
+  });
+  await page.goto('/');
+  await expect(page.locator('html')).toHaveAttribute('data-paused-on-read', 'true');
 });
 
 test.describe('under reduced motion', () => {
@@ -160,26 +240,36 @@ test('the back-to-top ring closes at the end of the page', async ({ page }) => {
     .toBeLessThan(1);
 });
 
-// The greeting, up to the owner's job title, is in full colour from the start; the rest of the
-// statement reads itself in as it scrolls up the screen.
-test('the About statement opens in full colour and fills the rest as it scrolls into view', async ({
+// The statement reads in full colour, still: text doesn't change while it's being read.
+test('the About statement reads in full colour and holds still', async ({ page }) => {
+  await page.goto('/');
+  const statement = page.locator('#about .statement');
+  await expect(statement).toHaveText(profileParagraph('about'));
+  await expect(statement).toHaveCSS('color', 'rgb(10, 10, 10)');
+  await expect(statement).toHaveCSS('animation-name', 'none');
+  await expect(statement.locator('span')).toHaveCount(0);
+});
+
+// Pausing straight after play cancels the play request, which isn't the audio failing.
+test('Play my intro, paused straight away, never says the audio is unavailable', async ({
   page,
 }) => {
+  test.skip(!INTRO, 'No voice intro is recorded yet');
   await page.goto('/');
-  const lead = page.locator('.statement .lead');
-  await expect(lead).toHaveText(new RegExp(`^Hey, .*${profileValue('jobTitle')}$`));
-  await expect(lead).toHaveCSS('color', 'rgb(10, 10, 10)');
-  await expect(lead).toHaveCSS('animation-name', 'none');
-  const supported = await page.evaluate(() => CSS.supports('animation-timeline: view()'));
-  test.skip(!supported, 'This browser has no CSS view timeline, so the statement is plain text');
-  const rest = page.locator('.statement .rest');
-  await expect
-    .poll(async () => rest.evaluate((el) => getComputedStyle(el).animationTimeline))
-    .toBe('--statement');
+  const button = page.locator('#about voice-intro button');
+  await scrollIntoViewSettled(button);
+  // Both presses in one go, so the pause lands before the play request settles.
+  await button.evaluate((element: HTMLButtonElement) => {
+    element.click();
+    element.click();
+  });
+  await page.waitForTimeout(500);
+  await expect(button.locator('[data-label]')).toHaveText('Play my intro');
 });
 
 // Play my intro and View CV sit on one line: their icons share a centre.
 test('the About row lines up Play my intro with View CV', async ({ page }) => {
+  test.skip(!INTRO, 'No voice intro is recorded yet');
   await page.goto('/');
   const row = page.locator('#about .contact-row');
   const play = row.locator('voice-intro .play');
@@ -192,6 +282,93 @@ test('the About row lines up Play my intro with View CV', async ({ page }) => {
   expect(Math.abs((await centre(play)) - (await centre(cv)))).toBeLessThan(0.5);
 });
 
+// Feedback (what people say) is a calm call in a window like the Toolkit's: its bar across the top, a seat for
+// each person and one for the owner, listening, and beneath them the words of whoever is speaking.
+// It works the same on a phone and a computer: picking a seat shows that person's words.
+for (const viewport of [
+  { width: 375, height: 812 },
+  { width: 1280, height: 800 },
+]) {
+  test(`Feedback seats each person and shows the words of the one picked (${viewport.width}px)`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    const section = page.locator('#testimonials');
+    await scrollIntoViewSettled(section);
+    // The window's bar holds only its buttons: no title beside the section's own heading.
+    await expect(section.locator('.window-bar')).toBeVisible();
+    await expect(section.locator('.window-bar .name')).toHaveCount(0);
+    const names = await section.locator('.words b').allTextContents();
+    const seats = section.locator('label.seat input');
+    await expect(seats).toHaveCount(names.length);
+    // Each seat is a radio named for its person.
+    await expect(section.getByRole('radio')).toHaveCount(names.length);
+    await expect(seats.first()).toHaveAccessibleName(names[0] ?? '');
+    // The owner has a seat too, listening: it isn't one to pick.
+    await expect(section.locator('.seat.me')).toBeVisible();
+    await expect(section.locator('.seat.me input')).toHaveCount(0);
+    // The first person speaks first; only their words show. (Lists, since for a moment, as one
+    // person's words fade out and the next one's in, both are on screen.)
+    const speaking = section.locator('.words:visible');
+    await expect(speaking.locator('b')).toHaveText([names[0] ?? '']);
+    await expect(seats.first()).toBeChecked();
+    test.skip(names.length < 2, 'A single testimonial leaves no one else to pick');
+    await section.locator('label.seat').nth(1).click();
+    await expect(seats.nth(1)).toBeChecked();
+    await expect(speaking.locator('b')).toHaveText([names[1] ?? '']);
+    // Every recommendation says where it was given.
+    await expect(speaking.locator('.source')).toHaveText(['LinkedIn']);
+    const sideways = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth,
+    );
+    expect(sideways).toBeLessThanOrEqual(0);
+  });
+}
+
+// Its close and minimise buttons put the window away: the section collapses, as its own toggle does,
+// and focus goes to that toggle, which opens it again.
+for (const name of ['Close', 'Minimise'].map(
+  (verb) => `${verb} ${sectionHeading('testimonials')}`,
+)) {
+  test(`"${name}" collapses the section`, async ({ page }) => {
+    await page.goto('/');
+    const section = page.locator('#testimonials');
+    await scrollIntoViewSettled(section);
+    await section.getByRole('button', { name }).click();
+    await expect(page.locator('#testimonials-body')).toBeHidden();
+    const toggle = section.locator('.collapse');
+    await expect(toggle).toBeFocused();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await toggle.click();
+    await expect(page.locator('#testimonials-body')).toBeVisible();
+  });
+}
+
+// One look for every small icon on the site: View CV in About sits on the same white tile as the
+// social links in Let's work together (as does Play my intro, once recorded), its words beside it.
+test('View CV in About wears the same icon tile as the social links', async ({ page }) => {
+  await page.goto('/');
+  const look = (tile: Locator) =>
+    tile.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return [
+        style.width,
+        style.height,
+        style.borderRadius,
+        style.backgroundColor,
+        style.boxShadow,
+        style.color,
+      ].join(' | ');
+    });
+  const cv = page.locator('#about').getByRole('link', { name: 'View CV' });
+  await expect(cv).toHaveText('View CV');
+  const tile = cv.locator('.icon-tile');
+  await expect(tile.locator('svg')).toHaveCount(1);
+  expect(await look(tile)).toBe(await look(page.locator('#contact .socials a').last()));
+  expect(await look(tile)).toBe(await look(page.locator('.hero .band-socials a').first()));
+});
+
 // The About stats: one band of the live Blue sky, each number over its label, from the profile.
 test('the About stats sit on one band of the live sky', async ({ page }) => {
   await page.goto('/');
@@ -200,6 +377,14 @@ test('the About stats sit on one band of the live sky', async ({ page }) => {
   await expect(stats.locator('.stat-num')).toHaveText(
     yamlValues('src/content/profile.yaml', 'value'),
   );
+  // Navy on the sky, which reads on every shade it drifts through (white failed at its palest);
+  // the typical day's header too, until its night face turns it white.
+  await expect(stats.locator('.stat-label').first()).toHaveCSS('color', 'rgb(12, 36, 84)');
+  const night = await page.locator('#about .rem-watch').getAttribute('data-night');
+  await expect(page.locator('#about .rem-app')).toHaveCSS(
+    'color',
+    night === null ? 'rgb(12, 36, 84)' : 'rgb(255, 255, 255)',
+  );
 });
 
 // The Toolkit (the Skills section): the tools as app icons, the skills as a list and the
@@ -207,55 +392,142 @@ test('the About stats sit on one band of the live sky', async ({ page }) => {
 const SKILLS = 'src/content/skills.yaml';
 // One group shows at a time; the others fade out but stay readable to screen readers, so what
 // counts is each group's opacity.
-const opacity = (page: Page, group: string) => () =>
+const shown = (page: Page, group: string) => () =>
   page
     .locator(`#skills .panel[data-panel="${group}"]`)
-    .evaluate((panel) => getComputedStyle(panel).opacity);
+    .evaluate((panel) => getComputedStyle(panel).visibility);
 
-// Tools: a dock on a patch of the live sky. Pointed at, an icon swells and its name pops up above,
-// its neighbours swelling a little less; with no hover (a phone), the names sit under the icons.
-test('the tools sit in a dock, and the one pointed at swells and shows its name', async ({
+// Tools: a Windows taskbar under a patch of the live sky, each pinned tool's name always there to
+// read, under its icon. The pinned tools and the tray's arrow sit in one row on a computer.
+test('the tools sit on a Windows taskbar, their names beneath them, lighting up when pointed at', async ({
   page,
 }) => {
   await page.goto('/');
   const toolkit = page.locator('#skills');
   await scrollIntoViewSettled(toolkit);
-  await toolkit.locator('.switch').getByText('Tools', { exact: true }).click();
   await expect(toolkit.locator('.desk sky-gradient')).toHaveCount(1);
-  const tools = toolkit.locator('.dock .tool');
-  const scale = (index: number) =>
-    tools
-      .nth(index)
-      .locator('.tool-icon')
-      .evaluate((icon) => getComputedStyle(icon).scale);
-  expect(await scale(2)).toBe('none');
-  await expect(tools.nth(2).locator('.tool-name')).toHaveCSS('opacity', '0');
-  await scrollIntoViewSettled(tools.nth(2));
-  await tools.nth(2).locator('.tool-icon').hover();
-  await expect.poll(() => scale(2)).toBe('1.45');
-  await expect.poll(() => scale(1)).toBe('1.2');
-  await expect(tools.nth(2).locator('.tool-name')).toHaveCSS('opacity', '1');
+  const taskbar = toolkit.locator('.taskbar');
+  // The Start button leads the bar, for the look only.
+  await expect(taskbar.locator('.start')).toHaveAttribute('aria-hidden', 'true');
+  const tool = taskbar.locator(':scope > .tool').nth(2);
+  await expect(tool.locator('.tool-name')).toBeVisible();
+  const icon = await tool.locator('.tool-icon').boundingBox();
+  const name = await tool.locator('.tool-name').boundingBox();
+  expect(name?.y ?? 0).toBeGreaterThanOrEqual((icon?.y ?? 0) + (icon?.height ?? 0) - 1);
+  const tops = await taskbar
+    .locator(':scope > .tool .tool-icon, summary .tool-icon')
+    .evaluateAll((icons) => icons.map((one) => Math.round(one.getBoundingClientRect().top)));
+  expect(new Set(tops).size).toBe(1);
+  // No two names touch: each tool's name keeps clear of the next one's.
+  const names = await taskbar
+    .locator(':scope > .tool .tool-name')
+    .evaluateAll((all) => all.map((one) => one.getBoundingClientRect()));
+  for (const [index, box] of names.slice(1).entries()) {
+    expect(box.left - (names[index]?.right ?? 0)).toBeGreaterThanOrEqual(10);
+  }
+  // Nothing spills out of the bar.
+  const spill = await taskbar.evaluate((bar) => bar.scrollWidth - bar.clientWidth);
+  expect(spill).toBeLessThanOrEqual(0);
+  await scrollIntoViewSettled(tool);
+  await tool.hover();
+  await expect(tool).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.7)');
+});
+
+// Five tools are pinned to the bar; the rest wait in a tray, as Windows keeps its hidden icons. The
+// arrow at the end of the bar opens it over the sky, above the bar and inside the card, and closes it.
+for (const viewport of [
+  { width: 320, height: 800 },
+  { width: 1280, height: 800 },
+]) {
+  test(`the taskbar's arrow opens a tray with the other tools (${viewport.width}px)`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    const toolkit = page.locator('#skills');
+    await scrollIntoViewSettled(toolkit.locator('.taskbar'));
+    // Five on the bar; between the bar and the tray, every tool once.
+    const pinned = await toolkit.locator('.taskbar > .tool .tool-name').allTextContents();
+    expect(pinned).toHaveLength(5);
+    const arrow = toolkit.locator('.taskbar summary');
+    await expect(arrow).toHaveAccessibleName('More tools');
+    const tray = toolkit.locator('.tray');
+    await expect(tray).toBeHidden();
+    await arrow.click();
+    await expect(tray).toBeVisible();
+    const inTray = await tray.locator('.tool-name').allTextContents();
+    expect([...pinned, ...inTray].sort()).toEqual(yamlValues(SKILLS, 'name').sort());
+    const card = await toolkit.locator('.toolkit').boundingBox();
+    const box = await tray.boundingBox();
+    const bar = await toolkit.locator('.taskbar').boundingBox();
+    expect(box?.x ?? -1).toBeGreaterThanOrEqual(card?.x ?? 0);
+    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(
+      (card?.x ?? 0) + (card?.width ?? 0),
+    );
+    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(bar?.y ?? 0);
+    expect(box?.y ?? -1).toBeGreaterThanOrEqual(card?.y ?? 0);
+    // No name spills out of its place in the tray.
+    const spills = await tray
+      .locator('.tool-name')
+      .evaluateAll((all) => all.filter((one) => one.scrollWidth > one.clientWidth).length);
+    expect(spills).toBe(0);
+    await arrow.click();
+    await expect(tray).toBeHidden();
+  });
+}
+
+// Like Windows' own, the tray closes on Escape, handing focus back to its arrow, or on a click
+// anywhere else.
+test('the tray closes on Escape or a click elsewhere', async ({ page }) => {
+  await page.goto('/');
+  const toolkit = page.locator('#skills');
+  await scrollIntoViewSettled(toolkit.locator('.taskbar'));
+  const arrow = toolkit.locator('.taskbar summary');
+  const tray = toolkit.locator('.tray');
+  await arrow.click();
+  await expect(tray).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(tray).toBeHidden();
+  await expect(arrow).toBeFocused();
+  await arrow.click();
+  await expect(tray).toBeVisible();
+  // In the page's margin, clear of every control.
+  await page.mouse.click(4, 300);
+  await expect(tray).toBeHidden();
 });
 
 test.describe('the tools on a touch screen', () => {
   test.skip(({ browserName }) => browserName === 'firefox', 'Firefox has no mobile emulation');
   test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
 
-  test('show their names under the icons, and a wave runs along the dock', async ({ page }) => {
+  test('show their names under the icons, and nothing moves', async ({ page }) => {
     await page.goto('/');
-    const tool = page.locator('#skills .dock .tool').first();
-    await expect(tool.locator('.tool-name')).toHaveCSS('opacity', '1');
-    await expect(tool.locator('.tool-name')).toHaveCSS('position', 'static');
-    await expect(tool.locator('.tool-icon')).toHaveCSS('animation-name', 'tool-wave');
+    const tool = page.locator('#skills .taskbar .tool').first();
+    await expect(tool.locator('.tool-name')).toBeVisible();
+    const icon = await tool.locator('.tool-icon').boundingBox();
+    const name = await tool.locator('.tool-name').boundingBox();
+    expect(name?.y ?? 0).toBeGreaterThanOrEqual((icon?.y ?? 0) + (icon?.height ?? 0) - 1);
+    // On a phone the bar takes as many rows as the tools need, and none is cut off.
+    const bar = page.locator('#skills .taskbar');
+    const box = await bar.boundingBox();
+    for (const one of await bar.locator(':scope > .tool, summary').all()) {
+      const at = await one.boundingBox();
+      expect(at?.x ?? -1).toBeGreaterThanOrEqual((box?.x ?? 0) - 0.5);
+      expect((at?.x ?? 0) + (at?.width ?? 0)).toBeLessThanOrEqual(
+        (box?.x ?? 0) + (box?.width ?? 0) + 0.5,
+      );
+    }
+    await page.locator('#skills .toolkit').scrollIntoViewIfNeeded();
+    await expect(tool.locator('.tool-icon')).toHaveCSS('animation-name', 'none');
   });
 });
 
-// On a phone the skills show one phase at a time, picked from a segmented control, rather than
-// every group's pills in a long column; the Toolkit's own switch keeps working around it.
+// On a phone the skills deck shows one phase at a time, picked from the slides' thumbnails beneath
+// it; the Toolkit's own switch keeps working around it.
 test.describe('the skills on a phone', () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
-  test('show one phase at a time, picked from a segmented control', async ({ page }) => {
+  test('show one phase at a time, picked from the slides beneath', async ({ page }) => {
     await page.goto('/');
     const toolkit = page.locator('#skills');
     await scrollIntoViewSettled(toolkit);
@@ -267,19 +539,13 @@ test.describe('the skills on a phone', () => {
       toolkit.locator('.skill-group').filter({ has: page.getByRole('heading', { name }) });
     await expect(group(first)).toBeVisible();
     await expect(group(second)).toBeHidden();
-    await phases.getByText(second, { exact: true }).click();
-    await expect(group(second)).toBeVisible();
+    // Under a full WebKit run the first tap can land mid-layout, so it's retried until it takes.
+    await expect(async () => {
+      await phases.getByText(second, { exact: true }).click();
+      await expect(group(second)).toBeVisible({ timeout: 1000 });
+    }).toPass();
     await expect(group(first)).toBeHidden();
-    await expect.poll(opacity(page, 'skills')).toBe('1');
-  });
-
-  // Tabbing onto the phases brings the skills forward, so focus never lands on a hidden group.
-  test('focusing a phase shows the skills', async ({ page }) => {
-    await page.goto('/');
-    await scrollIntoViewSettled(page.locator('#skills'));
-    await page.locator('#skills .phases input:checked').focus();
-    await expect(page.locator('#skills input[value="skills"]')).toBeChecked();
-    await expect.poll(opacity(page, 'skills')).toBe('1');
+    await expect.poll(shown(page, 'skills')).toBe('visible');
   });
 });
 
@@ -291,14 +557,17 @@ test('the Toolkit shows each tool, skill and certification', async ({ page }) =>
   }
   await expect(toolkit.locator('.tool-name')).toHaveText(yamlValues(SKILLS, 'name'));
   await expect(toolkit.locator('.tool img')).toHaveCount(yamlValues(SKILLS, 'logo').length);
-  // Every skill, the CV's included, as a pill under one of three headings.
+  // Every skill, the CV's included, as a pill on one of the deck's slides.
   await expect(toolkit.locator('.skill-group h4')).toHaveText(yamlValues(SKILLS, 'group'));
   const pills = (await toolkit.locator('.skill').allTextContents()).map((text) => text.trim());
   expect(pills.sort()).toEqual(
     [...yamlList(SKILLS, 'skills'), ...yamlList(SKILLS, 'cvOnly')].sort(),
   );
-  // Each certification is a card with its short name and issuer, named in full for screen readers.
+  // Each certification is a card with its short name and issuer, named in full for screen readers
+  // (who reach them, as everyone does, once the certifications are picked).
   await expect(toolkit.locator('.cert-card .name')).toHaveText(yamlValues(SKILLS, 'short'));
+  await scrollIntoViewSettled(toolkit);
+  await toolkit.locator('.switch').getByText('Certifications', { exact: true }).click();
   await expect(toolkit.locator('.cert-card .issuer')).toHaveText(yamlValues(SKILLS, 'issuer'));
   const issuers = yamlValues(SKILLS, 'issuer');
   for (const [index, title] of yamlValues(SKILLS, 'title').entries()) {
@@ -326,14 +595,102 @@ test('a certification card opens its certificate, and the viewer slides through'
   await expect(count).toHaveText(`2 of ${total}`);
   await viewer.getByRole('button', { name: 'Next certificate' }).click();
   await expect(count).toHaveText(`3 of ${total}`);
-  await page.keyboard.press('ArrowRight');
-  await expect(count).toHaveText(`4 of ${total}`);
+  // On to the last with the arrow key, however many there are, then round to the first.
+  for (let at = 4; at <= total; at++) {
+    await page.keyboard.press('ArrowRight');
+    await expect(count).toHaveText(`${at} of ${total}`);
+  }
   await page.keyboard.press('ArrowRight');
   await expect(count).toHaveText(`1 of ${total}`);
   await viewer.getByRole('button', { name: 'Previous certificate' }).click();
   await expect(count).toHaveText(`${total} of ${total}`);
   await page.keyboard.press('Escape');
   await expect(viewer).toBeHidden();
+});
+
+// The skills and the certifications sit in Windows windows. Their buttons work: closing Skills
+// brings up the certifications, closing those goes back to the tools, and minimising either goes
+// back to the tools, as a window goes to the taskbar. Maximise is only the look.
+test('the Toolkit windows close onto the next group, and minimise to the tools', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const toolkit = page.locator('#skills');
+  await scrollIntoViewSettled(toolkit);
+  const pick = (group: string) => toolkit.locator('.switch').getByText(group, { exact: true });
+  const tab = (group: string) => toolkit.locator(`input[value="${group}"]`);
+  const bar = (group: string) => toolkit.locator(`.panel[data-panel="${group}"] .window-bar`);
+
+  await pick('Skills').click();
+  await expect(bar('skills').locator('span[aria-hidden="true"]')).toHaveCount(1);
+  await bar('skills').getByRole('button', { name: 'Close Skills and show Certifications' }).click();
+  await expect(tab('certifications')).toBeChecked();
+  await expect.poll(shown(page, 'certifications')).toBe('visible');
+  await bar('certifications')
+    .getByRole('button', { name: 'Close Certifications and go back to Tools' })
+    .click();
+  await expect(tab('tools')).toBeChecked();
+  await expect.poll(shown(page, 'tools')).toBe('visible');
+
+  await pick('Skills').click();
+  await bar('skills').getByRole('button', { name: 'Minimise Skills and go back to Tools' }).click();
+  await expect(tab('tools')).toBeChecked();
+  await expect(tab('tools')).toBeFocused();
+});
+
+// On a computer, Skills is a slide deck: the phases are the slides down the side, and the one
+// picked fills the canvas, its place in the deck above its heading.
+test('the skills are a slide deck, its slides the phases', async ({ page }) => {
+  await page.goto('/');
+  const toolkit = page.locator('#skills');
+  await scrollIntoViewSettled(toolkit);
+  await toolkit.locator('.switch').getByText('Skills', { exact: true }).click();
+  const [first = '', second = ''] = yamlValues(SKILLS, 'group');
+  const phases = toolkit.getByRole('group', { name: 'Phase' });
+  await expect(phases).toBeVisible();
+  const slide = (name: string) =>
+    toolkit.locator('.skill-group').filter({ has: page.getByRole('heading', { name }) });
+  await expect(slide(first)).toBeVisible();
+  await expect(slide(first).locator('.slide-count')).toHaveText(/^1 of \d$/);
+  // A finished slide: a line saying what the phase is about, and a footer along its foot with the
+  // slide's place in the deck.
+  await expect(slide(first).locator('.lead')).toHaveText(yamlValues(SKILLS, 'lead')[0] ?? '');
+  const edges = await slide(first).evaluate((element) => {
+    const foot = element.querySelector('.slide-foot')?.getBoundingClientRect();
+    const pills = element.querySelector('.pills')?.getBoundingClientRect();
+    const box = element.getBoundingClientRect();
+    return foot && pills ? { gap: box.bottom - foot.bottom, below: foot.top - pills.bottom } : null;
+  });
+  expect(edges?.gap).toBeLessThanOrEqual(28);
+  expect(edges?.below).toBeGreaterThanOrEqual(0);
+  // A whole window around the slides: the file's name in the title bar, a ribbon of tabs under it
+  // and a status bar along the foot, each reaching the window's edges. The ribbon and status bar are
+  // only the look, so they're kept from assistive technology.
+  const panel = toolkit.locator('.panel[data-panel="skills"]');
+  await expect(panel.locator('.window-bar .name')).toHaveText('Skills.pptx');
+  await expect(panel.locator('.status')).toContainText(
+    `${yamlValues(SKILLS, 'group').length} slides`,
+  );
+  const frame = await panel.boundingBox();
+  for (const part of ['.ribbon', '.status']) {
+    await expect(panel.locator(part)).toHaveAttribute('aria-hidden', 'true');
+    const box = await panel.locator(part).boundingBox();
+    expect(box?.x).toBeCloseTo(frame?.x ?? -1, 0);
+    expect(box?.width).toBeCloseTo(frame?.width ?? -1, 0);
+  }
+  const foot = await panel.locator('.status').boundingBox();
+  expect((foot?.y ?? 0) + (foot?.height ?? 0)).toBeCloseTo(
+    (frame?.y ?? 0) + (frame?.height ?? 0),
+    0,
+  );
+  await expect(slide(second)).toBeHidden();
+  await phases.getByText(second, { exact: true }).click();
+  await expect(slide(second)).toBeVisible();
+  await expect(slide(first)).toBeHidden();
+  await expect(phases.locator('input:checked ~ .thumb')).toHaveCSS(
+    'border-top-color',
+    'rgb(196, 62, 28)',
+  );
 });
 
 // On a computer, pointing at a folder tips its front forward and a certificate rises out of it.
@@ -351,76 +708,50 @@ test('hovering a certification folder tips it open', async ({ page }) => {
   await expect.poll(tipped).toMatch(/^matrix3d/);
 });
 
-// Tabbing onto a card brings the certifications forward, so focus never lands on a hidden group.
-test('focusing a certification card shows the certifications', async ({ page }) => {
+// Only the picked group is there to reach: the ones out of sight are hidden, so Tab can't land in
+// them (and bounce the Toolkit back to them); the switch is the way to another group.
+test('the Toolkit groups out of sight cannot take focus', async ({ page }) => {
   await page.goto('/');
   await scrollIntoViewSettled(page.locator('#skills'));
-  await page.locator('#skills .cert-card').first().focus();
-  await expect(page.locator('#skills input[value="certifications"]')).toBeChecked();
-  await expect.poll(opacity(page, 'certifications')).toBe('1');
+  const focusable = await page
+    .locator('#skills .cert-card')
+    .first()
+    .evaluate((card: HTMLElement) => {
+      card.focus();
+      return document.activeElement === card;
+    });
+  expect(focusable).toBe(false);
+  expect(await shown(page, 'certifications')()).toBe('hidden');
 });
 
-// While the Toolkit turns on its own, the cards take a click whenever they're the group in view. The
-// turn is moved to the middle of the certifications' three seconds and held there, as hovering
-// holds it, rather than waited for: sampled from outside under load, a nine-second loop's
-// two-second window is easy to miss.
-test('a certification card takes a click while the Toolkit turns', async ({ page }) => {
-  await page.goto('/');
-  const toolkit = page.locator('#skills');
-  await scrollIntoViewSettled(toolkit);
-  await toolkit.evaluate((section) => {
-    for (const animation of section.getAnimations({ subtree: true })) {
-      if (!(animation instanceof CSSAnimation)) continue;
-      if (!animation.animationName.startsWith('toolkit-')) continue;
-      // 7.5 s in: 1.5 s into the certifications' turn (they start 3 s ahead).
-      animation.currentTime = 7500;
-      animation.pause();
-    }
-  });
-  await expect.poll(opacity(page, 'certifications')).toBe('1');
-  await expect.poll(opacity(page, 'tools')).toBe('0');
-  await toolkit.locator('.cert-card').first().click();
-  await expect(page.getByRole('dialog', { name: 'Certificates' })).toBeVisible();
-});
-
-// It turns to the next group every three seconds on its own, until the visitor picks one.
-test('the Toolkit turns from group to group until one is picked', async ({ page }) => {
+// The Toolkit opens on the tools and stays there until the visitor picks another group: nothing
+// turns on its own.
+test('the Toolkit opens on the tools and holds still until another group is picked', async ({
+  page,
+}) => {
   await page.goto('/');
   await scrollIntoViewSettled(page.locator('#skills'));
-  await page.mouse.move(0, 0);
-  // Each group is in view for about two seconds in nine; watched from inside the page, frame by
-  // frame, so a slow round trip from the test can't miss one.
-  for (const group of ['tools', 'skills', 'certifications', 'tools']) {
-    await page.waitForFunction(
-      (name) => {
-        const panel = document.querySelector(`#skills .panel[data-panel="${name}"]`);
-        return !!panel && getComputedStyle(panel).opacity === '1';
-      },
-      group,
-      { polling: 'raf', timeout: 10_000 },
-    );
-  }
-  await page.locator('#skills .switch').getByText('Skills', { exact: true }).click();
-  await page.mouse.move(0, 0);
-  await page.waitForTimeout(4000);
-  expect(await opacity(page, 'skills')()).toBe('1');
-  expect(await opacity(page, 'tools')()).toBe('0');
-  expect(await opacity(page, 'certifications')()).toBe('0');
+  await expect(page.locator('#skills input[value="tools"]')).toBeChecked();
+  expect(await shown(page, 'tools')()).toBe('visible');
+  expect(await shown(page, 'skills')()).toBe('hidden');
+  await expect(page.locator('#skills .panel[data-panel="tools"]')).toHaveCSS(
+    'pointer-events',
+    'auto',
+  );
+  const turning = await page
+    .locator('#skills')
+    .evaluate((section) =>
+      section.getAnimations({ subtree: true }).map((a) => (a as CSSAnimation).animationName),
+    )
+    .then((names) => names.filter((name) => name?.startsWith('toolkit')));
+  expect(turning).toEqual([]);
+  await page.locator('#skills .switch').getByText('Certifications', { exact: true }).click();
+  await expect.poll(shown(page, 'certifications')).toBe('visible');
+  expect(await shown(page, 'tools')()).toBe('hidden');
 });
 
-test.describe('the Toolkit under reduced motion', () => {
+test.describe('the certificate viewer under reduced motion', () => {
   test.use({ reducedMotion: 'reduce' });
-
-  test('holds still on the tools, which can still be pointed at', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForTimeout(3500);
-    expect(await opacity(page, 'tools')()).toBe('1');
-    expect(await opacity(page, 'skills')()).toBe('0');
-    await expect(page.locator('#skills .panel[data-panel="tools"]')).toHaveCSS(
-      'pointer-events',
-      'auto',
-    );
-  });
 
   test('moves between certificates without sliding', async ({ page }) => {
     await page.goto('/');

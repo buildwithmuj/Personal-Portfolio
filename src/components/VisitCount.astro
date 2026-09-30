@@ -1,0 +1,21 @@
+{/*
+  Counts a page view with GoatCounter, once the page has loaded: one request, no cookie, nothing
+  kept in the browser (src/lib/analytics.ts). Only the live site counts, and only once COUNT_URL is
+  set in site.config.ts; until then the bundler drops all of this.
+*/}
+<script>
+  import { COUNT_URL } from '../../site.config.ts';
+  import { countUrl } from '../lib/analytics.ts';
+
+  if (COUNT_URL) {
+    const url = countUrl(COUNT_URL, import.meta.env.SITE ?? location.origin, {
+      hostname: location.hostname,
+      path: location.pathname,
+      title: document.title,
+      referrer: document.referrer,
+      screen: [screen.width, screen.height, devicePixelRatio],
+      automated: navigator.webdriver,
+    });
+    if (url) navigator.sendBeacon(url);
+  }
+</script>

@@ -81,6 +81,14 @@ describe('buildSeo', () => {
     assert.equal(meta(tags, 'og:image:alt'), 'Placeholder image');
   });
 
+  it('gives the image size when known, and the locale', () => {
+    assert.equal(meta(buildSeo(home), 'og:image:width'), undefined);
+    const tags = buildSeo({ ...home, image: { ...home.image, width: 1200, height: 630 } });
+    assert.equal(meta(tags, 'og:image:width'), '1200');
+    assert.equal(meta(tags, 'og:image:height'), '630');
+    assert.equal(meta(tags, 'og:locale'), 'en_GB');
+  });
+
   it('adds robots noindex only when asked', () => {
     assert.equal(meta(buildSeo(home), 'robots'), undefined);
     assert.equal(meta(buildSeo({ ...home, noindex: true }), 'robots'), 'noindex, nofollow');
