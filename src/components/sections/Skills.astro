@@ -1113,8 +1113,25 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
       font-size: var(--text-xs);
     }
 
+    /* Room above the bar for the tray to open into, three rows of tools on the narrowest phone. */
     .desk {
-      min-height: 190px;
+      min-height: 262px;
+    }
+  }
+
+  /*
+   * On a phone each group is as tall as it needs, so the tools' sky isn't stretched to the slide
+   * deck's height (the owner's review): the groups out of sight leave the layout altogether, and the
+   * card's height changes as the switch moves between them. A computer keeps one height for all.
+   */
+  @media (width < 40rem) {
+    @supports selector(:has(*)) {
+      :global(#skills:not(:has(input[value='tools']:checked))) .panel[data-panel='tools'],
+      :global(#skills:not(:has(input[value='skills']:checked))) .panel[data-panel='skills'],
+      :global(#skills:not(:has(input[value='certifications']:checked)))
+        .panel[data-panel='certifications'] {
+        display: none;
+      }
     }
   }
 

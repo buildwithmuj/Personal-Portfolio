@@ -542,6 +542,51 @@ test.describe('the tools on a touch screen', () => {
 
 // A long folder name (AI Capabilities, on a phone) takes two lines; every name has room for two,
 // so each issuer sits level with the one beside it.
+// On a phone each Toolkit group is as tall as it needs: the tools' sky isn't stretched to the slide
+// deck's height, yet it leaves room for the tray to open inside the card. A computer keeps one height.
+test('on a phone the tools take only the height they need', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 800 });
+  await page.goto('/');
+  const toolkit = page.locator('#skills');
+  await scrollIntoViewSettled(toolkit);
+  const height = () =>
+    toolkit.locator('.toolkit').evaluate((card) => card.getBoundingClientRect().height);
+  const tools = await height();
+  await toolkit.locator('.switch').getByText('Skills', { exact: true }).click();
+  await expect.poll(height).toBeGreaterThan(tools + 100);
+  await toolkit.locator('.switch').getByText('Tools', { exact: true }).click();
+  await expect.poll(height).toBe(tools);
+  await toolkit.locator('.taskbar summary').click();
+  const tray = await toolkit.locator('.tray').boundingBox();
+  const card = await toolkit.locator('.toolkit').boundingBox();
+  expect(tray?.y ?? -1).toBeGreaterThanOrEqual(card?.y ?? 0);
+});
+
+// Feedback's window is as tall as the words being read: a shorter quote leaves no empty space under
+// it, as it once did when every quote kept the longest one's height.
+test('the Feedback window fits the words of whoever is speaking', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('/');
+  const section = page.locator('#testimonials');
+  await scrollIntoViewSettled(section);
+  const below = () =>
+    section.evaluate((shell) => {
+      const window = shell.querySelector('.window')?.getBoundingClientRect();
+      const words = [...shell.querySelectorAll('.words')]
+        .find((one) => getComputedStyle(one).display !== 'none')
+        ?.getBoundingClientRect();
+      return window && words ? Math.round(window.bottom - words.bottom) : -1;
+    });
+  const seats = section.locator('label.seat');
+  const gaps = new Set<number>();
+  for (let index = 0; index < (await seats.count()); index++) {
+    await seats.nth(index).click();
+    await expect(section.locator('label.seat input').nth(index)).toBeChecked();
+    gaps.add(await below());
+  }
+  expect([...gaps]).toHaveLength(1);
+});
+
 test('the certification folders keep their issuers level on a phone', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto('/');

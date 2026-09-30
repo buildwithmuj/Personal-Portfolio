@@ -345,13 +345,14 @@ const firstName = (name: string) => name.split(/\s+/)[0];
     text-decoration: none;
   }
 
-  /* Only the speaker's words show, all in one grid cell (as tall as the tallest, so nothing jumps). */
+  /*
+   * Only the speaker's words show, and the window is as tall as they are: a shorter quote leaves no
+   * empty space beneath it (it once kept the longest quote's height). They fade in as a new person
+   * speaks.
+   */
   @supports selector(:has(*)) {
     .words {
-      grid-area: 1 / 1;
-      transition:
-        opacity var(--duration-base) var(--ease-standard),
-        visibility var(--duration-base);
+      animation: said-in var(--duration-base) var(--ease-standard);
     }
 
     .call:has(label:nth-of-type(1) :checked) .words:not(:nth-child(1)),
@@ -360,9 +361,19 @@ const firstName = (name: string) => name.split(/\s+/)[0];
     .call:has(label:nth-of-type(4) :checked) .words:not(:nth-child(4)),
     .call:has(label:nth-of-type(5) :checked) .words:not(:nth-child(5)),
     .call:has(label:nth-of-type(6) :checked) .words:not(:nth-child(6)) {
-      visibility: hidden;
+      display: none;
+    }
+  }
+
+  @keyframes said-in {
+    from {
       opacity: 0;
     }
+  }
+
+  /* A one-off entrance: under paused animations it would freeze unseen on its first frame. */
+  :global(.motion-paused) .words {
+    animation-play-state: running !important;
   }
 
   @media (width < 48rem) {
