@@ -261,10 +261,15 @@ test('the menu links to each part of the home page, in order, then the call', as
     'Toolkit',
     'Ask',
     sectionHeading('testimonials'),
-    'Contact',
     'Book a call',
   ]);
   const links = page.locator('.top-bar .panel-links');
+  // One way to the contact section, not two: Book a call leads there.
+  await expect(links.getByRole('link', { name: 'Contact' })).toHaveCount(0);
+  await expect(links.getByRole('link', { name: 'Book a call' })).toHaveAttribute(
+    'href',
+    '/#contact',
+  );
   await expect(links.getByRole('link', { name: 'Ask' })).toHaveAttribute('href', '/#interview');
   // The recommendations, under their section's heading, while there is one to show.
   await expect(links.getByRole('link', { name: sectionHeading('testimonials') })).toHaveAttribute(
