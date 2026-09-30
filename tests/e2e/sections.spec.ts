@@ -119,6 +119,10 @@ test('every section is open from the start, and none slides', async ({ page }) =
 // opened as the page scrolled past them, which pushed the one jumped to out of sight.)
 async function landsOn(section: Locator): Promise<void> {
   const page = section.page();
+  const head = section.locator('.section-head');
+  // On a busy CI runner Firefox can start its smooth scroll late, after the page has already sat
+  // still for a moment: first wait for the heading to arrive (generously), then for the scroll to end.
+  await expect(head).toBeInViewport({ ratio: 1, timeout: 15_000 });
   // The smooth scroll is over once the page holds still for a third of a second.
   await page.waitForFunction(
     () =>
@@ -133,11 +137,11 @@ async function landsOn(section: Locator): Promise<void> {
         requestAnimationFrame(check);
       }),
   );
-  await expect(section.locator('.section-head')).toBeInViewport({ ratio: 1 });
+  await expect(head).toBeInViewport({ ratio: 1 });
   // Clear of the sticky top bar, not tucked beneath it.
   const bar = await page.locator('.top-bar').boundingBox();
-  const head = await section.locator('.section-head').boundingBox();
-  expect(head?.y ?? 0).toBeGreaterThanOrEqual((bar?.y ?? 0) + (bar?.height ?? 0));
+  const box = await head.boundingBox();
+  expect(box?.y ?? 0).toBeGreaterThanOrEqual((bar?.y ?? 0) + (bar?.height ?? 0));
 }
 
 test("the hero's Book a call lands on Let's work together", async ({ page }) => {
