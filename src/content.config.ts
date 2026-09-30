@@ -31,10 +31,6 @@ const profile = defineCollection({
     headlineAccent: z.string().min(1).optional(),
     // A short availability line for the hero's pill, e.g. "Open to new roles and projects".
     availability: z.string().min(1).optional(),
-    // On phones the pill shortens to a lead and one word that rotates, e.g. "Open to new" + roles.
-    availabilityShort: z
-      .object({ lead: z.string().min(1), words: z.array(z.string().min(1)).min(2) })
-      .optional(),
     subline: z.string().min(1),
     about: z.string().min(1),
     interests: z.string().min(1),
@@ -225,9 +221,11 @@ const skills = defineCollection({
       // From the CV: listed in the CV, and among the Toolkit's grouped skills (below).
       cvOnly: z.array(z.string().min(1)).default([]),
       // The Toolkit's Skills tab: every skill and CV-only skill once, under a heading each.
-      groups: z.array(
-        z.object({ group: z.string().min(1), items: z.array(z.string().min(1)).min(1) }),
-      ),
+      // The skills' phases, each a slide in the Toolkit's deck (its CSS shows up to four).
+      groups: z
+        .array(z.object({ group: z.string().min(1), items: z.array(z.string().min(1)).min(1) }))
+        .min(1)
+        .max(4),
       // The home page's tools: a name and a logo in public/tools/.
       tools: z
         .array(

@@ -1,0 +1,79 @@
+---
+/**
+ * A Windows window's title bar: minimise, maximise and close at its right, and no title (the
+ * Toolkit's tab already names what's inside). Minimise and close work: each shows another Toolkit
+ * group (Skills.astro's script), so closing one window brings up the next. Maximise is only the look,
+ * so it's hidden from assistive technology and doesn't react to the pointer. Without JavaScript the
+ * buttons stay disabled.
+ */
+interface Props {
+  minimise: { to: string; label: string };
+  close: { to: string; label: string };
+}
+
+const { minimise, close } = Astro.props;
+---
+
+<div class="window-bar">
+  <button type="button" data-show={minimise.to} aria-label={minimise.label} disabled>
+    <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+      <path d="M0 5h10" stroke="currentColor"></path>
+    </svg>
+  </button>
+  <span aria-hidden="true">
+    <svg width="10" height="10" viewBox="0 0 10 10">
+      <rect x="0.5" y="0.5" width="9" height="9" rx="1.5" fill="none" stroke="currentColor"></rect>
+    </svg>
+  </span>
+  <button class="close" type="button" data-show={close.to} aria-label={close.label} disabled>
+    <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+      <path d="M0 0l10 10M10 0L0 10" stroke="currentColor"></path>
+    </svg>
+  </button>
+</div>
+
+<style>
+  .window-bar {
+    display: flex;
+    justify-content: flex-end;
+    border-block-end: 1px solid var(--color-shell);
+  }
+
+  .window-bar > * {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 32px;
+    color: var(--color-text);
+  }
+
+  button {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    cursor: pointer;
+    transition:
+      background-color 150ms var(--ease-standard),
+      color 150ms var(--ease-standard);
+  }
+
+  button:disabled {
+    cursor: default;
+  }
+
+  /* Inside the button, where the Toolkit card's rounded, clipped corner can't cut it off. */
+  button:focus-visible {
+    outline-offset: -3px;
+  }
+
+  /* As on Windows: a faint grey under the pointer, and close in red. */
+  button:not(:disabled):hover {
+    background: var(--win-hover);
+  }
+
+  .close:not(:disabled):hover {
+    background: var(--win-close);
+    color: var(--color-on-accent);
+  }
+</style>

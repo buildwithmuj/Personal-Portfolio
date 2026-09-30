@@ -14,17 +14,18 @@ interface Props {
   /** The next four studies after this one, in order and wrapping round, for the cards at its end. */
   more: CollectionEntry<'caseStudies'>[];
   ogImageUrl: string;
+  ogImageSize: { width: number; height: number };
   structuredData: string;
 }
 
-const { study, more, ogImageUrl, structuredData } = Astro.props;
+const { study, more, ogImageUrl, ogImageSize, structuredData } = Astro.props;
 const { title, summary, role, employer, tags, links, cover, coverAlt } = study.data;
 ---
 
 <Base
   title={title}
   description={summary}
-  image={{ url: ogImageUrl, alt: coverAlt }}
+  image={{ url: ogImageUrl, alt: coverAlt, ...ogImageSize }}
   type="article"
   structuredData={structuredData}
 >

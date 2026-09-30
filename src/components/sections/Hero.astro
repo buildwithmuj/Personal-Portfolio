@@ -22,8 +22,6 @@ const accentFrom =
   accentWords.length > 0 && profile.headline.endsWith(profile.headlineAccent ?? '')
     ? headlineWords.length - accentWords.length
     : headlineWords.length;
-// On phones the pill shows a shorter line whose last word rotates (AvailabilityPill.astro).
-const short = profile.availabilityShort;
 // The workflow line-art in the sky band: five tangled lines run into the social links, as into an
 // automation, and leave as clean parallel lines (a 1000 × 200 box, stretched to the band).
 const flow = [
@@ -46,9 +44,7 @@ const flow = [
       )}
       <div class="who">
         <h1 id="hero-name">{profile.name}</h1>
-        {profile.availability && (
-          <AvailabilityPill text={profile.availability} short={short} class="hero-pill" />
-        )}
+        {profile.availability && <AvailabilityPill text={profile.availability} class="hero-pill" />}
         <p class="roles">
           <span class="visually-hidden">{rolesSentence}</span>
           <role-rotator
@@ -91,9 +87,6 @@ const flow = [
     >
       {flow.map((d) => (
         <path d={d} pathLength="1" />
-      ))}
-      {flow.map((d) => (
-        <path class="pulse" d={d} pathLength="1" />
       ))}
     </svg>
     <ul class="band-socials" role="list">
@@ -170,8 +163,8 @@ const flow = [
   }
 
   /*
-   * The workflow line-art over the sky: white hairlines draw themselves in once, then a light runs
-   * along each now and then, from the tangle through the social links and out along the clean side.
+   * The workflow line-art over the sky: white hairlines draw themselves in once, from the tangle
+   * through the social links and out along the clean side, then rest.
    */
   .flow {
     position: absolute;
@@ -192,30 +185,6 @@ const flow = [
     animation: flow-draw 2s var(--ease-out) 300ms both;
   }
 
-  .flow .pulse {
-    stroke: var(--color-flow-pulse);
-    stroke-width: 2;
-    stroke-dasharray: 0.06 1.2;
-    stroke-dashoffset: 0.06;
-    animation: flow-pulse 4.5s linear 2.4s infinite;
-  }
-
-  .flow .pulse:nth-of-type(7) {
-    animation-delay: 3.8s;
-  }
-
-  .flow .pulse:nth-of-type(8) {
-    animation-delay: 5s;
-  }
-
-  .flow .pulse:nth-of-type(9) {
-    animation-delay: 3.2s;
-  }
-
-  .flow .pulse:nth-of-type(10) {
-    animation-delay: 5.7s;
-  }
-
   @keyframes flow-draw {
     from {
       stroke-dashoffset: 1;
@@ -226,14 +195,8 @@ const flow = [
     }
   }
 
-  @keyframes flow-pulse {
-    to {
-      stroke-dashoffset: -1;
-    }
-  }
-
-  /* The drawing-in is a one-off entrance, so it finishes even with animations paused. */
-  :global(.motion-paused) .flow path:not(.pulse) {
+  /* The lines draw in once and rest; a one-off entrance, so it finishes even with animations paused. */
+  :global(.motion-paused) .flow path {
     animation-play-state: running !important;
   }
 
@@ -335,41 +298,15 @@ const flow = [
     display: block;
   }
 
-  /* On load, the card's pieces rise in turn and the headline's words slide up (transform only). */
+  /* On load, the card's content rises a few pixels, once and all together (transform only). */
   @keyframes hero-in {
     from {
-      transform: translateY(24px);
-    }
-  }
-
-  @keyframes word-up {
-    from {
-      transform: translateY(110%);
+      transform: translateY(12px);
     }
   }
 
   .hero > * {
-    animation: hero-in 900ms var(--ease-out) both;
-  }
-
-  .hero > :nth-child(2) {
-    animation-delay: 80ms;
-  }
-
-  .hero > :nth-child(3) {
-    animation-delay: 160ms;
-  }
-
-  .hero > :nth-child(4) {
-    animation-delay: 240ms;
-  }
-
-  .hero > :nth-child(5) {
-    animation-delay: 320ms;
-  }
-
-  .hero > :nth-child(6) {
-    animation-delay: 400ms;
+    animation: hero-in 500ms var(--ease-out) both;
   }
 
   /* The sky band and its line-art are there from the first frame; only the content rises in. */
@@ -377,14 +314,8 @@ const flow = [
     animation: none;
   }
 
-  .headline .w > span {
-    animation: word-up 900ms var(--ease-out) both;
-    animation-delay: calc(200ms + var(--i, 0) * 45ms);
-  }
-
-  /* One-off entrances finish even with animations paused, which holds only loops (global.css). */
-  :global(.motion-paused) .hero > *,
-  :global(.motion-paused) .headline .w > span {
+  /* A one-off entrance finishes even with animations paused, which holds only loops (global.css). */
+  :global(.motion-paused) .hero > * {
     animation-play-state: running !important;
   }
 
@@ -425,7 +356,7 @@ const flow = [
       inset-block-start: calc(var(--cover) * 0.56);
     }
 
-    /* Phones keep the hero calm: the sky, without the workflow line-art and its pulses. */
+    /* Phones keep the hero calm: the sky, without the workflow line-art. */
     .flow {
       display: none;
     }

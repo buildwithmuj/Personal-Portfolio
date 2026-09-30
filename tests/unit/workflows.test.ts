@@ -143,6 +143,21 @@ describe('Production on GitHub Pages (spec §15, 2026-09-26)', () => {
     assert.ok(pages.includes("ref: ${{ github.event.workflow_run.head_sha || 'main' }}"));
   });
 
+  it('deploys only the commit main points at now, so a re-run never rolls the site back', () => {
+    assert.ok(pages.includes('git ls-remote "https://github.com/$REPOSITORY" refs/heads/main'));
+    assert.ok(pages.includes('if [ -z "$TESTED" ] || [ "$TESTED" = "$main" ]; then'));
+    // Reading main can't fail quietly (and skip the deploy without a word).
+    assert.match(pages, /^ {8}shell: bash$/m);
+    assert.ok(pages.includes('if [ -z "$main" ]; then'));
+    assert.ok(
+      pages.includes("    needs: current\n    if: needs.current.outputs.deploy == 'true'\n"),
+    );
+  });
+
+  it('lets a deploy finish rather than cancelling it part-way', () => {
+    assert.match(pages, /^ {2}cancel-in-progress: false$/m);
+  });
+
   it('builds in production mode under the Pages base path', () => {
     // Setting WORKERS_CI_BRANCH to anything but main would make the live site a noindex preview.
     assert.doesNotMatch(pages, /^\s*WORKERS_CI_BRANCH:/m);

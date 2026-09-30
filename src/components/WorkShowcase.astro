@@ -336,5 +336,10 @@ const groups = (['client', 'product'] as const).map((kind) => ({
       animation-timeline: --tile-4;
       animation-range: entry 55% exit 50%;
     }
+
+    /* The dots follow the swipe, not the clock, so Pause animations leaves them to it. */
+    :global(.motion-paused) .dots span {
+      animation-play-state: running !important;
+    }
   }
 </style>

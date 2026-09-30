@@ -71,8 +71,8 @@ test('the phone menu opens the navigation and closes when a link is followed', a
   await expect(page).toHaveURL(/#work$/);
 });
 
-// The phone menu drops from the bar with the call beneath its links; Escape or a tap outside it
-// closes it.
+// The phone menu drops from the bar with the call as its last link, in blue and in the same large
+// type as the rest; Escape or a tap outside it closes it.
 test('the phone menu offers the call, and closes on Escape or a tap outside it', async ({
   page,
 }) => {
@@ -80,14 +80,22 @@ test('the phone menu offers the call, and closes on Escape or a tap outside it',
   await page.goto('/');
   const menu = page.locator('.top-bar details');
   await menu.locator('summary').click();
-  await expect(menu.getByRole('link', { name: 'Book a 30-minute call' })).toBeVisible();
+  const links = menu.getByRole('navigation', { name: 'Main' }).getByRole('link');
+  const call = links.last();
+  await expect(call).toHaveText('Book a call');
+  await expect(call).toHaveAttribute('href', '/#contact');
+  await expect(call).toHaveCSS('color', 'rgb(38, 97, 186)');
+  await expect(call).toHaveCSS(
+    'font-size',
+    await links.first().evaluate((a) => getComputedStyle(a).fontSize),
+  );
   await page.keyboard.press('Escape');
   await expect(menu).not.toHaveAttribute('open');
   await expect(menu.locator('summary')).toBeFocused();
   await menu.locator('summary').click();
   // Tapping inside the panel, away from its links, leaves it open.
-  const card = await menu.locator('.menu-card').boundingBox();
-  await page.mouse.click((card?.x ?? 0) + 8, (card?.y ?? 0) + 8);
+  const inside = await menu.locator('.panel').boundingBox();
+  await page.mouse.click((inside?.x ?? 0) + 8, (inside?.y ?? 0) + (inside?.height ?? 0) - 8);
   await expect(menu).toHaveAttribute('open');
   // Below the panel, on the page.
   const panel = await menu.locator('.panel').boundingBox();
@@ -106,7 +114,12 @@ test('the phone menu offers the CV beside the social links', async ({ page }) =>
   await expect(icons).toHaveCount(5);
   await icons.first().click();
   await expect(menu).not.toHaveAttribute('open');
-  await expect(page.getByRole('dialog', { name: profileValue('name') })).toBeVisible();
+  const cv = page.getByRole('dialog', { name: profileValue('name') });
+  await expect(cv).toBeVisible();
+  // Closed, the CV hands focus back to the menu button, not to the link hidden in the closed menu.
+  await page.keyboard.press('Escape');
+  await expect(cv).toBeHidden();
+  await expect(menu.locator('summary')).toBeFocused();
 });
 
 for (const path of ['/projects', '/work/amniki']) {
@@ -178,22 +191,19 @@ test('the hero shows availability', async ({ page }) => {
   await expect(page.locator('.hero .availability')).toHaveText(/\S/);
 });
 
-// Wide screens show the whole availability line. Phones show a shorter one whose last word rotates
-// (roles, projects, …), while screen readers still get the whole line.
-test('the availability pill shortens on phones and rotates its last word', async ({ page }) => {
+// The pill says the same whole line on every screen, and nothing in it moves.
+test('the availability pill says the whole line, still, even on the smallest phone', async ({
+  page,
+}) => {
   const line = profileValue('availability');
+  await page.setViewportSize({ width: 320, height: 700 });
   await page.goto('/');
   const pill = page.locator('.hero .availability');
-  await expect(pill.locator('.availability-full')).toBeVisible();
-  await expect(pill.locator('.availability-short')).toBeHidden();
-
-  await page.setViewportSize({ width: 375, height: 812 });
-  await expect(pill.locator('.availability-short')).toBeVisible();
-  await expect(pill.locator('.availability-short')).toHaveAttribute('aria-hidden', 'true');
-  await expect(pill.locator('.availability-full')).toHaveText(line);
-  const word = pill.locator('role-rotator > span').first();
-  const first = (await word.textContent()) ?? '';
-  await expect(word).not.toHaveText(first, { timeout: 6000 });
+  await expect(pill).toHaveText(line);
+  await expect(pill.locator('role-rotator')).toHaveCount(0);
+  await expect(pill.locator('.available-dot')).toHaveCSS('animation-name', 'none');
+  const box = await pill.boundingBox();
+  expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(320);
 });
 
 // The hero's workflow line-art runs over the sky on wider screens; phones keep the sky alone.
@@ -295,24 +305,14 @@ test('with animations paused, entrances still finish and only loops are held', a
 
   // Bring every scroll reveal on screen until the reveal observer has seen it (its .in class), then
   // list what the pause holds. Reveals in a hidden tab (the other side of the Work switch) can't
-  // scroll into view; skip them. A reveal inside a section that is still sliding open is clipped
-  // until the slide is done, so wait for its section to settle first. Each wait is on the page's own
-  // state, checked frame by frame, not a set number of frames: under a full parallel run WebKit
-  // draws only six or seven frames a second.
+  // scroll into view; skip them. Each wait is on the page's own state, checked frame by frame, not a
+  // set number of frames: under a full parallel run WebKit draws only six or seven frames a second.
   await page.evaluate(async () => {
     const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
-    const until = async (done: () => boolean) => {
-      while (!done()) await frame();
-    };
     for (const element of document.querySelectorAll('[data-reveal]')) {
       if (element.getClientRects().length === 0) continue;
       element.scrollIntoView({ block: 'center' });
-      const section = element.closest('.stack > .shell');
-      if (section?.querySelector(':scope > .shell-body')) {
-        await until(() => section.classList.contains('is-settled'));
-        element.scrollIntoView({ block: 'center' });
-      }
-      await until(() => element.classList.contains('in'));
+      while (!element.classList.contains('in')) await frame();
     }
   });
   await page.waitForFunction(() =>

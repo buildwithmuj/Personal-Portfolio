@@ -5,6 +5,7 @@ import Icon from '../Icon.astro';
 import Shell from '../Shell.astro';
 import SkyGradient from '../SkyGradient.astro';
 import Switch from '../Switch.astro';
+import WindowBar from '../WindowBar.astro';
 
 interface Props {
   skills: CollectionEntry<'skills'>['data'];
@@ -25,25 +26,31 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
 ---
 
 {/*
-  The Toolkit: the tools in a dock on a patch of the live sky, the skills as pills under three
-  headings, the certifications as folders, each opening its certificate in a viewer. One group shows at a
-  time in one card, turning to the next every three seconds (in CSS, below) until the visitor
-  picks one with the switch.
+  The Toolkit, as Windows: the tools on a taskbar across a patch of the live sky, the skills as a
+  slide deck in a window (a slide per phase), the certifications as folders in a window, each
+  opening its certificate in a viewer. One group shows at a time in one card, picked with the switch
+  (the tools to start) or by a window's minimise and close buttons.
 */}
 <Shell id="skills" heading={heading} intro={intro} collapsible="open">
-  <Switch slot="actions" name="toolkit-group" label="Show" options={groups} start={null} />
+  <Switch slot="actions" name="toolkit-group" label="Show" options={groups} />
   <div class="card toolkit" data-reveal="rise">
     <div class="panel" data-panel="tools">
       <h3 class="visually-hidden">Tools</h3>
       <div class="desk">
         <SkyGradient class="desk-sky" scale={0.5} />
-        <ul class="dock" role="list">
+        <ul class="taskbar" role="list">
+          <li class="start" aria-hidden="true">
+            <i></i>
+            <i></i>
+            <i></i>
+            <i></i>
+          </li>
           {skills.tools.map((tool) => (
             <li class="tool">
-              <span class="tool-name">{tool.name}</span>
               <span class="tool-icon">
                 <img src={withBase(tool.logo)} alt="" width="34" height="34" loading="lazy" />
               </span>
+              <span class="tool-name">{tool.name}</span>
             </li>
           ))}
         </ul>
@@ -51,36 +58,52 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     </div>
     <div class="panel" data-panel="skills">
       <h3 class="visually-hidden">Skills</h3>
-      <fieldset class="phases">
-        <legend class="visually-hidden">Phase</legend>
-        {skills.groups.map(({ group }, index) => (
-          <label>
-            <input
-              class="visually-hidden"
-              type="radio"
-              name="skill-phase"
-              value={`phase-${index + 1}`}
-              checked={index === 0}
-            />
-            <span>{group}</span>
-          </label>
-        ))}
-      </fieldset>
-      <div class="skill-groups">
-        {skills.groups.map(({ group, items }) => (
-          <div class="skill-group">
-            <h4>{group}</h4>
-            <ul class="pills" role="list">
-              {items.map((skill) => (
-                <li class="skill">{skill}</li>
-              ))}
-            </ul>
-          </div>
-        ))}
+      <WindowBar
+        minimise={{ to: 'tools', label: 'Minimise Skills and go back to Tools' }}
+        close={{ to: 'certifications', label: 'Close Skills and show Certifications' }}
+      />
+      <div class="deck">
+        <fieldset class="phases">
+          <legend class="visually-hidden">Phase</legend>
+          {skills.groups.map(({ group }, index) => (
+            <label>
+              <input
+                class="visually-hidden"
+                type="radio"
+                name="skill-phase"
+                value={`phase-${index + 1}`}
+                checked={index === 0}
+              />
+              <span class="slide-number" aria-hidden="true">
+                {index + 1}
+              </span>
+              <span class="thumb">{group}</span>
+            </label>
+          ))}
+        </fieldset>
+        <div class="skill-groups">
+          {skills.groups.map(({ group, items }, index) => (
+            <div class="skill-group">
+              <p class="slide-count" aria-hidden="true">
+                {index + 1} of {skills.groups.length}
+              </p>
+              <h4>{group}</h4>
+              <ul class="pills" role="list">
+                {items.map((skill) => (
+                  <li class="skill">{skill}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
     <div class="panel" data-panel="certifications">
       <h3 class="visually-hidden">Certifications</h3>
+      <WindowBar
+        minimise={{ to: 'tools', label: 'Minimise Certifications and go back to Tools' }}
+        close={{ to: 'tools', label: 'Close Certifications and go back to Tools' }}
+      />
       <ul class="cert-cards" role="list">
         {skills.certifications.map(({ title, issuer, short }) => (
           <li>
@@ -137,7 +160,6 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
               <p class="kind">Certificate</p>
               <p class="title">{title}</p>
               <p>{issuer}</p>
-              <p class="note">Placeholder: the certificate itself is on its way</p>
             </div>
           )}
         </figure>
@@ -155,13 +177,19 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
 </Shell>
 
 <script>
-  // Focusing anything in a group (a folder, or on a phone a phase) picks that group, so focus never
-  // sits on a group that's out of sight.
-  document.querySelector('#skills .toolkit')?.addEventListener('focusin', ({ target }) => {
-    const group = (target as Element).closest<HTMLElement>('.panel')?.dataset.panel;
-    const pick = document.querySelector<HTMLInputElement>(`#skills [value="${group}"]`);
-    if (pick) pick.checked = true;
-  });
+  // The windows' minimise and close buttons (WindowBar.astro): each shows the group it leads to,
+  // and focus follows to that group's tab.
+  for (const button of document.querySelectorAll<HTMLButtonElement>('#skills [data-show]')) {
+    const pick = document.querySelector<HTMLInputElement>(
+      `#skills [name="toolkit-group"][value="${button.dataset['show']}"]`,
+    );
+    if (!pick) continue;
+    button.onclick = () => {
+      pick.checked = true;
+      pick.focus();
+    };
+    button.disabled = false;
+  }
 
   // The certificates. A folder opens the viewer on its own certificate; the arrows, the arrow keys
   // or a swipe move through the rest, wrapping round, and the close button, Escape or a click
@@ -206,21 +234,23 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
 <style>
   /*
    * The three groups share one cell of the card, so it holds the tallest group's height and never
-   * jumps. The groups not showing are transparent rather than hidden, so screen readers still read
-   * every group, in order (on phones, all but the picked phase of the skills are hidden).
+   * jumps. Only the picked group shows (the tools to start); the others are hidden outright, so no
+   * pointer, keyboard or screen reader lands in a group that's out of sight: the switch picks
+   * another, as tabs do. Without :has() every group shows, one after another.
    */
   .toolkit {
     display: grid;
     overflow: hidden;
   }
 
-  .panel {
-    grid-area: 1 / 1;
-    opacity: 0;
-    pointer-events: none;
+  @supports selector(:has(*)) {
+    .panel {
+      grid-area: 1 / 1;
+      visibility: hidden;
+    }
   }
 
-  .dock,
+  .taskbar,
   .pills,
   .cert-cards {
     margin: 0;
@@ -229,10 +259,8 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
   }
 
   /*
-   * Tools: a dock on a patch of the live sky, filling the card to its edges (past its padding).
-   * With a pointer, the icon pointed at swells and its name pops up above, its neighbours swelling
-   * a little less, like the Mac's dock. Without hover (phones, tablets) the names sit under the
-   * icons, and a gentle wave runs along the dock every few seconds.
+   * Tools: a Windows taskbar along the foot of a patch of the live sky, filling the card to its edges
+   * (past its padding): a Start button, which is only the look, then each tool with its name.
    */
   .panel[data-panel='tools'] {
     margin: calc(-1 * var(--card-pad));
@@ -241,10 +269,9 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
   .desk {
     position: relative;
     display: grid;
-    place-items: end center;
+    align-items: end;
     height: 100%;
     min-height: 220px;
-    padding: 0 16px 22px;
     isolation: isolate;
     container-type: inline-size;
   }
@@ -255,171 +282,205 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     inset: 0;
   }
 
-  .dock {
+  .taskbar {
+    --slot: min(44px, 12cqi);
+
     display: flex;
-    gap: 10px;
-    align-items: end;
-    padding: 10px 12px;
-    border: 1px solid var(--color-frost);
-    border-radius: 24px;
-    background: var(--color-frost);
-    box-shadow: 0 18px 40px -16px var(--watch-shadow);
-    backdrop-filter: blur(12px);
+    gap: 4px;
+    align-items: start;
+    justify-content: center;
+    padding: 4px 12px;
+    border-block-start: 1px solid var(--taskbar-edge);
+    background: var(--taskbar);
+    backdrop-filter: blur(24px) saturate(1.3);
   }
 
+  /* Sized from the sky's width (up to 44px), so the bar always fits across, even at 320px. */
+  .start,
+  .tool-icon {
+    width: var(--slot);
+    height: var(--slot);
+    border-radius: 6px;
+  }
+
+  .start {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+    padding: calc(var(--slot) * 0.27);
+  }
+
+  .start i {
+    border-radius: 1px;
+    background: var(--color-accent);
+  }
+
+  /*
+   * Each tool's name is always there to read: under its icon on a narrow bar (a phone), beside it
+   * where the bar has room, as Windows shows an app's name on its taskbar button. Under a pointer
+   * the whole button lights up.
+   */
   .tool {
-    position: relative;
     display: grid;
     justify-items: center;
+    border-radius: 6px;
+    transition: background-color 150ms var(--ease-standard);
   }
 
-  /* Sized from the sky's width (up to 60px), so the dock always fits across, even at 320px. */
   .tool-icon {
     display: grid;
     place-items: center;
-    width: min(60px, 14cqi);
-    height: min(60px, 14cqi);
-    border-radius: 16px;
-    background: var(--color-surface);
-    box-shadow: var(--shadow-secondary);
-    transform-origin: 50% 100%;
-    transition:
-      scale 300ms var(--ease-out),
-      translate 300ms var(--ease-out);
   }
 
   .tool-icon img {
-    width: 56%;
-    height: 56%;
+    width: 58%;
+    height: 58%;
     object-fit: contain;
   }
 
-  /* The names: under the icons by default, as tooltips where there's hover (below). */
   .tool-name {
-    grid-row: 2;
-    padding-block-start: 4px;
+    padding-block: 2px 4px;
     color: var(--color-text);
     font-size: 0.625rem;
     font-weight: var(--weight-medium);
     white-space: nowrap;
   }
 
-  @media (hover: hover) {
+  @container (width >= 620px) {
+    .tool {
+      display: flex;
+      align-items: center;
+      padding-inline-end: 12px;
+    }
+
     .tool-name {
-      position: absolute;
-      bottom: calc(100% + 36px);
-      padding: 3px 10px;
-      border-radius: var(--radius-pill);
-      background: var(--color-inverse);
-      color: var(--color-on-inverse);
+      padding: 0;
       font-size: var(--text-xs);
-      opacity: 0;
-      pointer-events: none;
-      translate: 0 6px;
-      transition:
-        opacity 200ms var(--ease-out),
-        translate 200ms var(--ease-out);
-    }
-
-    .tool:hover .tool-name {
-      opacity: 1;
-      translate: 0 0;
-    }
-
-    .tool:hover .tool-icon {
-      scale: 1.45;
-      translate: 0 -8px;
-    }
-
-    .tool:has(+ .tool:hover) .tool-icon,
-    .tool:hover + .tool .tool-icon {
-      scale: 1.2;
-      translate: 0 -3px;
     }
   }
 
-  /* Without hover, a wave runs along the dock every six seconds, each icon a moment after the last. */
-  @keyframes tool-wave {
-    0%,
-    16%,
-    100% {
-      scale: 1;
-      translate: 0 0;
+  @media (hover: hover) {
+    .tool:hover {
+      background: var(--taskbar-hover);
     }
-
-    8% {
-      scale: 1.2;
-      translate: 0 -5px;
-    }
-  }
-
-  @media (hover: none) {
-    .tool-icon {
-      animation: tool-wave 6s var(--ease-out) infinite;
-      animation-delay: calc(var(--i, 0) * 140ms);
-    }
-  }
-
-  .tool:nth-child(2) {
-    --i: 1;
-  }
-
-  .tool:nth-child(3) {
-    --i: 2;
-  }
-
-  .tool:nth-child(4) {
-    --i: 3;
-  }
-
-  .tool:nth-child(5) {
-    --i: 4;
-  }
-
-  .tool:nth-child(6) {
-    --i: 5;
-  }
-
-  .tool:nth-child(7) {
-    --i: 6;
-  }
-
-  .tool:nth-child(8) {
-    --i: 7;
   }
 
   /*
-   * Skills: every skill as a white pill with Ask me's glow, under three quiet headings in the
-   * order a project runs (skills.yaml's groups). Pointing at a pill lights it blue.
+   * Skills: a slide deck open in a Windows window, the card as the window. Its slides are the
+   * phases, in the order a project runs (skills.yaml's groups): their thumbnails down the side are
+   * the phases' own radios, and the slide picked fills the canvas, its skills as white pills with
+   * Ask me's glow. Pointing at a pill lights it blue. On phones the thumbnails run beneath.
    */
+  .panel[data-panel='skills'] {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    margin: calc(-1 * var(--card-pad));
+  }
+
+  .deck {
+    display: grid;
+    grid-template-columns: 104px minmax(0, 1fr);
+    gap: 16px;
+    padding: 16px;
+    background: var(--color-shell);
+  }
+
+  .phases {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .phases label {
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr);
+    gap: 6px;
+    cursor: pointer;
+  }
+
+  .slide-number {
+    color: var(--color-text-muted);
+    font-size: 11px;
+    text-align: end;
+  }
+
+  .thumb {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16 / 9;
+    padding: 4px;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    background: var(--color-surface);
+    box-shadow: 0 1px 3px var(--slide-shadow);
+    font-size: 11px;
+    font-weight: var(--weight-medium);
+    text-align: center;
+  }
+
+  .phases input:checked ~ .thumb {
+    border-color: var(--slide-picked);
+  }
+
+  .phases input:focus-visible ~ .thumb {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
   .skill-groups {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 16px;
   }
 
   .skill-group {
     display: grid;
-    grid-template-columns: 96px minmax(0, 1fr);
-    gap: 14px;
-    align-items: center;
+    gap: 12px;
+    align-content: start;
+    aspect-ratio: 16 / 9;
+    padding: 20px 24px;
+    border-radius: 2px;
+    background: var(--color-surface);
+    box-shadow: 0 2px 10px var(--slide-shadow);
+  }
+
+  .slide-count {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
   }
 
   .skill-group h4 {
     margin: 0;
+    padding-block-end: 10px;
+    border-block-end: 3px solid;
+    border-image: var(--gradient-sky) 1;
     color: var(--color-accent);
-    font-size: var(--text-xs);
-    font-weight: var(--weight-medium);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-style: italic;
+    font-weight: var(--weight-regular);
   }
 
-  /* The phase control shows only on phones (below). */
-  .phases {
-    display: none;
-    min-inline-size: 0;
-    margin: 0;
-    padding: 0;
-    border: 0;
+  /* One slide at a time where :has() can tell which is picked; without it, every slide in turn. */
+  @supports selector(:has(*)) {
+    .skill-group {
+      display: none;
+      grid-area: 1 / 1;
+    }
+
+    .deck:has(label:nth-of-type(1) input:checked) .skill-group:nth-child(1),
+    .deck:has(label:nth-of-type(2) input:checked) .skill-group:nth-child(2),
+    .deck:has(label:nth-of-type(3) input:checked) .skill-group:nth-child(3),
+    .deck:has(label:nth-of-type(4) input:checked) .skill-group:nth-child(4) {
+      display: grid;
+    }
   }
 
   .pills {
@@ -453,19 +514,24 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
   /*
    * Certifications: soft folders, Apple Files style, four across (two by two on phones), one calm
    * pale-sky shape each with the name and issuer set beneath. Pointing at one (or focusing it)
-   * tips its front forward and a certificate rises out.
+   * tips its front forward and a certificate rises out. The card is a Windows window around them:
+   * minimise, maximise and close on its title bar (WindowBar.astro), and no title.
    */
 
-  /* The skills set the card's height, so the folders sit in its middle. */
+  /* The window fills the card to its edges; the skills set its height, and the folders sit in the
+     middle of what's left under the title bar. */
   .panel[data-panel='certifications'] {
-    align-self: center;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    margin: calc(-1 * var(--card-pad));
   }
 
   .cert-cards {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-6) var(--space-4);
-    padding-block-start: var(--space-2);
+    align-self: center;
+    padding: var(--space-6) var(--card-pad) var(--card-pad);
   }
 
   .cert-card {
@@ -639,7 +705,7 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     --cert: var(--cert-4);
   }
 
-  /* A certificate, landscape; until the real one comes, a placeholder ruled in its card's blue. */
+  /* A certificate, landscape; until its image comes, a card ruled in its folder's blue. */
   .certificate {
     display: block;
     width: 100%;
@@ -689,14 +755,6 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     line-height: 1.15;
   }
 
-  .note {
-    margin-block-start: 8px;
-    padding: 4px 10px;
-    border: 1px dashed var(--color-chip-edge);
-    border-radius: var(--radius-pill);
-    font-size: var(--text-xs);
-  }
-
   .steps {
     display: flex;
     gap: var(--space-3);
@@ -704,163 +762,37 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     padding: 4px 0 20px;
   }
 
-  /*
-   * On its own, the card turns to the next group every three seconds (a nine-second loop, each
-   * group a third of it), and the switch's tabs light up in step. Hovering or focusing the section
-   * pauses it, as does the footer's pause (global.css); picking a group stops it on that group.
-   */
-
-  /* The group in view takes clicks (its cards), and the others let them through. */
-  @keyframes toolkit-turn {
-    0% {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    4%,
-    30% {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    33.3%,
-    100% {
-      opacity: 0;
-      pointer-events: none;
-    }
-  }
-
-  @keyframes toolkit-tab {
-    0%,
-    33.3% {
-      background: var(--color-accent);
-      color: var(--color-on-accent);
-    }
-
-    33.4%,
-    100% {
-      background: transparent;
-      color: var(--color-text-muted);
-    }
-  }
-
-  .panel,
-  :global(#skills .switch span) {
-    animation: toolkit-turn 9s infinite both;
-  }
-
-  :global(#skills .switch span) {
-    animation-name: toolkit-tab;
-  }
-
-  /*
-   * Each later group starts part-way round the loop, rather than after a delay: waiting out a delay,
-   * a tab would sit in its lit first frame.
-   */
-  .panel[data-panel='skills'],
-  :global(#skills .switch label:nth-of-type(2) span) {
-    animation-delay: -6s;
-  }
-
-  .panel[data-panel='certifications'],
-  :global(#skills .switch label:nth-of-type(3) span) {
-    animation-delay: -3s;
-  }
-
-  :global(#skills:is(:hover, :focus-within)) .panel,
-  :global(#skills:is(:hover, :focus-within) .switch span) {
-    animation-play-state: paused;
-  }
-
-  /* A picked group stays; the rest stay out of sight. */
-  :global(#skills:has([name='toolkit-group']:checked)) .panel,
-  :global(#skills:has([name='toolkit-group']:checked) .switch span) {
-    animation: none;
-  }
-
+  /* The picked group shows. */
   :global(#skills:has(input[value='tools']:checked)) .panel[data-panel='tools'],
   :global(#skills:has(input[value='skills']:checked)) .panel[data-panel='skills'],
   :global(#skills:has(input[value='certifications']:checked)) .panel[data-panel='certifications'] {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  /* Under reduced motion the card holds still on the tools, until another group is picked. */
-  @media (prefers-reduced-motion: reduce) {
-    .panel,
-    :global(#skills .switch span) {
-      animation-name: none;
-    }
-
-    :global(#skills:not(:has([name='toolkit-group']:checked))) .panel[data-panel='tools'] {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    :global(#skills:not(:has([name='toolkit-group']:checked)) .switch label:first-of-type span) {
-      background: var(--color-accent);
-      color: var(--color-on-accent);
-    }
+    visibility: visible;
   }
 
   /*
-   * Phones. The skills show one phase at a time, picked from a segmented control (the phases' own
-   * radios), rather than every group's pills in a long column; the control names the phase, so its
-   * heading is left to screen readers. The pills are smaller, the folders two by two, and the dock
-   * closer together.
+   * Phones. The slide sits on top, its thumbnails in a row beneath; the pills are smaller, and the
+   * folders two by two.
    */
   @media (width < 40rem) {
+    .deck {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+      padding: 12px;
+    }
+
     .phases {
-      display: flex;
-      margin-block-end: 14px;
-      padding: 3px;
-      border-radius: 10px;
-      background: var(--color-shell);
-    }
-
-    .phases label {
-      flex: 1;
-    }
-
-    .phases span {
-      display: block;
-      padding: 7px 4px;
-      border-radius: 8px;
-      font-size: var(--text-xs);
-      text-align: center;
-      cursor: pointer;
-    }
-
-    .phases input:checked + span {
-      background: var(--color-surface);
-      box-shadow: var(--shadow-secondary);
-      font-weight: var(--weight-medium);
-    }
-
-    .phases input:focus-visible + span {
-      outline: 2px solid var(--color-focus);
-      outline-offset: 2px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      order: 2;
     }
 
     .skill-group {
-      display: none;
-      grid-template-columns: minmax(0, 1fr);
+      aspect-ratio: auto;
+      min-height: 180px;
+      padding: 16px;
     }
 
     .skill-group h4 {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip-path: inset(50%);
-      white-space: nowrap;
-    }
-
-    .panel:has(.phases label:nth-of-type(1) input:checked) .skill-group:nth-child(1),
-    .panel:has(.phases label:nth-of-type(2) input:checked) .skill-group:nth-child(2),
-    .panel:has(.phases label:nth-of-type(3) input:checked) .skill-group:nth-child(3),
-    .panel:has(.phases label:nth-of-type(4) input:checked) .skill-group:nth-child(4) {
-      display: grid;
+      font-size: 1.25rem;
     }
 
     .pills {
@@ -876,19 +808,8 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    /* The dock on a phone: closer together, on a shorter patch of sky. */
     .desk {
       min-height: 190px;
-      padding: 0 8px 16px;
-    }
-
-    .dock {
-      gap: 6px;
-      padding: 8px 10px 6px;
-    }
-
-    .tool-icon {
-      border-radius: 12px;
     }
   }
 </style>

@@ -5,7 +5,6 @@ import { ICONS, ICON_VIEWBOX } from '../lib/icons.ts';
 import { withBase } from '../lib/paths.ts';
 import { socialLabels } from '../lib/social.ts';
 import { currentWeather, type WeatherScene } from '../lib/weather.ts';
-import AvailabilityPill from './AvailabilityPill.astro';
 import Icon from './Icon.astro';
 import LiveClock from './LiveClock.astro';
 import SocialIcon from './SocialIcon.astro';
@@ -18,9 +17,9 @@ const { profile } = Astro.props;
 const weather =
   profile.coordinates &&
   (await currentWeather(profile.coordinates.latitude, profile.coordinates.longitude));
-// Home leads back from the CV and case study pages; How I work stays reachable by scrolling.
 // Every scene the weather can show, each with its icon (src/lib/icons.ts).
 const scenes: WeatherScene[] = ['clear', 'cloud', 'fog', 'drizzle', 'rain', 'storm', 'snow'];
+// Home leads back to the top from anywhere, the case studies and All work included.
 const nav = [
   { href: withBase('/#page-top'), label: 'Home' },
   { href: withBase('/#about'), label: 'About' },
@@ -79,8 +78,8 @@ const nav = [
   </svg>
 
   <!--
-    Phones: the menu button drops a panel from the bar with the links in large type and, on a white
-    card beneath them, the availability, the call and the CV and social links.
+    Phones: the menu button drops a panel from the bar with the links in large type, Book a call
+    last in blue, and the CV and social links beneath them on the same grey.
   -->
   <details class="menu">
     <summary aria-label="Menu">
@@ -95,33 +94,33 @@ const nav = [
               <a href={item.href}>{item.label}</a>
             </li>
           ))}
-        </ul>
-      </nav>
-      <div class="menu-card">
-        {profile.availability && <AvailabilityPill text={profile.availability} class="menu-pill" />}
-        <a class="btn btn-primary" href={withBase('/#contact')}>
-          Book a 30-minute call
-        </a>
-        <ul class="socials" role="list">
-          {/* The CV first: on the home page it opens over the page (CvViewer.astro). */}
+          {/* The call, the site's main action, as the last link: in blue, one tap away. */}
           <li>
-            <a class="icon-button" href={withBase('/cv.pdf')} aria-label="View CV" data-cv>
-              <Icon name="cv" />
+            <a class="call" href={withBase('/#contact')}>
+              Book a call
             </a>
           </li>
-          {profile.socials.map((social) => (
-            <li>
-              <a
-                class="icon-button"
-                href={social.url}
-                aria-label={`${profile.name} on ${socialLabels[social.platform]}`}
-              >
-                <SocialIcon platform={social.platform} />
-              </a>
-            </li>
-          ))}
         </ul>
-      </div>
+      </nav>
+      <ul class="socials" role="list">
+        {/* The CV first: on the home page it opens over the page (CvViewer.astro). */}
+        <li>
+          <a class="icon-button" href={withBase('/cv.pdf')} aria-label="View CV" data-cv>
+            <Icon name="cv" />
+          </a>
+        </li>
+        {profile.socials.map((social) => (
+          <li>
+            <a
+              class="icon-button"
+              href={social.url}
+              aria-label={`${profile.name} on ${socialLabels[social.platform]}`}
+            >
+              <SocialIcon platform={social.platform} />
+            </a>
+          </li>
+        ))}
+      </ul>
     </div>
   </details>
 </header>
@@ -131,13 +130,22 @@ const nav = [
 
   // The phone menu: following one of its links, a tap anywhere outside it, or Escape closes it
   // (Escape hands focus back to the menu button). This runs first, so nothing below can stop it.
+  // A followed link hands focus to the menu button too, before the link acts (the capture phase),
+  // so the CV opened from the menu gives focus back there, not to a link hidden in the closed menu.
   const menu = document.querySelector<HTMLDetailsElement>('.top-bar .menu');
   if (menu) {
     const close = () => (menu.open = false);
-    document.addEventListener('click', ({ target }) => {
-      const hit = target as Element;
-      if (menu.open && (!menu.contains(hit) || hit.closest('.panel a'))) close();
-    });
+    document.addEventListener(
+      'click',
+      ({ target }) => {
+        const hit = target as Element;
+        if (!menu.open) return;
+        const link = menu.contains(hit) && hit.closest('a');
+        if (link) menu.querySelector('summary')?.focus();
+        if (!menu.contains(hit) || link) close();
+      },
+      true,
+    );
     document.addEventListener('keydown', ({ key }) => {
       if (key !== 'Escape' || !menu.open) return;
       close();
@@ -410,7 +418,7 @@ const nav = [
       border-end-end-radius: 0;
     }
 
-    /* The panel continues the grey bar downwards: the links, then the white card beneath them. */
+    /* The panel continues the grey bar downwards: the links, the call last, then the icons. */
     .panel {
       position: absolute;
       inset-inline: 0;
@@ -439,22 +447,15 @@ const nav = [
       letter-spacing: var(--tracking-tight);
     }
 
-    /* The white card: availability, the call, the CV and social links. */
-    .menu-card {
-      display: grid;
-      gap: var(--space-4);
-      padding: var(--space-4);
-      border-radius: var(--radius-card);
-      background: var(--color-surface);
-      box-shadow: var(--shadow-secondary);
-      text-align: center;
+    .panel-links .call {
+      color: var(--color-accent);
     }
 
-    .menu-pill {
-      justify-self: center;
+    .panel-links .call:hover {
+      color: var(--color-accent-hover);
     }
 
-    .menu-card .socials {
+    .panel > .socials {
       justify-content: center;
     }
   }

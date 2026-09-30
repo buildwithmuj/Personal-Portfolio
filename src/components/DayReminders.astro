@@ -12,9 +12,9 @@ const { tasks, place, timeZone } = Astro.props;
 
 {/*
   The owner's typical day (profile.day) as a Reminders-style widget. A live sky header with the
-  local time and how much of the day is done, over "Tasks for today", which scrolls itself one task
-  at a time like a list on a watch: the task in focus sits in the middle at full size, its
-  neighbours smaller and fainter. Tasks tick off as the day goes in the owner's time zone.
+  local time and how much of the day is done, over "Tasks for today", like a list on a watch: the
+  task under way sits in the middle at full size, its neighbours smaller and fainter. Tasks tick
+  off as the day goes in the owner's time zone, and the list moves on only when the next begins.
 */}
 <div class="rem-watch">
   <article class="rem" data-time-zone={timeZone} aria-labelledby="rem-title">
@@ -82,12 +82,10 @@ const { tasks, place, timeZone } = Astro.props;
   import { isNight, localTime, taskStates } from '../lib/day.ts';
 
   // The day as it happens in the owner's time zone: a task is done once the next has started, and
-  // the one under way is "now"; the clock and the count follow. Every few seconds the next task
-  // slides into the middle, watch-style. The list is drawn three times (the middle copy is the one
-  // screen readers get), so there are always tasks above and below, and after the last task it
-  // carries on into the first without rewinding. It starts at the task under way, and holds while
-  // hovered or focused, under reduced motion, or while animations are paused. Without JavaScript
-  // the list simply shows, unticked.
+  // the one under way is "now"; the clock and the count follow. The task under way sits in the
+  // middle, watch-style, and the list moves only when the next one starts. The list is drawn three
+  // times (the middle copy is the one screen readers get), so there are always tasks above and
+  // below. Without JavaScript the list simply shows, unticked.
   for (const widget of document.querySelectorAll<HTMLElement>('.rem')) {
     const list = widget.querySelector<HTMLElement>('.rem-list');
     if (!list) continue;
@@ -144,24 +142,14 @@ const { tasks, place, timeZone } = Astro.props;
     show(false);
     new ResizeObserver(() => show(false)).observe(list);
     window.setInterval(() => {
-      if (!paused()) tick();
+      if (paused()) return;
+      const next = count + Math.max(0, tick().indexOf('now'));
+      if (next === index) return;
+      // Forward to the next task; back to the first, once the day starts over, without a rewind.
+      const forward = next > index;
+      index = next;
+      show(forward);
     }, 60_000);
-    window.setInterval(() => {
-      if (paused() || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      if (widget.matches(':hover, :focus-within')) return;
-      index += 1;
-      show(true);
-      if (index === count * 2) {
-        list.addEventListener(
-          'transitionend',
-          () => {
-            index = count;
-            show(false);
-          },
-          { once: true },
-        );
-      }
-    }, 2400);
   }
 </script>
 
@@ -249,22 +237,20 @@ const { tasks, place, timeZone } = Astro.props;
   }
 
   /*
-   * White on the live sky, with the soft navy shadow the About stats use, over a navy wash on the
-   * text's side that fades out towards the count: the sky can drift pale, and without WebGL its
-   * fallback gradient is pale at the top.
+   * Navy on the live sky, as in the About stats: it reads on every shade the sky drifts through.
+   * By night the sky darkens under a wash (below) and the text turns white.
    */
   .rem-head::after {
     position: absolute;
     z-index: -1;
     inset: 0;
-    background: var(--sky-text-wash);
+    background: var(--sky-ink-wash);
     content: '';
   }
 
   .rem-app,
   .rem-clock {
-    color: var(--color-on-accent);
-    text-shadow: var(--stats-text-shadow);
+    color: var(--color-sky-ink);
   }
 
   .rem-app {
@@ -436,6 +422,10 @@ const { tasks, place, timeZone } = Astro.props;
     background:
       var(--gradient-cover-fade), linear-gradient(var(--color-scrim), var(--color-scrim)),
       linear-gradient(var(--color-scrim), var(--color-scrim));
+  }
+
+  .rem-watch[data-night] :is(.rem-app, .rem-clock) {
+    color: var(--color-on-inverse);
   }
 
   .rem-watch[data-night] .rem-task {

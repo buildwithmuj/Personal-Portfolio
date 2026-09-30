@@ -90,6 +90,28 @@ test.describe('on a phone', () => {
     expect(pageFits).toBe(true);
   });
 
+  // The dots follow the swipe, so they keep up even with animations paused (the footer's toggle).
+  test('the deck lights the dot of the card in view, even with animations paused', async ({
+    page,
+  }) => {
+    const supported = await page.evaluate(() => CSS.supports('animation-timeline: view()'));
+    test.skip(!supported, 'This browser has no scroll-driven animations, so the dots only count');
+    await page.goto('/');
+    await page.evaluate(() => document.documentElement.classList.add('motion-paused'));
+    const showcase = page.locator('#work .showcase[data-kind="client"]');
+    const deck = showcase.locator('.tiles');
+    await scrollIntoViewSettled(deck);
+    await deck.evaluate((element) =>
+      element.scrollTo({ left: element.scrollWidth, behavior: 'instant' }),
+    );
+    const dot = (n: number) =>
+      showcase
+        .locator(`.dots span:nth-child(${n})`)
+        .evaluate((span) => getComputedStyle(span).width);
+    await expect.poll(() => dot(4)).toBe('18px');
+    expect(await dot(1)).not.toBe('18px');
+  });
+
   // Every card, the last included, comes to rest at the same inset from the left, one card per
   // swipe: the row has room after its last card to line it up like the others.
   test('each card in the deck, the last included, rests at the same inset', async ({ page }) => {
@@ -150,7 +172,7 @@ test('a case study shows its details and MDX components', async ({ page }) => {
   await expect(page.locator('.case-study .facts')).not.toContainText('Timeframe');
   await expect(page.getByRole('img', { name: study('this-site', 'coverAlt') })).toBeVisible();
   await expect(page.locator('figure figcaption')).toHaveText(
-    'Placeholder diagram of how the site is built and checked',
+    'How the site is built and checked, from a written spec to the live site',
   );
   await expect(page.locator('aside.callout')).toContainText(
     'Every change is checked automatically',

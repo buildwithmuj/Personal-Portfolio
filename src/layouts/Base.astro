@@ -6,14 +6,16 @@ import Seo from '../components/Seo.astro';
 import Footer from '../components/Footer.astro';
 import ScrollTop from '../components/ScrollTop.astro';
 import TopBar from '../components/TopBar.astro';
+import { readFileSync } from 'node:fs';
 import { getProfile } from '../lib/content.ts';
 import { isProduction } from '../lib/mode.ts';
+import { MOTION_SCRIPT } from '../lib/motion.ts';
 import { withBase } from '../lib/paths.ts';
 
 interface Props {
   title?: string;
   description?: string;
-  image?: { url: string; alt: string };
+  image?: { url: string; alt: string; width?: number; height?: number };
   type?: 'website' | 'article';
   structuredData?: string;
   noindex?: boolean;
@@ -21,26 +23,20 @@ interface Props {
 
 const { title, description, image, type = 'website', structuredData, noindex } = Astro.props;
 const profile = await getProfile();
+// The default link-preview image's size, from its PNG header, so previews can draw it at once.
+const ogPng = readFileSync(`public${profile.seo.image}`);
+const ogSize = { width: ogPng.readUInt32BE(16), height: ogPng.readUInt32BE(20) };
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en-GB">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- GitHub Pages can't send headers; this one works from markup (spec §15, 2026-09-26). -->
     <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <script>
-      // A visitor who paused animations (the hero's button) keeps them paused on every page. It runs
-      // in the head, before any component script reads the state, and before anything moves.
-      try {
-        if (localStorage.getItem('motion') === 'paused') {
-          document.documentElement.classList.add('motion-paused');
-        }
-      } catch {
-        // Storage can be blocked; animations then run as normal.
-      }
-    </script>
+    {/* Paused animations stay paused from the first frame (src/lib/motion.ts). */}
+    <script is:inline set:html={MOTION_SCRIPT}></script>
     <Font cssVariable="--font-mona" preload />
     <link rel="icon" href={withBase('/favicon.ico')} sizes="32x32" />
     <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
@@ -51,7 +47,13 @@ const profile = await getProfile();
       headline={profile.titleTagline}
       path={Astro.url.pathname}
       description={description ?? profile.seo.description}
-      image={image ?? { url: withBase(profile.seo.image), alt: profile.seo.imageAlt }}
+      image={
+        image ?? {
+          url: withBase(profile.seo.image),
+          alt: profile.seo.imageAlt,
+          ...ogSize,
+        }
+      }
       noindex={noindex === true || !isProduction}
       type={type}
       {...(structuredData ? { structuredData } : {})}

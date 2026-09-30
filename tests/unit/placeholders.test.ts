@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import { readFileSync } from 'node:fs';
 import { assertNoPlaceholders, placeholderLines } from '../../src/lib/placeholders.ts';
 
 describe('placeholderLines', () => {
@@ -28,5 +29,12 @@ describe('assertNoPlaceholders', () => {
 
   it('passes clean content', () => {
     assert.doesNotThrow(() => assertNoPlaceholders('profile.yaml', 'a: 1\n'));
+  });
+});
+
+// Every production build refuses a placeholder (astro.config.ts); this says so before the build does.
+describe('the profile', () => {
+  it('has no placeholders left', () => {
+    assert.deepEqual(placeholderLines(readFileSync('src/content/profile.yaml', 'utf8')), []);
   });
 });

@@ -105,9 +105,11 @@ const { src, as: Tag = 'li', play = 'Play my intro', pause = 'Pause intro' } = A
           audio.addEventListener('pause', () => show(false));
           audio.addEventListener('ended', () => show(false));
         }
-        // A file that fails to load or decode says so, instead of failing silently.
+        // A file that fails to load or decode says so, instead of failing silently. A pause straight
+        // after play only cancels the play request (an AbortError), which is no failure.
         if (audio.paused) {
-          audio.play().catch(() => {
+          audio.play().catch((error: Error) => {
+            if (error.name === 'AbortError') return;
             show(false);
             label.textContent = 'Audio unavailable';
           });

@@ -14,9 +14,6 @@
   --color-surface: #fff;
   --color-text: #0a0a0a;
   --color-text-muted: #4a4f54;
-
-  /* About's statement before it's read: it fills to full ink as it scrolls up the screen */
-  --color-text-unread: #c4c7cd;
   --color-accent: #2661ba;
   --color-accent-hover: #1f3f7a;
   --color-accent-light: #80b3ff;
@@ -34,15 +31,10 @@
   --color-avatar-4: #cfe4ff;
   --color-avatar-text-light: #1f3f7a;
 
-  /* The About stats (Stats.astro) and the typical day's header: white text on the live sky */
-  --stats-wash: linear-gradient(180deg, rgb(29 74 146 / 22%), rgb(29 74 146 / 42%));
-  --stats-text-shadow: 0 1px 12px rgb(12 36 84 / 45%);
-  --sky-text-wash: linear-gradient(
-    100deg,
-    rgb(29 74 146 / 55%),
-    rgb(29 74 146 / 20%) 45%,
-    transparent 70%
-  );
+  /* Text on the live sky (the About stats, the typical day's header): navy over a faint white wash,
+     which keeps it above 4.5:1 however deep the sky's blue runs (tests/unit/sky-ink.test.ts) */
+  --color-sky-ink: #0c2454;
+  --sky-ink-wash: rgb(255 255 255 / 35%);
 
   /* Selected work (WorkShowcase.astro): a navy fade over a cover, under white text */
   --gradient-cover-fade: linear-gradient(180deg, transparent 30%, rgb(12 36 84 / 80%));
@@ -91,6 +83,16 @@
   --cert-3: #3570cc;
   --cert-4: #2b4f9a;
 
+  /* The Toolkit as Windows (Skills.astro): the taskbar on the sky, and the slides' shadow and the
+     picked slide's border, in PowerPoint's orange */
+  --taskbar: rgb(243 243 243 / 82%);
+  --taskbar-edge: rgb(255 255 255 / 50%);
+  --taskbar-hover: rgb(255 255 255 / 70%);
+  --slide-shadow: rgb(0 0 0 / 12%);
+  --slide-picked: #c43e1c;
+  --win-hover: rgb(0 0 0 / 6%);
+  --win-close: #c42b1c;
+
   /* Contact's sky band (global.css .shell-sky): solid behind the heading, fading into the grey */
   --sky-band: 200px;
   --mask-fade-down: linear-gradient(180deg, #000 55%, transparent);
@@ -106,9 +108,8 @@
     radial-gradient(circle at 100% 50%, transparent var(--neck-r), #000 calc(var(--neck-r) + 0.5px))
       right / 50% 100% no-repeat;
 
-  /* The hero band's workflow line-art (Hero.astro .flow): white hairlines, and the pulses along them */
+  /* The hero band's workflow line-art (Hero.astro .flow): white hairlines, drawn in once */
   --color-flow: rgb(255 255 255 / 55%);
-  --color-flow-pulse: #fff;
 
   /* Type */
   --font-sans: var(--font-mona);

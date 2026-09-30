@@ -7,7 +7,7 @@ const EMAIL = profileValue('email');
 const QUESTIONS = yamlValues('src/content/profile.yaml', 'question');
 // Recorded answers: the owner reading an answer aloud (`audio` under a question).
 const RECORDED = yamlValues('src/content/profile.yaml', 'audio').length;
-const SIGNED = `Answered by ${profileValue('name').split(' ')[0]}, not an AI`;
+const SIGNED = `Answered by ${profileValue('name').split(' ')[0]}`;
 
 const pill = (section: Locator, question: string) =>
   section.getByRole('button', { name: question, exact: true });
@@ -111,6 +111,16 @@ test("typing fades the questions that don't fit, and Enter shows the best fit", 
   // Sent, the field clears and every question is back in full.
   await expect(input).toHaveValue('');
   await expect(section.locator('.pills .faded')).toHaveCount(0);
+});
+
+// The field shows focus with the site's ring, which forced-colours mode keeps, not a faint glow.
+test('the question field wears the focus ring', async ({ page }) => {
+  await page.goto('/');
+  const section = page.locator('#interview');
+  await scrollIntoViewSettled(section);
+  await section.getByRole('textbox', { name: 'Ask me a question' }).focus();
+  await expect(section.locator('.field')).toHaveCSS('outline-style', 'solid');
+  await expect(section.locator('.field')).toHaveCSS('outline-width', '3px');
 });
 
 test('the send arrow asks the typed question too', async ({ page }) => {

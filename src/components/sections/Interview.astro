@@ -61,7 +61,7 @@ const firstName = name.split(' ')[0];
           <SkyGradient class="orb-sky" />
         </span>
         <span>
-          Answered by <b>{firstName}</b>, not an AI
+          Answered by <b>{firstName}</b>
         </span>
       </p>
     </div>
@@ -392,10 +392,10 @@ const firstName = name.split(' ')[0];
     box-shadow: var(--glow);
   }
 
-  .field:focus-within {
-    box-shadow:
-      var(--glow),
-      0 0 0 3px var(--color-accent-glow);
+  /* Typing, the whole field wears the site's focus ring (it shows in forced colours too). */
+  .field:has(input:focus-visible) {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
   }
 
   /* No width of its own (a text box is about 20 characters wide by default, which on a phone pushed
@@ -412,8 +412,11 @@ const firstName = name.split(' ')[0];
     font-size: var(--text-base);
   }
 
-  input:focus {
-    outline: none;
+  /* The field wears the ring (above) where :has() can; elsewhere the text box keeps its own. */
+  @supports selector(:has(*)) {
+    input:focus {
+      outline: none;
+    }
   }
 
   input::placeholder {

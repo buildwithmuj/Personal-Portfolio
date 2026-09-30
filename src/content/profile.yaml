@@ -13,8 +13,6 @@ main:
   headline: I turn messy processes into automation and products people actually use.
   headlineAccent: people actually use.
   availability: Open to new roles and projects
-  # On phones the pill reads "Open to new roles", its last word rotating through these.
-  availabilityShort: { lead: Open to new, words: [roles, projects] }
   subline: >-
     Over ten years untangling complex processes for organisations across the public sector, healthcare,
     education, financial services and telecoms, and building my own products along the way.
@@ -42,7 +40,9 @@ main:
     - { stack: Learning, time: '20:30', task: Design principles and GitHub, via YouTube }
     - { stack: Learning, time: '21:30', task: Tips and show pieces from the community on X }
   # Answers for "Ask me", drawn from the CV, skills and method, and live since v1.1.0. They
-  # were drafted for Mujtaba, so rewrite them in his own words: the section signs them "not an AI".
+  # were drafted for Mujtaba to rewrite in their own words; until then the section only signs them
+  # "Answered by" Mujtaba, with no claim about how they were written (it said "not an AI" until
+  # 29 September 2026).
   # Set draft back to true to show the section only in preview builds.
   interview:
     draft: false
@@ -127,14 +127,14 @@ main:
       intro: From people I've worked with.
     interview:
       heading: Ask me
-      intro: 'Pick a question or type your own. No AI here: every answer is mine.'
+      intro: 'Pick a question, or type your own.'
     contact:
       heading: Let's work together
       intro: Hiring, or have a process that needs untangling?
   email: mujtaba.shah@outlook.com
   bookingUrl: https://cal.com/mujtaba.shah/30min
   avatar: /avatar.webp
-  voiceIntro: /audio/intro.wav # PLACEHOLDER: record the real voice intro
+  # voiceIntro: /audio/intro.m4a  (Play my intro returns with the owner's own recording)
   timeZone: Europe/London
   locationLabel: London
   # For the live weather beside the clock and in the hero (fetched when the site builds).
@@ -152,4 +152,4 @@ main:
   seo:
     description: Mujtaba Shah, Senior Intelligent Automation Analyst and AI product builder, turning messy processes into automation and products people use.
     image: /og-default.png
-    imageAlt: Mujtaba Shah, Intelligent Automation & AI Product Builder
+    imageAlt: 'Mujtaba Shah, Intelligent Automation & AI Product Builder: I turn messy processes into automation and products people actually use.'

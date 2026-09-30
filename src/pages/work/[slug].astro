@@ -46,6 +46,15 @@ const structuredData = creativeWorkJsonLd({
 });
 ---
 
-<CaseStudy study={study} more={more} ogImageUrl={ogImage.src} structuredData={structuredData}>
+<CaseStudy
+  study={study}
+  more={more}
+  ogImageUrl={ogImage.src}
+  ogImageSize={{
+    width: Number(ogImage.attributes['width']),
+    height: Number(ogImage.attributes['height']),
+  }}
+  structuredData={structuredData}
+>
   <Content components={mdxComponents} />
 </CaseStudy>
