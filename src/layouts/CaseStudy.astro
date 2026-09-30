@@ -70,8 +70,7 @@ const { title, summary, role, employer, tags, stats, links, cover, coverAlt } = 
         <ul class="stats" role="list">
           {stats.map(({ value, label }) => (
             <li>
-              <b>{value}</b>
-              {label}
+              <b>{value}</b> {label}
             </li>
           ))}
         </ul>

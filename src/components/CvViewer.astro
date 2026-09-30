@@ -21,11 +21,11 @@ const monthYear = new Intl.DateTimeFormat('en-GB', {
   holding the name, Download PDF and a close button above the CV as one document. It closes with
   the button, Escape or a click beside it. Without JavaScript those links open the PDF.
 
-  The document keeps to what applicant tracking systems read well: real text in one reading order,
-  the usual section names as headings, and each role as title, employer and dates. The branding is
-  light, in the Blue sky palette: a sky-blue full stop after the name, the job title on a sky
-  marker, section labels led by a short blue bar, blue bullets and tool pills, and a sky orb at the
-  foot.
+  Its words are the owner's formal CV: the profile paragraph, each role's bullets and the skills,
+  as written there. The document keeps to what applicant tracking systems read well: real text in
+  one reading order, the usual section names as headings, and each role as title, employer and
+  dates. The branding is light, in the Blue sky palette: a sky-blue full stop after the name, the
+  job title on a sky marker, section labels led by a short blue bar, and blue bullets.
 */}
 <dialog class="cv-view" aria-labelledby="cv-view-name">
   <div class="bar">
@@ -69,7 +69,7 @@ const monthYear = new Intl.DateTimeFormat('en-GB', {
       <div class="col">
         <section>
           <h3>Profile</h3>
-          <p>{profile.subline}</p>
+          <p>{profile.cvProfile}</p>
         </section>
         <section>
           <h3>Experience</h3>
@@ -80,7 +80,6 @@ const monthYear = new Intl.DateTimeFormat('en-GB', {
                 <p class="when">{formatRoleDates(role.start, role.end)}</p>
               </div>
               <p class="org">{role.employer}</p>
-              <p class="muted">{role.summary}</p>
               {role.highlights.length > 0 && (
                 <ul class="points">
                   {role.highlights.map((highlight) => (
@@ -108,16 +107,8 @@ const monthYear = new Intl.DateTimeFormat('en-GB', {
         <section>
           <h3>Skills</h3>
           <ul class="tags">
-            {[...skills.skills, ...skills.cvOnly].map((skill) => (
+            {skills.cvSkills.map((skill) => (
               <li>{skill}</li>
-            ))}
-          </ul>
-        </section>
-        <section>
-          <h3>Tools</h3>
-          <ul class="tags tools">
-            {skills.tools.map((tool) => (
-              <li>{tool.name}</li>
             ))}
           </ul>
         </section>
@@ -155,11 +146,7 @@ const monthYear = new Intl.DateTimeFormat('en-GB', {
         </section>
       </div>
     </div>
-    <footer class="foot">
-      <span>{profile.name} · Curriculum Vitae</span>
-      <span class="orb" aria-hidden="true"></span>
-      <span>Updated {monthYear.format(profile.cvUpdated)}</span>
-    </footer>
+    <footer class="foot">{profile.name} · Curriculum Vitae</footer>
   </article>
 </dialog>
 
@@ -227,9 +214,11 @@ const monthYear = new Intl.DateTimeFormat('en-GB', {
     border-block-end: 1px solid var(--color-hairline);
   }
 
+  /* The name takes the row's spare width, so the two buttons sit at its right edge. */
   .bar p {
     flex: 1;
     min-width: 0;
+    max-width: none;
     font-size: var(--text-sm);
   }
 
@@ -357,7 +346,6 @@ const monthYear = new Intl.DateTimeFormat('en-GB', {
   }
 
   .when,
-  .muted,
   .points,
   .certs span,
   .rows span {
@@ -417,11 +405,6 @@ const monthYear = new Intl.DateTimeFormat('en-GB', {
     font-size: var(--text-xs);
   }
 
-  .tools li {
-    background: var(--color-accent);
-    color: var(--color-on-accent);
-  }
-
   .certs {
     display: grid;
     gap: 10px;
@@ -447,22 +430,11 @@ const monthYear = new Intl.DateTimeFormat('en-GB', {
   }
 
   .foot {
-    display: flex;
-    gap: var(--space-4);
-    align-items: center;
-    justify-content: space-between;
     margin-block-start: var(--space-8);
     padding-block-start: var(--space-3);
     border-block-start: 1px solid var(--color-hairline);
     color: var(--color-text-muted);
     font-size: var(--text-xs);
-  }
-
-  .orb {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: var(--gradient-sky);
   }
 
   @keyframes cv-in {

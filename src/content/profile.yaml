@@ -83,7 +83,14 @@ main:
         answer: >-
           Boxing, which I'm a bit obsessed with, plus the gym and sauna most mornings. I travel when
           I can, and there's usually a side build on the go in the evenings.
-  # For the CV (the pop-up and PDF), from the 2026 CV.
+  # For the CV (the pop-up and PDF), from the owner's formal CV (2026), word for word but for the
+  # years, which it gave as 9+.
+  cvProfile: >-
+    Consulting professional with 10+ years’ experience in project management and business analysis.
+    Expert in delivering automation, process optimisation, and digital transformation projects.
+    Skilled in business case development, solution design and implementation, and stakeholder
+    management. Certified Scrum Master and Product Owner with strong communication skills, bridging
+    business needs and technology solutions.
   languages:
     - { language: English, level: Native }
     - { language: Punjabi, level: Native }
@@ -149,7 +156,6 @@ main:
       url: https://www.tiktok.com/@buildwithmuj
     - platform: github
       url: https://github.com/buildwithmuj
-  cvUpdated: 2026-09-27
   seo:
     description: Mujtaba Shah, Senior Intelligent Automation Analyst and AI product builder. I redesign messy processes, automate them, and build products people use.
     image: /og-default.png

@@ -105,6 +105,27 @@ test.describe('on a phone', () => {
   });
 });
 
+test.describe('typing on a phone', () => {
+  test.use({ viewport: { width: 375, height: 812 } });
+
+  // The question that fits may be one of those behind "more": while a visitor types, every pill
+  // shows, so the one that fits is there to see, and the rest fade.
+  test('shows the question that fits, even one that was behind "more"', async ({ page }) => {
+    await page.goto('/');
+    const section = page.locator('#interview');
+    await scrollIntoViewSettled(section);
+    const hidden = QUESTIONS.find((question) => /learning/i.test(question)) ?? '';
+    expect(QUESTIONS.indexOf(hidden)).toBeGreaterThanOrEqual(3);
+    await expect(pill(section, hidden)).toBeHidden();
+    const input = section.getByRole('textbox', { name: 'Ask me a question' });
+    await input.fill('learning');
+    await expect(pill(section, hidden)).toBeVisible();
+    await expect(pill(section, hidden)).not.toHaveClass(/faded/);
+    await input.fill('');
+    await expect(pill(section, hidden)).toBeHidden();
+  });
+});
+
 // A blue pill at the end of the questions says a visitor can ask their own, and takes them to the
 // field.
 test('"Ask your own" puts the cursor in the field', async ({ page }) => {

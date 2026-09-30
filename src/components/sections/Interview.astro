@@ -167,9 +167,12 @@ const SHOWN = 3;
           link.href = askMailto(this.dataset['email'] ?? '', typed);
         }
       };
+      // While a question is being typed every pill shows (on phones, those behind "more" too), so
+      // the one that fits is there to see.
       const fade = () => {
         const fits = matchQuestions(input.value, items);
         pills.forEach((pill, at) => pill.classList.toggle('faded', !fits.includes(at)));
+        list.classList.toggle('typing', Boolean(input.value.trim()));
       };
 
       pills.forEach((pill, index) => (pill.onclick = () => show(index)));
@@ -557,8 +560,8 @@ const SHOWN = 3;
   }
 
   /*
-   * On phones the card keeps short: a smaller ball and greeting, and the questions in one row that
-   * runs off the card's edges, swiped sideways, rather than seven lines of pills.
+   * On phones the card keeps short: a smaller ball and greeting, and the first three questions with
+   * a pill that opens the rest in place, rather than seven lines of pills.
    */
   @media (width < 40rem) {
     .top {
@@ -606,7 +609,7 @@ const SHOWN = 3;
       display: block;
     }
 
-    .pills:not(.all) .extra {
+    .pills:not(.all, .typing) .extra {
       display: none;
     }
 

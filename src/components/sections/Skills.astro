@@ -319,7 +319,7 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     backdrop-filter: blur(24px) saturate(1.3);
   }
 
-  /* Sized from the sky's width (up to 44px), so the bar always fits across, even at 320px. */
+  /* Sized from the sky's width (up to 44px); a narrow bar runs on to a second row. */
   .start,
   .tool-icon {
     width: var(--slot);
@@ -862,7 +862,7 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
 
   /*
    * Phones. The slide sits on top, its thumbnails in a row beneath; the pills are smaller, and the
-   * folders two by two.
+   * folders three across.
    */
   @media (width < 40rem) {
     .deck {

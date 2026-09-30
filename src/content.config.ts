@@ -64,6 +64,8 @@ const profile = defineCollection({
       })
       .optional(),
     // For the CV (CvViewer.astro).
+    // The CV's opening paragraph, as the owner's formal CV words it (the hero's line is for the site).
+    cvProfile: z.string().min(1),
     languages: z.array(z.object({ language: z.string().min(1), level: z.string().min(1) })),
     outsideWork: z.array(
       z.object({ activity: z.string().min(1), start: z.string().regex(/^\d{4}-\d{2}$/) }),
@@ -119,7 +121,6 @@ const profile = defineCollection({
       .object({ latitude: z.number().min(-90).max(90), longitude: z.number().min(-180).max(180) })
       .optional(),
     socials: z.array(z.object({ platform: z.enum(socialPlatforms), url: httpsUrl })),
-    cvUpdated: z.coerce.date(),
     seo: z.object({
       description: z.string().min(1).max(160),
       image: publicImage,
@@ -202,8 +203,7 @@ const experience = defineCollection({
     role: z.string().min(1),
     start: yearMonth,
     end: yearMonth.optional(),
-    summary: z.string().min(1),
-    // Key achievements, shown under the summary in the CV.
+    // What was done in the role, as the owner's formal CV words it.
     highlights: z.array(z.string().min(1)).default([]),
   }),
 });
@@ -226,6 +226,8 @@ const skills = defineCollection({
       skills: z.array(z.string().min(1)).min(1),
       // From the CV: listed in the CV, and among the Toolkit's grouped skills (below).
       cvOnly: z.array(z.string().min(1)).default([]),
+      // The CV's own skills list, as the owner's formal CV words it.
+      cvSkills: z.array(z.string().min(1)).min(1),
       // The Toolkit's Skills tab: every skill and CV-only skill once, under a heading each.
       // The skills' phases, each a slide in the Toolkit's deck (its CSS shows up to four).
       groups: z

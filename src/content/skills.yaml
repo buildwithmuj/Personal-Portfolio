@@ -8,7 +8,17 @@ main:
     - Power BI and data products
     - Agile delivery and product ownership
     - Low-code, no-code and AI building
-  # From the CV: listed in the CV, and grouped with the skills above in the Toolkit.
+  # The CV's skills, as the owner's formal CV lists them (the pop-up and the PDF show these).
+  cvSkills:
+    - Project Management
+    - Requirements Gathering
+    - Process Mapping (As-Is/To-Be)
+    - Technical Writing (SOPs)
+    - Agile Methodologies (Scrum, Kanban)
+    - Business Analysis
+    - Stakeholder Management
+    - Power BI
+  # From the CV, in the site's own words: grouped with the skills above in the Toolkit.
   cvOnly:
     - Project management
     - Business analysis

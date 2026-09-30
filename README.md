@@ -76,10 +76,12 @@ the build with a message naming the file and the field.
 
 ### Updating the CV
 
-The CV lives in one place: the View CV pop-up, built from `src/content/` (profile, experience, skills
-and education). The PDF download is printed from that pop-up, so the two always say the same thing.
+The CV lives in one place: the View CV pop-up, built from `src/content/` (`cvProfile` in the profile,
+`experience.yaml`, `cvSkills` and the certifications in `skills.yaml`, and `education.yaml`), in the
+words of the formal CV. The PDF download is printed from that pop-up, so the two always say the same
+thing.
 
-1. Edit the content, and update `cvUpdated` in `src/content/profile.yaml`.
+1. Edit the content.
 2. Build the site, then print the PDF:
 
    ```bash
