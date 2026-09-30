@@ -367,16 +367,35 @@ const firstName = (name: string) => name.split(/\s+/)[0];
 
   @media (width < 48rem) {
     .call {
-      padding: 18px 16px 22px;
+      gap: var(--space-4);
+      padding: 16px 14px 18px;
     }
 
-    /* Three seats to a row. */
+    /* Every seat in one row where they fit, so the words start sooner (two rows below 360px). */
     .seats {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
+      gap: 4px;
+    }
+
+    .seat {
+      gap: 4px;
+      padding: 8px 2px 6px;
+      font-size: 0.6875rem;
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      font-size: var(--text-sm);
     }
 
     blockquote {
       font-size: var(--text-base);
+    }
+
+    figcaption {
+      margin-block-start: var(--space-3);
+      padding-block-start: var(--space-3);
     }
   }
 </style>
