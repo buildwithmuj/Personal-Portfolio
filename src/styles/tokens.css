@@ -83,10 +83,9 @@
   --cert-3: #3570cc;
   --cert-4: #2b4f9a;
 
-  /* The Toolkit as Windows (Skills.astro): the taskbar on the sky, and the slides' shadow and the
+  /* The Toolkit as Windows (Skills.astro): the taskbar under the sky, and the slides' shadow and the
      picked slide's border, in PowerPoint's orange */
-  --taskbar: rgb(243 243 243 / 82%);
-  --taskbar-edge: rgb(255 255 255 / 50%);
+  --taskbar: #cfe0f6;
   --taskbar-hover: rgb(255 255 255 / 70%);
   --slide-shadow: rgb(0 0 0 / 12%);
   --slide-picked: #c43e1c;

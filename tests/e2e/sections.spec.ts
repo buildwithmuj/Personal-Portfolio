@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '../support/test.ts';
 import { ICONS } from '../../src/lib/icons.ts';
 import { profileParagraph, sectionHeading, yamlList, yamlValues } from '../support/content.ts';
 import { scrollIntoViewSettled } from '../support/settle.ts';
@@ -81,10 +81,18 @@ for (const viewport of [
 
 test('clicking a collapsible section title toggles it too', async ({ page }) => {
   await page.goto('/');
-  await page.locator('#skills .section-title').click();
-  await expect(page.locator('#skills-body')).toBeHidden();
-  await page.locator('#skills h2').click();
-  await expect(page.locator('#skills-body')).toBeVisible();
+  const body = page.locator('#skills-body');
+  await scrollIntoViewSettled(page.locator('#skills'));
+  // Under a full parallel run WebKit now and then drops a click that lands mid-layout, so each
+  // click is repeated until it has taken.
+  await expect(async () => {
+    if (await body.isVisible()) await page.locator('#skills .section-title').click();
+    await expect(body).toBeHidden({ timeout: 1000 });
+  }).toPass();
+  await expect(async () => {
+    if (await body.isHidden()) await page.locator('#skills h2').click();
+    await expect(body).toBeVisible({ timeout: 1000 });
+  }).toPass();
 });
 
 test.describe('without JavaScript', () => {
@@ -138,9 +146,10 @@ test("the hero's Book a call lands on Let's work together", async ({ page }) => 
   await landsOn(page.locator('#contact'));
 });
 
-test('a link in the top bar lands on its section', async ({ page }) => {
+test('a link in the menu lands on its section', async ({ page }) => {
   await page.goto('/');
-  await page.locator('header nav.wide-only').getByRole('link', { name: 'Toolkit' }).click();
+  await page.locator('.top-bar summary').click();
+  await page.locator('.top-bar .panel-links').getByRole('link', { name: 'Toolkit' }).click();
   await landsOn(page.locator('#skills'));
 });
 
@@ -283,7 +292,9 @@ for (const viewport of [
     await page.goto('/');
     const section = page.locator('#testimonials');
     await scrollIntoViewSettled(section);
-    await expect(section.locator('.window-bar')).toContainText('Recommendations');
+    // The window's bar holds only its buttons: no title beside the section's own heading.
+    await expect(section.locator('.window-bar')).toBeVisible();
+    await expect(section.locator('.window-bar .name')).toHaveCount(0);
     const names = await section.locator('.words b').allTextContents();
     const seats = section.locator('label.seat input');
     await expect(seats).toHaveCount(names.length);
@@ -382,8 +393,8 @@ const shown = (page: Page, group: string) => () =>
     .locator(`#skills .panel[data-panel="${group}"]`)
     .evaluate((panel) => getComputedStyle(panel).visibility);
 
-// Tools: a Windows taskbar on a patch of the live sky, each tool's name always there to read,
-// under its icon. All of them sit in one row on a computer.
+// Tools: a Windows taskbar under a patch of the live sky, each pinned tool's name always there to
+// read, under its icon. The pinned tools and the tray's arrow sit in one row on a computer.
 test('the tools sit on a Windows taskbar, their names beneath them, lighting up when pointed at', async ({
   page,
 }) => {
@@ -394,21 +405,91 @@ test('the tools sit on a Windows taskbar, their names beneath them, lighting up 
   const taskbar = toolkit.locator('.taskbar');
   // The Start button leads the bar, for the look only.
   await expect(taskbar.locator('.start')).toHaveAttribute('aria-hidden', 'true');
-  const tool = taskbar.locator('.tool').nth(2);
+  const tool = taskbar.locator(':scope > .tool').nth(2);
   await expect(tool.locator('.tool-name')).toBeVisible();
   const icon = await tool.locator('.tool-icon').boundingBox();
   const name = await tool.locator('.tool-name').boundingBox();
   expect(name?.y ?? 0).toBeGreaterThanOrEqual((icon?.y ?? 0) + (icon?.height ?? 0) - 1);
   const tops = await taskbar
-    .locator('.tool-icon')
+    .locator(':scope > .tool .tool-icon, summary .tool-icon')
     .evaluateAll((icons) => icons.map((one) => Math.round(one.getBoundingClientRect().top)));
   expect(new Set(tops).size).toBe(1);
+  // No two names touch: each tool's name keeps clear of the next one's.
+  const names = await taskbar
+    .locator(':scope > .tool .tool-name')
+    .evaluateAll((all) => all.map((one) => one.getBoundingClientRect()));
+  for (const [index, box] of names.slice(1).entries()) {
+    expect(box.left - (names[index]?.right ?? 0)).toBeGreaterThanOrEqual(10);
+  }
   // Nothing spills out of the bar.
   const spill = await taskbar.evaluate((bar) => bar.scrollWidth - bar.clientWidth);
   expect(spill).toBeLessThanOrEqual(0);
   await scrollIntoViewSettled(tool);
   await tool.hover();
   await expect(tool).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.7)');
+});
+
+// Five tools are pinned to the bar; the rest wait in a tray, as Windows keeps its hidden icons. The
+// arrow at the end of the bar opens it over the sky, above the bar and inside the card, and closes it.
+for (const viewport of [
+  { width: 320, height: 800 },
+  { width: 1280, height: 800 },
+]) {
+  test(`the taskbar's arrow opens a tray with the other tools (${viewport.width}px)`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    const toolkit = page.locator('#skills');
+    await scrollIntoViewSettled(toolkit.locator('.taskbar'));
+    // Five on the bar; between the bar and the tray, every tool once.
+    const pinned = await toolkit.locator('.taskbar > .tool .tool-name').allTextContents();
+    expect(pinned).toHaveLength(5);
+    const arrow = toolkit.locator('.taskbar summary');
+    await expect(arrow).toHaveAccessibleName('More tools');
+    const tray = toolkit.locator('.tray');
+    await expect(tray).toBeHidden();
+    await arrow.click();
+    await expect(tray).toBeVisible();
+    const inTray = await tray.locator('.tool-name').allTextContents();
+    expect([...pinned, ...inTray].sort()).toEqual(yamlValues(SKILLS, 'name').sort());
+    const card = await toolkit.locator('.toolkit').boundingBox();
+    const box = await tray.boundingBox();
+    const bar = await toolkit.locator('.taskbar').boundingBox();
+    expect(box?.x ?? -1).toBeGreaterThanOrEqual(card?.x ?? 0);
+    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(
+      (card?.x ?? 0) + (card?.width ?? 0),
+    );
+    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(bar?.y ?? 0);
+    expect(box?.y ?? -1).toBeGreaterThanOrEqual(card?.y ?? 0);
+    // No name spills out of its place in the tray.
+    const spills = await tray
+      .locator('.tool-name')
+      .evaluateAll((all) => all.filter((one) => one.scrollWidth > one.clientWidth).length);
+    expect(spills).toBe(0);
+    await arrow.click();
+    await expect(tray).toBeHidden();
+  });
+}
+
+// Like Windows' own, the tray closes on Escape, handing focus back to its arrow, or on a click
+// anywhere else.
+test('the tray closes on Escape or a click elsewhere', async ({ page }) => {
+  await page.goto('/');
+  const toolkit = page.locator('#skills');
+  await scrollIntoViewSettled(toolkit.locator('.taskbar'));
+  const arrow = toolkit.locator('.taskbar summary');
+  const tray = toolkit.locator('.tray');
+  await arrow.click();
+  await expect(tray).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(tray).toBeHidden();
+  await expect(arrow).toBeFocused();
+  await arrow.click();
+  await expect(tray).toBeVisible();
+  // In the page's margin, clear of every control.
+  await page.mouse.click(4, 300);
+  await expect(tray).toBeHidden();
 });
 
 test.describe('the tools on a touch screen', () => {
@@ -425,7 +506,7 @@ test.describe('the tools on a touch screen', () => {
     // On a phone the bar takes as many rows as the tools need, and none is cut off.
     const bar = page.locator('#skills .taskbar');
     const box = await bar.boundingBox();
-    for (const one of await bar.locator('.tool').all()) {
+    for (const one of await bar.locator(':scope > .tool, summary').all()) {
       const at = await one.boundingBox();
       expect(at?.x ?? -1).toBeGreaterThanOrEqual((box?.x ?? 0) - 0.5);
       expect((at?.x ?? 0) + (at?.width ?? 0)).toBeLessThanOrEqual(

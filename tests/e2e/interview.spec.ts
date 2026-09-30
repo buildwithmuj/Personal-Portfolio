@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '../support/test.ts';
 import { profileValue, yamlValues } from '../support/content.ts';
 import { scrollIntoViewSettled } from '../support/settle.ts';
 
@@ -84,7 +84,13 @@ test.describe('on a phone', () => {
     );
     const more = section.getByRole('button', { name: `${QUESTIONS.length - 3} more questions` });
     await expect(more).toHaveAttribute('aria-expanded', 'false');
-    await more.click();
+    // Under a full parallel run WebKit now and then drops a click that lands mid-layout: click the
+    // pill (found by its class, since its name changes once open) until it has opened.
+    const pill = section.locator('.pills .more');
+    await expect(async () => {
+      if ((await pill.getAttribute('aria-expanded')) !== 'true') await pill.click();
+      await expect(pill).toHaveAttribute('aria-expanded', 'true', { timeout: 1000 });
+    }).toPass();
     // Waited for: under a full parallel run the click's effect can land a moment after it returns.
     await expect
       .poll(async () => (await shownQuestions(section)).map((text) => text.trim()))

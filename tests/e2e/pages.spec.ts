@@ -1,9 +1,8 @@
 import { createHash } from 'node:crypto';
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../support/test.ts';
 import { COUNT_URL } from '../../site.config.ts';
 import { MOTION_SCRIPT } from '../../src/lib/motion.ts';
 import { builtPagePaths, SITE_ORIGIN } from '../support/site.ts';
-import { stubWeather } from '../support/weather.ts';
 
 for (const path of builtPagePaths()) {
   test.describe(`page ${path}`, () => {
@@ -20,10 +19,6 @@ for (const path of builtPagePaths()) {
           violations.push(`${event.violatedDirective} ${event.blockedURI}`);
         });
       });
-      // The live weather is Open-Meteo's to serve: a slow or rate-limited answer (429 after many
-      // runs from one machine) is logged as an error the site didn't make. The request still goes
-      // through the page's CSP.
-      await stubWeather(page);
       const response = await page.goto(path);
       expect(response?.status()).toBe(200);
       await page.waitForLoadState('load');

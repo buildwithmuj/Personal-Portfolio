@@ -247,6 +247,8 @@ const skills = defineCollection({
           z.object({
             name: z.string().min(1),
             logo: z.string().regex(/^\/tools\/[a-z0-9-]+\.svg$/, 'An SVG in public/tools/'),
+            // Kept in the taskbar's tray, behind its arrow, rather than pinned to the bar itself.
+            tray: z.boolean().default(false),
           }),
         )
         .default([]),

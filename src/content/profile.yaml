@@ -2,7 +2,7 @@
 # Lines marked PLACEHOLDER must be replaced before launch.
 main:
   name: Mujtaba Shah
-  jobTitle: Senior Intelligent Automation Analyst
+  jobTitle: Senior Automation Analyst
   worksFor: DigiBlu
   titleTagline: Intelligent Automation & AI Product Builder
   roles:
@@ -15,28 +15,26 @@ main:
   subline: >-
     Ten years in consulting, the last five in process optimisation and intelligent automation, across
     the public sector, healthcare, education, financial services and telecoms, and building my own
-    products along the way.
+    products.
   about: >-
     Hey, I'm Muj, a consultant specialising in process optimisation and intelligent automation. I
     love digging into what AI can do for everyday work, and I build my own products to find out.
   interests: 'Outside work: boxing at Legends MMA, four languages, and building side projects.'
   # A typical weekday, in London time: the shape most days tend to take, not a record of any one
   # (reworded with the owner in the copy interview, 2026-09-30). The About card's board ticks each
-  # task the moment its time comes.
+  # task the moment its time comes. The working day runs from the plan at 08:30 to the wrap-up
+  # before five (the owner's final review: no client workshop at 08:30); the evening is their own.
   day:
     - { stack: Morning, time: '06:00', task: 'Gym and sauna, to get the head straight' }
-    - { stack: Morning, time: '07:45', task: 'A plan for the day, written by hand' }
+    - { stack: Morning, time: '08:30', task: 'A plan for the day, written by hand' }
+    - { stack: Building, time: '09:00', task: 'Catch-ups with the team' }
     - {
         stack: Building,
-        time: '08:30',
+        time: '10:00',
         task: 'Client work: workshops, analysis and solution design',
       }
     - { stack: Building, time: '13:30', task: 'Build time: automations, documents and demos' }
-    - {
-        stack: Building,
-        time: '16:00',
-        task: 'Catch-ups, reviews and collaboration with colleagues',
-      }
+    - { stack: Building, time: '16:00', task: 'Reviews, then a wrap-up for the day' }
     - {
         stack: Learning,
         time: '20:00',
@@ -119,10 +117,10 @@ main:
       label: Years of experience
     - value: '5'
       label: Sectors served
-    - value: '8'
+    - value: '7'
       label: Case studies
     - value: '2'
-      label: Own products built
+      label: Products built
   sections:
     work:
       heading: Selected work
@@ -157,6 +155,6 @@ main:
     - platform: github
       url: https://github.com/buildwithmuj
   seo:
-    description: Mujtaba Shah, Senior Intelligent Automation Analyst and AI product builder. I redesign messy processes, automate them, and build products people use.
+    description: Mujtaba Shah, Senior Automation Analyst and AI product builder. I redesign messy processes, automate them, and build products people use.
     image: /og-default.png
     imageAlt: 'Mujtaba Shah, Intelligent Automation & AI Product Builder: I redesign messy processes, automate them, and build products people actually use.'

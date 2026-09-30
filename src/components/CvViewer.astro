@@ -45,9 +45,7 @@ const monthYear = new Intl.DateTimeFormat('en-GB', {
       <div>
         <h2 id="cv-view-name">
           {profile.name}
-          <span class="dot" aria-hidden="true">
-            .
-          </span>
+          <span class="dot" aria-hidden="true"></span>
         </h2>
         <p class="role">
           <mark>{profile.jobTitle}</mark>, {profile.worksFor}
@@ -267,10 +265,19 @@ const monthYear = new Intl.DateTimeFormat('en-GB', {
     line-height: 1;
   }
 
-  .dot,
   .org,
   .contact a {
     color: var(--color-accent);
+  }
+
+  /* The sky-blue full stop, drawn rather than typed, so the PDF's text holds the name alone. */
+  .dot {
+    display: inline-block;
+    width: 0.15em;
+    height: 0.15em;
+    margin-inline-start: 0.03em;
+    border-radius: 50%;
+    background: var(--color-accent);
   }
 
   .role {

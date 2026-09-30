@@ -1,5 +1,5 @@
 import { readdirSync } from 'node:fs';
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../support/test.ts';
 import { sectionHeading, yamlValues } from '../support/content.ts';
 import { builtPagePaths, SERVER_ONLY } from '../support/site.ts';
 import { scrollIntoViewSettled } from '../support/settle.ts';
@@ -24,7 +24,7 @@ test('the home page links to each case study', async ({ page }) => {
 });
 
 // Each tile's one chip is a client project's sector, or a personal project's status: no dates.
-const STATUSES = ['Live', 'In progress', 'Retired'];
+const STATUSES = ['Live', 'In progress', 'Retired', 'Concept'];
 
 test('the switch shows four client or four personal projects', async ({ page }) => {
   await page.goto('/');

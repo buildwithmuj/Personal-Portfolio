@@ -1,7 +1,6 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page } from '../support/test.ts';
 import { COUNT_URL } from '../../site.config.ts';
 import { BASE_URL, SITE_ORIGIN } from '../support/site.ts';
-import { stubWeather } from '../support/weather.ts';
 
 // Visitor counts, by GoatCounter (src/lib/analytics.ts): one request per page view on the live
 // site, no cookie, nothing kept in the browser. Until COUNT_URL is set (site.config.ts) the page
@@ -20,7 +19,6 @@ async function countRequests(page: Page): Promise<URL[]> {
 
 test('nothing is counted away from the live site', async ({ page }) => {
   const hits = await countRequests(page);
-  await stubWeather(page);
   await page.goto('/');
   await page.waitForLoadState('networkidle');
   expect(hits).toEqual([]);
@@ -41,7 +39,6 @@ test.describe('on the live site', () => {
       await route.fulfill({ response });
     });
     const hits = await countRequests(page);
-    await stubWeather(page);
     await page.goto(`${SITE_ORIGIN}/privacy`);
     await page.waitForLoadState('networkidle');
     expect(hits).toHaveLength(1);

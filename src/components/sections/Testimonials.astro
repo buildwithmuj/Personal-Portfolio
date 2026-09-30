@@ -32,11 +32,8 @@ const firstName = (name: string) => name.split(/\s+/)[0];
 */}
 <Shell id="testimonials" heading={heading} intro={intro} collapsible="open">
   <div class="window">
-    <WindowBar
-      title="Recommendations"
-      minimise={{ label: `Minimise ${heading}` }}
-      close={{ label: `Close ${heading}` }}
-    />
+    {/* No title in the bar: the section's heading already says what this is. */}
+    <WindowBar minimise={{ label: `Minimise ${heading}` }} close={{ label: `Close ${heading}` }} />
     <div class="call">
       <fieldset class="seats">
         <legend class="visually-hidden">Choose whose words to read</legend>

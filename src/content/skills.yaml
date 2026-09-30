@@ -6,7 +6,7 @@ main:
     - Business cases and ROI
     - RPA, APIs and Power Apps
     - Power BI and data products
-    - Agile delivery and product ownership
+    - Product ownership
     - Low-code, no-code and AI building
   # The CV's skills, as the owner's formal CV lists them (the pop-up and the PDF show these).
   cvSkills:
@@ -18,13 +18,22 @@ main:
     - Business Analysis
     - Stakeholder Management
     - Power BI
-  # From the CV, in the site's own words: grouped with the skills above in the Toolkit.
+  # From the CV and LinkedIn, in the site's own words: grouped with the skills above in the Toolkit.
+  # The last seven joined in the owner's final review (2026-09-30), each from a line of the CV or
+  # the LinkedIn profile, to fill each slide out to six.
   cvOnly:
     - Project management
     - Business analysis
     - Stakeholder management
     - Technical writing (SOPs)
     - Agile methods (Scrum and Kanban)
+    - Workshop facilitation
+    - Feasibility assessments
+    - Solution design
+    - Target operating models
+    - UAT and testing
+    - Change management
+    - Vendor assessments
   # The Toolkit's Skills tab: every skill above, the CV-only ones included, as pills under three
   # headings in the order a project runs. Each skill sits in exactly one group (the schema checks).
   # `lead` is the line under each slide's title, chosen by the owner in the copy interview.
@@ -36,6 +45,8 @@ main:
         - Business cases and ROI
         - Business analysis
         - Stakeholder management
+        - Workshop facilitation
+        - Feasibility assessments
     - group: Build
       lead: I design a better way and help build it.
       items:
@@ -43,37 +54,71 @@ main:
         - Power BI and data products
         - Low-code, no-code and AI building
         - Technical writing (SOPs)
+        - Solution design
+        - Target operating models
     - group: Deliver
       lead: I see it through until people are using it.
       items:
-        - Agile delivery and product ownership
+        - Product ownership
         - Agile methods (Scrum and Kanban)
         - Project management
+        - UAT and testing
+        - Change management
+        - Vendor assessments
   # The home page's tools, each logo in its brand colours (public/tools/, CC0 from SVG Logos and
   # Simple Icons; Kimi and OpenAI's marks are black by their own brand guides).
-  # The owner's list (2026-09-30), from the CV and LinkedIn: tools worked with, hands-on or
-  # alongside the team that built with them. The Microsoft 365 and Power Apps marks are Simple Icons
-  # 9.21.0 (CC0) in their brand colours; APIs and RPA (which stands for the platforms used: UiPath,
-  # Blue Prism, Power Automate) are drawn for this site.
+  # The owner's own list (the copy interview, 2026-09-30): tools worked with, hands-on or alongside
+  # the team that built with them. Power Apps, Power BI, RPA and APIs are also in the CV or LinkedIn;
+  # the rest are the owner's word. The Microsoft 365, Power Apps and Power Automate marks are Simple
+  # Icons 9.21.0 (CC0) in their brand colours. Power Automate took the place of a drawn "RPA" robot
+  # at the owner's request (final review, 2026-09-30): every tool should show a real logo.
+  # APIs shows the OpenAPI mark (Simple Icons 13.21.0, CC0, in its green #6ba539): the standard most
+  # APIs are described in, and the closest thing to a logo for them; the owner chose it over a
+  # drawn pair of braces.
+  # Teams, SharePoint, UiPath and Google Cloud joined the tray the same day, at the owner's word
+  # (Teams and SharePoint: Simple Icons 9.21.0; UiPath and Google Cloud: 13.21.0; all CC0, in their
+  # brand colours). UiPath's file shows only its boxed "Ui" (its app icon), by the SVG's viewBox:
+  # the whole wordmark was too small at icon size. Blue Prism may join in a future release (the set
+  # has no logo for it). The owner chose these free marks over Microsoft's newer
+  # icons, whose terms cover only diagrams, training and documentation.
+  # The first five are pinned to the taskbar, the owner's pick (final review, 2026-09-30): nine in a
+  # row were too many. Those marked `tray` wait behind the bar's arrow, as Windows keeps its hidden
+  # icons.
   tools:
     - name: Microsoft 365
       logo: /tools/microsoft-365.svg
     - name: Power Apps
       logo: /tools/power-apps.svg
-    - name: Power BI
-      logo: /tools/power-bi.svg
-    - name: RPA
-      logo: /tools/rpa.svg
-    - name: APIs
-      logo: /tools/apis.svg
-    - name: Jira
-      logo: /tools/jira.svg
     - name: Claude
       logo: /tools/claude.svg
     - name: ChatGPT
       logo: /tools/chatgpt.svg
+    - name: Jira
+      logo: /tools/jira.svg
+    - name: Power BI
+      logo: /tools/power-bi.svg
+      tray: true
+    - name: Power Automate
+      logo: /tools/power-automate.svg
+      tray: true
+    - name: UiPath
+      logo: /tools/uipath.svg
+      tray: true
+    - name: APIs
+      logo: /tools/openapi.svg
+      tray: true
+    - name: Teams
+      logo: /tools/teams.svg
+      tray: true
+    - name: SharePoint
+      logo: /tools/sharepoint.svg
+      tray: true
+    - name: Google Cloud
+      logo: /tools/google-cloud.svg
+      tray: true
     - name: Kimi
       logo: /tools/kimi.svg
+      tray: true
   # Each opens as a certificate from its folder; add image: /certificates/<name>.webp once it is in public/.
   certifications:
     - title: Certified ScrumMaster (CSM)

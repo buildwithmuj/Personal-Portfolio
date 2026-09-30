@@ -16,13 +16,15 @@ export function featuredStudies<T extends Orderable>(entries: readonly T[]): T[]
   return entries.filter((entry) => entry.data.featured);
 }
 
-export const caseStudyStatuses = ['live', 'in-progress', 'retired'] as const;
+// A concept is an idea the owner may build next: nothing exists yet, and its page says so.
+export const caseStudyStatuses = ['live', 'in-progress', 'retired', 'concept'] as const;
 export type CaseStudyStatus = (typeof caseStudyStatuses)[number];
 
 const statusLabels: Record<CaseStudyStatus, string> = {
   live: 'Live',
   'in-progress': 'In progress',
   retired: 'Retired',
+  concept: 'Concept',
 };
 
 interface Labelled {

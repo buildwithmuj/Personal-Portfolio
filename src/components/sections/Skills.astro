@@ -19,6 +19,9 @@ const groups = [
   { value: 'skills', label: 'Skills' },
   { value: 'certifications', label: 'Certifications' },
 ];
+// The taskbar holds the tools pinned to it; the rest wait in its tray, behind the arrow.
+const pinned = skills.tools.filter((tool) => !tool.tray);
+const tray = skills.tools.filter((tool) => tool.tray);
 // A folder's back (with its tab) and its front, on a 240 × 200 grid.
 const FOLDER_BACK =
   'M0 14Q0 0 14 0H88Q97 0 103 7L114 21Q120 28 130 28H226Q240 28 240 42V186Q240 200 226 200H14Q0 200 0 186Z';
@@ -26,7 +29,8 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
 ---
 
 {/*
-  The Toolkit, as Windows: the tools on a taskbar across a patch of the live sky, the skills as a
+  The Toolkit, as Windows: the tools on a taskbar under a patch of the live sky (five pinned to it,
+  the rest in a tray its arrow opens, as Windows keeps its hidden icons), the skills as a
   slide deck in a window (a slide per phase), the certifications as folders in a window, each
   opening its certificate in a viewer. One group shows at a time in one card, picked with the switch
   (the tools to start) or by a window's minimise and close buttons.
@@ -45,7 +49,7 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
             <i></i>
             <i></i>
           </li>
-          {skills.tools.map((tool) => (
+          {pinned.map((tool) => (
             <li class="tool">
               <span class="tool-icon">
                 <img src={withBase(tool.logo)} alt="" width="34" height="34" loading="lazy" />
@@ -53,6 +57,34 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
               <span class="tool-name">{tool.name}</span>
             </li>
           ))}
+          {tray.length > 0 && (
+            <li>
+              <details>
+                <summary aria-label="More tools">
+                  <span class="tool-icon">
+                    <Icon name="chevron-up" size={18} />
+                  </span>
+                  <span class="more-name">More</span>
+                </summary>
+                <ul class="tray" role="list">
+                  {tray.map((tool) => (
+                    <li class="tool">
+                      <span class="tool-icon">
+                        <img
+                          src={withBase(tool.logo)}
+                          alt=""
+                          width="34"
+                          height="34"
+                          loading="lazy"
+                        />
+                      </span>
+                      <span class="tool-name">{tool.name}</span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            </li>
+          )}
         </ul>
       </div>
     </div>
@@ -179,10 +211,12 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
             />
           ) : (
             <div class="certificate placeholder">
-              <Icon name="skills" size={34} />
-              <p class="kind">Certificate</p>
+              <span class="seal">
+                <Icon name="skills" size={30} />
+              </span>
+              <p class="kind">Certification</p>
               <p class="title">{title}</p>
-              <p>{issuer}</p>
+              <p class="by">{issuer}</p>
             </div>
           )}
         </figure>
@@ -212,6 +246,20 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
       pick.focus();
     };
     button.disabled = false;
+  }
+
+  // The taskbar's tray closes as Windows' does: on Escape, with focus back on its arrow, or on a
+  // click anywhere else.
+  const tray = document.querySelector<HTMLDetailsElement>('#skills .taskbar details');
+  if (tray) {
+    document.addEventListener('click', ({ target }) => {
+      if (tray.open && !tray.contains(target as Node)) tray.open = false;
+    });
+    tray.addEventListener('keydown', ({ key }) => {
+      if (key !== 'Escape' || !tray.open) return;
+      tray.open = false;
+      tray.querySelector('summary')?.focus();
+    });
   }
 
   // The certificates. A folder opens the viewer on its own certificate; the arrows, the arrow keys
@@ -274,6 +322,7 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
   }
 
   .taskbar,
+  .tray,
   .pills,
   .cert-cards {
     margin: 0;
@@ -283,40 +332,45 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
 
   /*
    * Tools: a Windows taskbar along the foot of a patch of the live sky, filling the card to its edges
-   * (past its padding): a Start button, which is only the look, then each tool with its name.
+   * (past its padding): a Start button, which is only the look, then each pinned tool with its
+   * name, and last an arrow that opens the tray holding the rest.
    */
   .panel[data-panel='tools'] {
     margin: calc(-1 * var(--card-pad));
   }
 
+  /*
+   * The sky stops where the taskbar starts, and the bar is one solid pale sky. (It was frosted
+   * glass over the moving sky: that shimmered as the sky moved, and left a thin blue line round the
+   * card's lower corners.)
+   */
   .desk {
-    position: relative;
     display: grid;
-    align-items: end;
+    grid-template-rows: 1fr auto;
     height: 100%;
     min-height: 220px;
-    isolation: isolate;
     container-type: inline-size;
   }
 
+  /*
+   * The sky takes the height the bar leaves it and asks for none of its own: a canvas has a size of
+   * its own, which would otherwise set the row's height, and the sky redraws to the row's height.
+   */
   .desk-sky {
-    position: absolute;
-    z-index: -1;
-    inset: 0;
+    contain: size;
   }
 
   .taskbar {
     --slot: min(44px, 12cqi);
 
+    position: relative;
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 4px 10px;
     align-items: start;
     justify-content: center;
     padding: 4px 12px;
-    border-block-start: 1px solid var(--taskbar-edge);
     background: var(--taskbar);
-    backdrop-filter: blur(24px) saturate(1.3);
   }
 
   /* Sized from the sky's width (up to 44px); a narrow bar runs on to a second row. */
@@ -343,9 +397,11 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
    * Each tool's name is always there to read, under its icon; on a narrow bar (a phone) the tools
    * run on to a second row. Under a pointer the whole button lights up.
    */
-  .tool {
+  .tool,
+  summary {
     display: grid;
     justify-items: center;
+    min-width: calc(var(--slot) + 16px);
     border-radius: 6px;
     transition: background-color 150ms var(--ease-standard);
   }
@@ -361,8 +417,9 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     object-fit: contain;
   }
 
-  .tool-name {
-    padding-block: 2px 4px;
+  .tool-name,
+  .more-name {
+    padding: 2px 6px 4px;
     color: var(--color-text);
     font-size: 0.625rem;
     font-weight: var(--weight-medium);
@@ -370,8 +427,71 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
   }
 
   @media (hover: hover) {
-    .tool:hover {
+    .tool:hover,
+    summary:hover {
       background: var(--taskbar-hover);
+    }
+
+    .tray .tool:hover {
+      background: var(--win-hover);
+    }
+  }
+
+  /*
+   * The arrow at the end of the bar, as Windows keeps its hidden icons: a button (the summary of a
+   * details element, so it works without JavaScript) that opens a small white tray over the sky,
+   * centred above the bar, with the tools that aren't pinned. The arrow turns over while it's open.
+   */
+  summary {
+    cursor: pointer;
+  }
+
+  /* Safari still draws the disclosure marker without this. */
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  [open] summary :global(.icon) {
+    rotate: 180deg;
+  }
+
+  /* The bar ends a few pixels above the card's clipped edge: the focus ring goes inside. */
+  summary:focus-visible {
+    outline-offset: -3px;
+  }
+
+  /* Four to a row, as Windows lays out its hidden icons; a long name takes two lines. */
+  .tray {
+    position: absolute;
+    inset-block-end: calc(100% + 10px);
+    inset-inline-start: 50%;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    width: min(100% - 16px, 340px);
+    padding: 8px 10px 4px;
+    border-radius: 12px;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-secondary);
+    translate: -50% 0;
+  }
+
+  .tray .tool {
+    align-content: start;
+    min-width: 0;
+  }
+
+  .tray .tool-name {
+    padding-inline: 0;
+    line-height: 1.15;
+    text-align: center;
+    white-space: normal;
+  }
+
+  /* On the narrowest phones, three to a row, so no two names meet. */
+  @container (width < 260px) {
+    .tray {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 
@@ -796,7 +916,11 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     --cert: var(--cert-4);
   }
 
-  /* A certificate, landscape; until its image comes, a card ruled in its folder's blue. */
+  /*
+   * A certificate, landscape. Until its image comes, a card for it: white in a frame of the sky, a
+   * badge in its own blue, the title in the serif and the issuer. It names the certification
+   * rather than imitating the certificate, so nothing on it reads as the issuer's own document.
+   */
   .certificate {
     display: block;
     width: 100%;
@@ -810,15 +934,18 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
   .placeholder {
     display: grid;
     gap: 8px;
+    max-height: none;
     place-content: center;
     justify-items: center;
     aspect-ratio: 1.414;
     padding: 24px;
-    border: 2px solid var(--cert);
-    background: var(--color-surface);
+    border: 14px solid transparent;
+    border-radius: 12px;
+    background:
+      linear-gradient(var(--color-surface) 0 0) padding-box,
+      var(--gradient-sky) border-box;
     box-shadow:
-      inset 0 0 0 6px var(--color-surface),
-      inset 0 0 0 7px var(--cert),
+      inset 0 0 0 1px var(--color-chip-edge),
       var(--shadow-secondary);
     color: var(--color-text-muted);
     text-align: center;
@@ -828,8 +955,26 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     margin: 0;
   }
 
-  .placeholder :global(.icon) {
-    color: var(--cert);
+  .seal {
+    display: grid;
+    place-items: center;
+    width: 60px;
+    height: 60px;
+    margin-block-end: 6px;
+    border-radius: 50%;
+    background: var(--cert);
+    box-shadow: 0 0 0 5px var(--color-chip);
+    color: var(--color-on-accent);
+  }
+
+  /* A short rule under the title, in the sky's blues. */
+  .by::before {
+    display: block;
+    width: 48px;
+    height: 2px;
+    margin: 4px auto 14px;
+    background: var(--gradient-sky);
+    content: '';
   }
 
   .kind {
@@ -877,9 +1022,15 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     }
 
     .skill-group {
+      gap: 12px;
       aspect-ratio: auto;
       min-height: 180px;
       padding: 16px;
+    }
+
+    /* Six skills to a slide: the decorative footer makes way (the thumbnails number the slides). */
+    .slide-foot {
+      display: none;
     }
 
     .skill-group h4 {
@@ -887,11 +1038,11 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     }
 
     .pills {
-      gap: 7px;
+      gap: 6px;
     }
 
     .skill {
-      padding: 6px 11px;
+      padding: 5px 10px;
       font-size: var(--text-xs);
     }
 

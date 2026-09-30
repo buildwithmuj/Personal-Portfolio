@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../support/test.ts';
 import { EXPECTED_HEADERS } from '../support/headers.ts';
 import { SERVER_ONLY, SITE_ORIGIN } from '../support/site.ts';
 

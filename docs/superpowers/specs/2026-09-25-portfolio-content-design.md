@@ -338,7 +338,7 @@ The existing SEO, JSON-LD and og:image behaviour stays.
 **`caseStudies` gains:**
 - `kind`: `client` | `product`, required
 - `sector`: required when `kind` is `client`
-- `status`: `live` | `in-progress` | `retired`, required when `kind` is `product`
+- `status`: `live` | `in-progress` | `retired` | `concept` (an idea not yet built), required when `kind` is `product`
 - `employer`: optional
 
 The `client` field is removed, because clients are anonymised by rule.

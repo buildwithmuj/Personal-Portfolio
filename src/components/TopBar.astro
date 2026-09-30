@@ -38,18 +38,7 @@ const nav = [
 <header class="top-bar">
   <LiveClock timeZone={profile.timeZone} />
 
-  <!-- Desktop: the links, centred on the page between the clock and the weather. -->
-  <nav class="wide-only" aria-label="Main">
-    <ul class="links" role="list">
-      {nav.map((item) => (
-        <li>
-          <a href={item.href}>{item.label}</a>
-        </li>
-      ))}
-    </ul>
-  </nav>
-
-  <!-- Where the owner is: London's live weather, on the right (the clock is on the left). -->
+  <!-- Where the owner is: London's live weather, beside the clock. -->
   <p
     class="where"
     data-lat={profile.coordinates?.latitude}
@@ -82,8 +71,9 @@ const nav = [
   </svg>
 
   <!--
-    Phones: the menu button drops a panel from the bar with the links in large type, Book a call
-    last in blue, and the CV and social links beneath them on the same grey.
+    The menu, on every screen (seven links in a row were a lot to take in): its button drops a
+    panel from the bar with the links in large type, Book a call last in blue, and the CV and social
+    links beneath them on the same grey.
   -->
   <details class="menu">
     <summary aria-label="Menu">
@@ -132,13 +122,17 @@ const nav = [
 <script>
   import { parseWeather, weatherUrl, type Weather } from '../lib/weather.ts';
 
-  // The phone menu: following one of its links, a tap anywhere outside it, or Escape closes it
+  // The menu: following one of its links, a tap anywhere outside it, or Escape closes it
   // (Escape hands focus back to the menu button). This runs first, so nothing below can stop it.
   // A followed link hands focus to the menu button too, before the link acts (the capture phase),
   // so the CV opened from the menu gives focus back there, not to a link hidden in the closed menu.
+  // Tabbing out of it closes it too, so focus never lands on the page hidden under the panel.
   const menu = document.querySelector<HTMLDetailsElement>('.top-bar .menu');
   if (menu) {
     const close = () => (menu.open = false);
+    menu.addEventListener('focusout', ({ relatedTarget }) => {
+      if (relatedTarget instanceof Node && !menu.contains(relatedTarget)) close();
+    });
     document.addEventListener(
       'click',
       ({ target }) => {
@@ -207,12 +201,12 @@ const nav = [
     z-index: 10;
     top: var(--bar-offset);
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: var(--space-3) var(--space-6);
+    grid-template-columns: auto 1fr auto;
+    gap: var(--space-3);
     align-items: center;
     height: var(--bar-height);
     margin-block-end: calc(-1 * var(--bar-height));
-    padding: var(--space-3) var(--space-4) var(--space-3) var(--button-pad-x);
+    padding: var(--space-3) var(--space-3) var(--space-3) var(--button-pad-x);
     border-radius: var(--radius-card);
     view-transition-name: top-bar;
   }
@@ -286,18 +280,18 @@ const nav = [
     animation-play-state: running !important;
   }
 
-  /* With the phone menu open its panel hangs below the bar, so the corners stay square. */
+  /* With the menu open its panel hangs below the bar, so the corners stay square. */
+  .top-bar:has(.menu[open]) {
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+
   .top-bar:has(.menu[open])::after {
     animation: none;
   }
 
-  /* The clock keeps its own width at the left; the weather sits at the right. */
-  .top-bar > :global(live-clock) {
-    justify-self: start;
-  }
-
+  /* The clock, then the weather beside it; the menu button sits at the right. */
   .where {
-    justify-self: end;
     display: flex;
     gap: var(--space-3);
     align-items: center;
@@ -317,7 +311,7 @@ const nav = [
 
   /*
    * London's weather: an icon for the conditions and the temperature. The word for it ("Light rain")
-   * is there for screen readers only: seven links leave it no room.
+   * is there for screen readers only.
    */
   .weather {
     display: inline-flex;
@@ -337,35 +331,24 @@ const nav = [
     height: 0;
   }
 
-  .links,
   .socials {
     display: flex;
-    gap: var(--space-6);
+    gap: var(--space-2);
+    justify-content: center;
     padding: 0;
     list-style: none;
   }
 
-  .links {
-    justify-content: center;
-  }
-
   nav a {
     color: var(--color-text);
-    font-weight: var(--weight-medium);
+    font-size: 2rem;
+    letter-spacing: var(--tracking-tight);
     text-decoration: none;
     transition: color var(--duration-fast) var(--ease-standard);
   }
 
   nav a:hover {
     color: var(--color-accent);
-  }
-
-  .socials {
-    gap: var(--space-2);
-  }
-
-  .menu {
-    display: none;
   }
 
   summary {
@@ -384,6 +367,29 @@ const nav = [
     display: none;
   }
 
+  /*
+   * The panel continues the grey bar downwards: the links, the call last, then the icons. On a
+   * short screen (a phone on its side) it scrolls within itself, since the bar is sticky and the
+   * page's own scroll can't bring its foot into view.
+   */
+  .panel {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: 100%;
+    max-height: calc(100dvh - var(--bar-offset) - var(--bar-height));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    display: grid;
+    gap: var(--space-6);
+    padding: var(--space-4);
+    border-end-start-radius: var(--radius-card);
+    border-end-end-radius: var(--radius-card);
+    background: var(--color-shell);
+    box-shadow: 0 24px 40px -24px var(--color-grid-line);
+    animation: menu-in 200ms var(--ease-standard);
+  }
+
   /* A closed panel still takes up layout space off-screen in some browsers; remove it entirely. */
   .menu:not([open]) .panel,
   .close-icon,
@@ -395,72 +401,20 @@ const nav = [
     display: block;
   }
 
-  /* Seven links and the weather need the full column; narrower, the bar uses the menu. */
-  @media (width < 48rem) {
-    .top-bar {
-      grid-template-columns: auto 1fr auto;
-      column-gap: var(--space-3);
-      padding-inline-end: var(--space-3);
-    }
+  .panel-links {
+    display: grid;
+    gap: var(--space-2);
+    justify-items: center;
+    padding: 0;
+    list-style: none;
+  }
 
-    /* Phones keep the temperature beside the clock, as before. */
-    .where {
-      justify-self: start;
-    }
+  .panel-links .call {
+    color: var(--color-accent);
+  }
 
-    .wide-only {
-      display: none;
-    }
-
-    .menu {
-      display: block;
-    }
-
-    .top-bar:has(.menu[open]) {
-      border-end-start-radius: 0;
-      border-end-end-radius: 0;
-    }
-
-    /* The panel continues the grey bar downwards: the links, the call last, then the icons. */
-    .panel {
-      position: absolute;
-      inset-inline: 0;
-      inset-block-start: 100%;
-      display: grid;
-      gap: var(--space-6);
-      padding: var(--space-4) var(--space-4) var(--space-4);
-      border-end-start-radius: var(--radius-card);
-      border-end-end-radius: var(--radius-card);
-      background: var(--color-shell);
-      box-shadow: 0 24px 40px -24px var(--color-grid-line);
-      animation: menu-in 200ms var(--ease-standard);
-    }
-
-    .panel-links {
-      display: grid;
-      gap: var(--space-2);
-      justify-items: center;
-      padding: 0;
-      list-style: none;
-    }
-
-    .panel-links a {
-      font-size: 2rem;
-      font-weight: var(--weight-regular);
-      letter-spacing: var(--tracking-tight);
-    }
-
-    .panel-links .call {
-      color: var(--color-accent);
-    }
-
-    .panel-links .call:hover {
-      color: var(--color-accent-hover);
-    }
-
-    .panel > .socials {
-      justify-content: center;
-    }
+  .panel-links .call:hover {
+    color: var(--color-accent-hover);
   }
 
   @keyframes menu-in {

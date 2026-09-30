@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../support/test.ts';
 import { profileValue, sectionHeading } from '../support/content.ts';
 import { scrollIntoViewSettled } from '../support/settle.ts';
 
@@ -130,23 +130,39 @@ test('section headings read exactly as written', async ({ page }) => {
   }
 });
 
-test('the phone menu opens the navigation and closes when a link is followed', async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 812 });
-  await page.goto('/');
-  const menu = page.locator('.top-bar details');
-  await menu.locator('summary').click();
-  const panel = menu.getByRole('navigation', { name: 'Main' });
-  await expect(panel.getByRole('link', { name: 'Work' })).toBeVisible();
-  await panel.getByRole('link', { name: 'Work' }).click();
-  await expect(menu).not.toHaveAttribute('open');
-  await expect(page).toHaveURL(/#work$/);
-});
+// The menu is the navigation on every screen: seven links in a row across the bar were a lot to take
+// in, so the bar keeps the clock, the weather and one button, on a computer as on a phone.
+for (const viewport of [
+  { width: 375, height: 812 },
+  { width: 1280, height: 800 },
+]) {
+  test(`the menu opens the navigation and closes when a link is followed (${viewport.width}px)`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    // No row of links in the bar itself: the only navigation is the menu's.
+    await expect(page.locator('.top-bar nav')).toHaveCount(1);
+    const menu = page.locator('.top-bar details');
+    const panel = menu.getByRole('navigation', { name: 'Main' });
+    await expect(panel).toBeHidden();
+    await menu.locator('summary').click();
+    await expect(panel.getByRole('link', { name: 'Work' })).toBeVisible();
+    // The panel hangs from the bar, as wide as the bar, inside the window.
+    const bar = await page.locator('.top-bar').boundingBox();
+    const box = await menu.locator('.panel').boundingBox();
+    expect(box?.x).toBeCloseTo(bar?.x ?? -1, 0);
+    expect(box?.width).toBeCloseTo(bar?.width ?? -1, 0);
+    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(viewport.height);
+    await panel.getByRole('link', { name: 'Work' }).click();
+    await expect(menu).not.toHaveAttribute('open');
+    await expect(page).toHaveURL(/#work$/);
+  });
+}
 
-// The phone menu drops from the bar with the call as its last link, in blue and in the same large
+// The menu drops from the bar with the call as its last link, in blue and in the same large
 // type as the rest; Escape or a tap outside it closes it.
-test('the phone menu offers the call, and closes on Escape or a tap outside it', async ({
-  page,
-}) => {
+test('the menu offers the call, and closes on Escape or a tap outside it', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto('/');
   const menu = page.locator('.top-bar details');
@@ -174,8 +190,34 @@ test('the phone menu offers the call, and closes on Escape or a tap outside it',
   await expect(menu).not.toHaveAttribute('open');
 });
 
-// The phone menu leads its icons with the CV, which opens over the home page.
-test('the phone menu offers the CV beside the social links', async ({ page }) => {
+// On a short screen (a phone on its side) the open menu scrolls within itself, so its last links
+// stay reachable: the bar is sticky, so the page's own scroll can't bring them into view.
+test('on a short screen the open menu scrolls to its last link', async ({ page }) => {
+  await page.setViewportSize({ width: 812, height: 375 });
+  await page.goto('/');
+  const menu = page.locator('.top-bar details');
+  await menu.locator('summary').click();
+  const last = menu.locator('.socials a').last();
+  await last.scrollIntoViewIfNeeded();
+  await expect(last).toBeInViewport({ ratio: 1 });
+  const panel = await menu.locator('.panel').boundingBox();
+  expect((panel?.y ?? 0) + (panel?.height ?? 0)).toBeLessThanOrEqual(375);
+});
+
+// Tabbing on past the menu's last link closes it, so focus never lands on the page hidden under it.
+test('tabbing out of the menu closes it', async ({ page, browserName }) => {
+  test.skip(browserName === 'webkit', 'Safari tabs only to form controls by default');
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/');
+  const menu = page.locator('.top-bar details');
+  await menu.locator('summary').click();
+  await menu.locator('.socials a').last().focus();
+  await page.keyboard.press('Tab');
+  await expect(menu).not.toHaveAttribute('open');
+});
+
+// The menu leads its icons with the CV, which opens over the home page.
+test('the menu offers the CV beside the social links', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto('/');
   const menu = page.locator('.top-bar details');
@@ -201,16 +243,18 @@ for (const path of ['/projects', '/work/amniki']) {
   });
 }
 
-test('Home in the top bar leads back to the home page from All work', async ({ page }) => {
+test('Home in the menu leads back to the home page from All work', async ({ page }) => {
   await page.goto('/projects');
-  await page.locator('.top-bar .links').getByRole('link', { name: 'Home' }).click();
+  await page.locator('.top-bar summary').click();
+  await page.locator('.top-bar .panel-links').getByRole('link', { name: 'Home' }).click();
   await expect(page).toHaveURL(/\/#home$/);
   await expect(page.locator('#top .headline')).toBeVisible();
 });
 
-test('the top bar links to each part of the home page, in order', async ({ page }) => {
+test('the menu links to each part of the home page, in order, then the call', async ({ page }) => {
   await page.goto('/projects');
-  await expect(page.locator('.top-bar .links a')).toHaveText([
+  await page.locator('.top-bar summary').click();
+  await expect(page.locator('.top-bar .panel-links a')).toHaveText([
     'Home',
     'About',
     'Work',
@@ -218,8 +262,9 @@ test('the top bar links to each part of the home page, in order', async ({ page 
     'Ask',
     sectionHeading('testimonials'),
     'Contact',
+    'Book a call',
   ]);
-  const links = page.locator('.top-bar .links');
+  const links = page.locator('.top-bar .panel-links');
   await expect(links.getByRole('link', { name: 'Ask' })).toHaveAttribute('href', '/#interview');
   // The recommendations, under their section's heading, while there is one to show.
   await expect(links.getByRole('link', { name: sectionHeading('testimonials') })).toHaveAttribute(
@@ -228,15 +273,19 @@ test('the top bar links to each part of the home page, in order', async ({ page 
   );
 });
 
-// Seven links leave no room for the weather's word, so the bar shows its icon and the temperature;
-// the word stays for screen readers.
+// The bar shows London's weather as an icon and the temperature; the word for it stays for screen
+// readers. (Every test gets a fixed reading in place of Open-Meteo's, so it always shows here.)
 test('the weather shows as an icon and a temperature, its word kept for screen readers', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto('/');
   const weather = page.locator('.top-bar .weather');
-  test.skip(await weather.isHidden(), 'No weather reading was available when the site was built');
+  await expect(weather).toBeVisible();
+  await expect(weather.locator('[data-temp]')).toHaveText('18');
+  await expect(weather.locator('use')).toHaveAttribute('href', '#weather-cloud');
+  const icon = await weather.locator('svg').boundingBox();
+  expect(icon?.width).toBe(16);
   const word = weather.locator('.condition');
   await expect(word).toHaveText(/\S/);
   const box = await word.boundingBox();
@@ -265,22 +314,26 @@ test('the floating bar keeps a clear band beneath it', async ({ page }) => {
   await expect.poll(clear).toBe(true);
 });
 
-// The clock, seven centred links and the weather only fit from 768px; narrower, the bar uses its
-// menu. The links sit in the middle, clear of the clock and the weather.
-for (const width of [770, 960, 1280]) {
-  test(`at ${width}px the top bar fits its links between the clock and the weather`, async ({
+// The bar holds three things on every screen, clear of one another: the clock, the weather beside
+// it, and the menu button at the right.
+for (const width of [320, 770, 1280]) {
+  test(`at ${width}px the top bar holds the clock, the weather and the menu button`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height: 800 });
     await page.goto('/');
+    await expect(page.locator('.top-bar .weather')).toBeVisible();
     const bar = await page.locator('.top-bar').boundingBox();
     const clock = await page.locator('.top-bar live-clock').boundingBox();
-    const links = await page.locator('.top-bar .links').boundingBox();
     const weather = await page.locator('.top-bar .where').boundingBox();
-    if (!bar || !clock || !links || !weather) throw new Error('top bar not laid out');
-    expect(clock.x + clock.width).toBeLessThanOrEqual(links.x);
-    expect(links.x + links.width).toBeLessThanOrEqual(weather.x);
-    expect(weather.x + weather.width).toBeLessThanOrEqual(bar.x + bar.width);
+    const button = await page.locator('.top-bar summary').boundingBox();
+    if (!bar || !clock || !weather || !button) throw new Error('top bar not laid out');
+    expect(clock.x + clock.width).toBeLessThanOrEqual(weather.x);
+    expect(weather.x + weather.width).toBeLessThanOrEqual(button.x);
+    expect(button.x + button.width).toBeLessThanOrEqual(bar.x + bar.width);
+    // The button is a comfortable target, at the bar's right edge.
+    expect(button.width).toBeGreaterThanOrEqual(40);
+    expect(bar.x + bar.width - (button.x + button.width)).toBeLessThanOrEqual(16);
   });
 }
 

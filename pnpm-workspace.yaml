@@ -6,3 +6,8 @@ onlyBuiltDependencies: # reviewed packages allowed to run install scripts (nativ
   - esbuild
   - sharp
   - workerd
+# The local test server (wrangler, through miniflare) pins undici 7.29.0, which has six security
+# advisories fixed in 7.29.1. The wrangler releases that carry the fix are younger than seven days,
+# so this lifts that one package instead. Remove it once wrangler is at 4.143.1 or later.
+overrides:
+  miniflare>undici: 7.29.1
