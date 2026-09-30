@@ -43,11 +43,20 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
       <div class="desk">
         <SkyGradient class="desk-sky" scale={0.5} />
         <ul class="taskbar" role="list">
+          {/* The Start button, only the look: the Windows 11 logo, four panes in one blue gradient. */}
           <li class="start" aria-hidden="true">
-            <i></i>
-            <i></i>
-            <i></i>
-            <i></i>
+            <svg viewBox="0 0 24 24" focusable="false">
+              <defs>
+                <linearGradient id="start-blue" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#2ab6f6" />
+                  <stop offset="1" stop-color="#0063c7" />
+                </linearGradient>
+              </defs>
+              <path
+                fill="url(#start-blue)"
+                d="M0 0h11.4v11.4H0zM12.6 0H24v11.4H12.6zM0 12.6h11.4V24H0zM12.6 12.6H24V24H12.6z"
+              />
+            </svg>
           </li>
           {pinned.map((tool) => (
             <li class="tool">
@@ -366,49 +375,45 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     position: relative;
     display: flex;
     flex-wrap: wrap;
-    gap: 4px 10px;
+    gap: 4px;
     align-items: start;
     justify-content: center;
     padding: 4px 12px;
     background: var(--taskbar);
   }
 
-  /* Sized from the sky's width (up to 44px); a narrow bar runs on to a second row. */
-  .start,
+  /* Sized from the sky's width (up to 44px). */
   .tool-icon {
+    display: grid;
+    place-items: center;
     width: var(--slot);
     height: var(--slot);
     border-radius: 6px;
   }
 
-  .start {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2px;
-    padding: calc(var(--slot) * 0.27);
-  }
-
-  .start i {
-    border-radius: 1px;
-    background: var(--color-accent);
-  }
-
   /*
-   * Each tool's name is always there to read, under its icon; on a narrow bar (a phone) the tools
-   * run on to a second row. Under a pointer the whole button lights up.
+   * Every button on the bar is the same width, the Start button included, so the icons are evenly
+   * spaced, as on Windows, and as close as the longest name allows. Each name is always there to
+   * read, under its icon; under a pointer the whole button lights up.
    */
+  .start,
   .tool,
   summary {
     display: grid;
     justify-items: center;
-    min-width: calc(var(--slot) + 16px);
+    width: calc(var(--slot) + 22px);
     border-radius: 6px;
     transition: background-color 150ms var(--ease-standard);
   }
 
-  .tool-icon {
-    display: grid;
+  .start {
+    height: var(--slot);
     place-items: center;
+  }
+
+  .start svg {
+    width: 52%;
+    height: 52%;
   }
 
   .tool-icon img {
@@ -419,7 +424,7 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
 
   .tool-name,
   .more-name {
-    padding: 2px 6px 4px;
+    padding: 2px 0 4px;
     color: var(--color-text);
     font-size: 0.625rem;
     font-weight: var(--weight-medium);
@@ -478,7 +483,7 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
 
   .tray .tool {
     align-content: start;
-    min-width: 0;
+    width: auto;
   }
 
   .tray .tool-name {
@@ -492,6 +497,42 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
   @container (width < 260px) {
     .tray {
       grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  /*
+   * On a phone the bar keeps to one row, as a real taskbar does: the icons alone, close together,
+   * their names still read out to screen readers (and shown in the tray).
+   */
+  @container (width < 480px) {
+    .taskbar {
+      gap: 2px;
+      padding-inline: 8px;
+    }
+
+    .start,
+    .tool,
+    summary {
+      width: var(--slot);
+    }
+
+    .tool,
+    summary {
+      padding-block: 4px;
+    }
+
+    .start {
+      height: calc(var(--slot) + 8px);
+    }
+
+    .taskbar > .tool .tool-name,
+    .more-name {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      overflow: hidden;
+      clip-path: inset(50%);
     }
   }
 
@@ -745,12 +786,14 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     padding: var(--space-6) var(--card-pad) var(--card-pad);
   }
 
+  /* One column as wide as the button, whatever the name: a long word can't widen the folder. */
   .cert-card {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 2px;
     justify-items: center;
     width: 100%;
-    padding: 6px 4px 8px;
+    padding: 6px 2px 8px;
     border: 0;
     border-radius: 14px;
     background: none;
@@ -805,7 +848,11 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
     translate: 0 -16%;
   }
 
+  /* Room for two lines, a shorter name in the middle, so every issuer sits level with the next. */
   .name {
+    display: grid;
+    align-content: center;
+    min-height: 2.5em;
     font-size: var(--text-sm);
     font-weight: var(--weight-medium);
     line-height: 1.25;
@@ -1051,8 +1098,24 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
       column-gap: var(--space-2);
     }
 
+    /* A folder keeps to its column, however long its name: a long one had stretched its folder. */
+    .cert-cards li {
+      min-width: 0;
+    }
+
+    .name {
+      font-size: var(--text-xs);
+    }
+
     .desk {
       min-height: 190px;
+    }
+  }
+
+  /* On the narrowest phones, two folders to a row: a third of the card is too narrow a name. */
+  @media (width < 360px) {
+    .cert-cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 </style>
