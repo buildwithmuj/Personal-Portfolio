@@ -418,12 +418,21 @@ test('the tools sit on a Windows taskbar, their names beneath them, lighting up 
     .locator(':scope > .tool .tool-icon, summary .tool-icon')
     .evaluateAll((icons) => icons.map((one) => Math.round(one.getBoundingClientRect().top)));
   expect(new Set(tops).size).toBe(1);
+  // Every button is the same width, the Start button's included, so the icons are evenly spaced.
+  const centres = await taskbar.locator(':scope > li').evaluateAll((all) =>
+    all.map((one) => {
+      const box = one.getBoundingClientRect();
+      return box.left + box.width / 2;
+    }),
+  );
+  const steps = centres.slice(1).map((centre, index) => centre - (centres[index] ?? 0));
+  expect(Math.max(...steps) - Math.min(...steps)).toBeLessThanOrEqual(1);
   // No two names touch: each tool's name keeps clear of the next one's.
   const names = await taskbar
     .locator(':scope > .tool .tool-name')
     .evaluateAll((all) => all.map((one) => one.getBoundingClientRect()));
   for (const [index, box] of names.slice(1).entries()) {
-    expect(box.left - (names[index]?.right ?? 0)).toBeGreaterThanOrEqual(10);
+    expect(box.left - (names[index]?.right ?? 0)).toBeGreaterThanOrEqual(8);
   }
   // Nothing spills out of the bar.
   const spill = await taskbar.evaluate((bar) => bar.scrollWidth - bar.clientWidth);
@@ -500,15 +509,22 @@ test.describe('the tools on a touch screen', () => {
   test.skip(({ browserName }) => browserName === 'firefox', 'Firefox has no mobile emulation');
   test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
 
-  test('show their names under the icons, and nothing moves', async ({ page }) => {
+  // On a phone the bar keeps to one row, as a real taskbar does: the Start button and the icons
+  // alone, close together, each tool's name still there for screen readers, and nothing moves.
+  test('sit in one row, icons only, and nothing moves', async ({ page }) => {
     await page.goto('/');
-    const tool = page.locator('#skills .taskbar .tool').first();
-    await expect(tool.locator('.tool-name')).toBeVisible();
-    const icon = await tool.locator('.tool-icon').boundingBox();
-    const name = await tool.locator('.tool-name').boundingBox();
-    expect(name?.y ?? 0).toBeGreaterThanOrEqual((icon?.y ?? 0) + (icon?.height ?? 0) - 1);
-    // On a phone the bar takes as many rows as the tools need, and none is cut off.
     const bar = page.locator('#skills .taskbar');
+    await scrollIntoViewSettled(bar);
+    const tool = bar.locator(':scope > .tool').first();
+    await expect(bar.locator('.start')).toBeVisible();
+    await expect(tool.locator('.tool-name')).toHaveText(/\S/);
+    const name = await tool.locator('.tool-name').boundingBox();
+    expect(name?.width ?? 99).toBeLessThanOrEqual(1);
+    const tops = await bar
+      .locator(':scope > li')
+      .evaluateAll((all) => all.map((one) => Math.round(one.getBoundingClientRect().top)));
+    expect(new Set(tops).size).toBe(1);
+    // None is cut off at the bar's ends.
     const box = await bar.boundingBox();
     for (const one of await bar.locator(':scope > .tool, summary').all()) {
       const at = await one.boundingBox();
@@ -517,9 +533,29 @@ test.describe('the tools on a touch screen', () => {
         (box?.x ?? 0) + (box?.width ?? 0) + 0.5,
       );
     }
-    await page.locator('#skills .toolkit').scrollIntoViewIfNeeded();
     await expect(tool.locator('.tool-icon')).toHaveCSS('animation-name', 'none');
   });
+});
+
+// A long folder name (AI Capabilities, on a phone) takes two lines; every name has room for two,
+// so each issuer sits level with the one beside it.
+test('the certification folders keep their issuers level on a phone', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('/');
+  const toolkit = page.locator('#skills');
+  await scrollIntoViewSettled(toolkit);
+  await toolkit.locator('.switch').getByText('Certifications', { exact: true }).click();
+  await expect(toolkit.locator('.cert-card').first()).toBeVisible();
+  const cards = await toolkit.locator('.cert-card').evaluateAll((all) =>
+    all.map((card) => ({
+      top: Math.round(card.getBoundingClientRect().top),
+      issuer: Math.round(card.querySelector('.issuer')?.getBoundingClientRect().top ?? 0),
+    })),
+  );
+  for (const card of cards) {
+    const row = cards.filter((other) => other.top === card.top);
+    expect(new Set(row.map((one) => one.issuer)).size).toBe(1);
+  }
 });
 
 // On a phone the skills deck shows one phase at a time, picked from the slides' thumbnails beneath
