@@ -9,9 +9,9 @@ const { stats } = Astro.props;
 ---
 
 {/*
-  The About stats on one band of the hero's living Blue sky, like an instrument panel: navy
-  numbers, each over its label, that count up the first time they're seen. Navy reads on every
-  shade the sky drifts through, where white failed at its palest.
+  The About stats on one band of the hero's living Blue sky, like an instrument panel: white
+  numbers, each centred over its label, that count up the first time they're seen. White over a
+  soft blue wash with a shadow, the owner's choice over navy (2026-10-01).
 */}
 <div class="stats" data-reveal="rise">
   <SkyGradient class="stats-sky" scale={0.5} />
@@ -76,9 +76,9 @@ const { stats } = Astro.props;
     inset: 0;
   }
 
-  /* After the sky in paint order: a faint white wash under the navy text (tokens.css). */
+  /* After the sky in paint order: a soft blue wash under the white text (tokens.css). */
   .stats::after {
-    background: var(--sky-ink-wash);
+    background: var(--stats-wash);
     content: '';
   }
 
@@ -93,9 +93,12 @@ const { stats } = Astro.props;
   .cells li {
     display: grid;
     align-content: start;
+    justify-items: center;
     gap: 4px;
     padding-inline: 22px;
-    color: var(--color-sky-ink);
+    color: var(--color-on-accent);
+    text-align: center;
+    text-shadow: var(--stats-text-shadow);
   }
 
   .stat-num {

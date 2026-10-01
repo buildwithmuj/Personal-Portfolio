@@ -31,10 +31,15 @@
   --color-avatar-4: #cfe4ff;
   --color-avatar-text-light: #1f3f7a;
 
-  /* Text on the live sky (the About stats, the typical day's header): navy over a faint white wash,
-     which keeps it above 4.5:1 however deep the sky's blue runs (tests/unit/sky-ink.test.ts) */
+  /* Text on the live sky (the typical day's header): navy over a faint white wash, which keeps it
+     above 4.5:1 however deep the sky's blue runs (tests/unit/sky-ink.test.ts) */
   --color-sky-ink: #0c2454;
   --sky-ink-wash: rgb(255 255 255 / 35%);
+
+  /* The About stats (Stats.astro): white on the live sky, over a soft blue wash and with a shadow,
+     at the owner's choice (2026-10-01). It reads below 4.5:1 where the sky runs palest. */
+  --stats-wash: linear-gradient(180deg, rgb(29 74 146 / 22%), rgb(29 74 146 / 42%));
+  --stats-text-shadow: 0 1px 12px rgb(12 36 84 / 45%);
 
   /* Selected work (WorkShowcase.astro): a navy fade over a cover, under white text */
   --gradient-cover-fade: linear-gradient(180deg, transparent 30%, rgb(12 36 84 / 80%));
