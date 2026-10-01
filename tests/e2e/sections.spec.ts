@@ -372,7 +372,7 @@ test('View CV in About wears the same icon tile as the social links', async ({ p
   expect(await look(tile)).toBe(await look(page.locator('.hero .band-socials a').first()));
 });
 
-// The About stats: one band of the live Blue sky, each number over its label, from the profile.
+// The About stats: one band of the live Blue sky, each number centred over its label, from the profile.
 test('the About stats sit on one band of the live sky', async ({ page }) => {
   await page.goto('/');
   const stats = page.locator('#about .stats');
@@ -380,9 +380,12 @@ test('the About stats sit on one band of the live sky', async ({ page }) => {
   await expect(stats.locator('.stat-num')).toHaveText(
     yamlValues('src/content/profile.yaml', 'value'),
   );
-  // Navy on the sky, which reads on every shade it drifts through (white failed at its palest);
-  // the typical day's header too, until its night face turns it white.
-  await expect(stats.locator('.stat-label').first()).toHaveCSS('color', 'rgb(12, 36, 84)');
+  // White on the sky, over a soft blue wash and with a shadow (the owner's choice), centred in its
+  // place; the typical day's header stays navy until its night face turns it white.
+  const label = stats.locator('.stat-label').first();
+  await expect(label).toHaveCSS('color', 'rgb(255, 255, 255)');
+  await expect(label).toHaveCSS('text-shadow', /rgba\(12, 36, 84/);
+  await expect(stats.locator('.cells li').first()).toHaveCSS('text-align', 'center');
   const night = await page.locator('#about .rem-watch').getAttribute('data-night');
   await expect(page.locator('#about .rem-app')).toHaveCSS(
     'color',
@@ -560,6 +563,58 @@ test('on a phone the tools take only the height they need', async ({ page }) => 
   const tray = await toolkit.locator('.tray').boundingBox();
   const card = await toolkit.locator('.toolkit').boundingBox();
   expect(tray?.y ?? -1).toBeGreaterThanOrEqual(card?.y ?? 0);
+});
+
+// On a phone the seats are narrow: the speaking bars sit as a badge on the circle, so a longer name
+// (Dianne, Gideon) stays inside its seat when its person speaks.
+// On a phone every card's caption is the same two lines: the name with where it was given, then
+// the role beneath (a long role once wrapped and pushed LinkedIn on to a line of its own).
+test('on a phone every Feedback caption has the same two lines', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('/');
+  const section = page.locator('#testimonials');
+  await scrollIntoViewSettled(section);
+  const seats = section.locator('label.seat');
+  const heights = new Set<number>();
+  for (let index = 0; index < (await seats.count()); index++) {
+    await seats.nth(index).click();
+    const caption = section.locator('.words:visible figcaption');
+    await expect(caption).toHaveCount(1);
+    const layout = await caption.evaluate((figcaption) => {
+      const name = figcaption.querySelector('b')?.getBoundingClientRect();
+      const source = figcaption.querySelector('.source')?.getBoundingClientRect();
+      return {
+        height: Math.round(figcaption.getBoundingClientRect().height),
+        level:
+          name && source
+            ? Math.abs(name.top + name.height / 2 - (source.top + source.height / 2))
+            : 99,
+      };
+    });
+    expect(layout.level).toBeLessThanOrEqual(3);
+    heights.add(layout.height);
+  }
+  expect([...heights]).toHaveLength(1);
+});
+
+test('on a phone each name stays inside its seat as its person speaks', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('/');
+  const section = page.locator('#testimonials');
+  await scrollIntoViewSettled(section);
+  const seats = section.locator('label.seat');
+  for (let index = 0; index < (await seats.count()); index++) {
+    await seats.nth(index).click();
+    await expect(section.locator('label.seat input').nth(index)).toBeChecked();
+    const inside = await seats.nth(index).evaluate((seat) => {
+      const box = seat.getBoundingClientRect();
+      return [...seat.querySelectorAll('.seat-name > span')]
+        .map((part) => part.getBoundingClientRect())
+        .filter((part) => part.width > 1)
+        .every((part) => part.left >= box.left - 0.5 && part.right <= box.right + 0.5);
+    });
+    expect(inside).toBe(true);
+  }
 });
 
 // Feedback's window is as tall as the words being read: a shorter quote leaves no empty space under
