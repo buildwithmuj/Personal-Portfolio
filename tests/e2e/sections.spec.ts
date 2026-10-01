@@ -545,8 +545,8 @@ test.describe('the tools on a touch screen', () => {
 
 // A long folder name (AI Capabilities, on a phone) takes two lines; every name has room for two,
 // so each issuer sits level with the one beside it.
-// On a phone each Toolkit group is as tall as it needs: the tools' sky isn't stretched to the slide
-// deck's height, yet it leaves room for the tray to open inside the card. A computer keeps one height.
+// On a phone the tools are only as tall as they need (their sky isn't stretched to the slide deck's
+// height, yet the tray still opens inside the card); the skills and certifications share one height.
 test('on a phone the tools take only the height they need', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 800 });
   await page.goto('/');
@@ -557,6 +557,10 @@ test('on a phone the tools take only the height they need', async ({ page }) => 
   const tools = await height();
   await toolkit.locator('.switch').getByText('Skills', { exact: true }).click();
   await expect.poll(height).toBeGreaterThan(tools + 100);
+  // The skills and the certifications keep one height between them.
+  const skills = await height();
+  await toolkit.locator('.switch').getByText('Certifications', { exact: true }).click();
+  await expect.poll(height).toBe(skills);
   await toolkit.locator('.switch').getByText('Tools', { exact: true }).click();
   await expect.poll(height).toBe(tools);
   await toolkit.locator('.taskbar summary').click();
