@@ -29,6 +29,7 @@ const statusLabels: Record<CaseStudyStatus, string> = {
 
 interface Labelled {
   kind: 'client' | 'product';
+  label?: string | undefined;
   sector?: string | undefined;
   status?: CaseStudyStatus | undefined;
 }
@@ -38,9 +39,12 @@ export function caseStudyDetail(data: Labelled): string {
   return (data.kind === 'client' ? data.sector : data.status && statusLabels[data.status]) ?? '';
 }
 
-/** "Client work · <sector>" or "Personal project · <status>" (content spec §5.4). */
+/**
+ * "Client work · <sector>" or "Personal project · <status>" (content spec §5.4). A study's own label
+ * replaces the first part, e.g. "DigiBlu project · Company website".
+ */
 export function caseStudyLabel(data: Labelled): string {
-  const kind = data.kind === 'client' ? 'Client work' : 'Personal project';
+  const kind = data.label ?? (data.kind === 'client' ? 'Client work' : 'Personal project');
   const detail = caseStudyDetail(data);
   return detail ? `${kind} · ${detail}` : kind;
 }

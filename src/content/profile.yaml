@@ -4,17 +4,19 @@ main:
   name: Mujtaba Shah
   jobTitle: Senior Automation Analyst
   worksFor: DigiBlu
+  # Back to the owner's September tagline and roles (2026-11-04): "AI Product Owner & Builder"
+  # overstated it, since the owner isn't in a product owner role yet.
   titleTagline: Intelligent Automation & AI Product Builder
   roles:
     - Automation Analyst
     - Consultant
     - AI Product Builder
-  headline: I redesign messy processes, automate them, and build products people actually use.
-  headlineAccent: people actually use.
-  availability: Open to new roles and projects
+  headline: I turn messy problems into working products with AI.
+  headlineAccent: products with AI.
+  availability: Open to AI product roles
   subline: >-
-    Ten years in consulting, the last five in process optimisation and automation, across the public
-    sector, healthcare, education, financial services and telecoms.
+    Ten years in consulting and automation, across the public sector, healthcare, education, financial
+    services and telecoms, and now building my own products with AI.
   about: >-
     Hey, I'm Muj, a consultant who loves digging into what AI can do for everyday work, and testing it
     on products of my own.
@@ -50,9 +52,9 @@ main:
     questions:
       - question: What role are you after?
         answer: >-
-          A senior role in consulting or intelligent automation, ideally one that gets me closer to
-          AI products. Mainly permanent roles, though I'm open to contracts and to projects where a
-          process needs sorting out.
+          An AI product role where I'm creating products with AI, and in time leading a team that does
+          the same. I'd love to join an AI startup, and I'm open to larger companies too. Ideally
+          hybrid or remote.
       - question: A project you're proud of?
         answer: >-
           Leading automation for a UK healthcare group. We cut a lot of manual back-office work and
@@ -66,12 +68,12 @@ main:
         answer: >-
           I start by writing down the problem and what good looks like. Then I build with AI coding
           tools like Claude Code or Codex, review what they produce, test it properly, and get it in
-          front of real users early. This site was built that way.
+          front of real users early. This site, Brandgrabit and DigiBlu's website were built that way.
       - question: Which tools have you worked with?
         answer: >-
-          I've delivered projects with Microsoft 365, Power Apps, Power BI, RPA platforms and APIs.
-          Some of that was hands-on and some was alongside developers, where my part was the
-          analysis, the design and the testing. For my own builds I use Claude, ChatGPT and Kimi.
+          I've delivered client projects with Microsoft 365, Power Apps, Power BI, RPA platforms and
+          APIs, some hands-on and some alongside developers. For my own builds I use Claude Code and
+          Codex, with Next.js, GitHub, Cloudflare, Vercel, Supabase and Sentry.
       - question: What are you learning?
         answer: >-
           Agentic AI: automations that can work through a task rather than follow a fixed script.
@@ -80,20 +82,28 @@ main:
         answer: >-
           Boxing, which I'm a bit obsessed with, plus the gym and sauna most mornings. I travel when
           I can, and there's usually a side build on the go in the evenings.
-  # For the CV (the pop-up and PDF), from the owner's formal CV (2026), word for word but for the
-  # years, which it gave as 9+.
+  # For the CV (the pop-up and PDF). The owner's review (2026-11-04): the headline is the actual job
+  # title, since "AI Product Owner & Builder" overstated it, and the profile says how consulting and
+  # automation now meet building products with AI. The side projects moved from their own section
+  # to Interests. Brandgrabit has no AI inside: it was built with AI tools.
+  cvHeadline: Senior Automation Analyst
   cvProfile: >-
-    Consulting professional with 10+ years’ experience in project management and business analysis.
-    Expert in delivering automation, process optimisation, and digital transformation projects.
-    Skilled in business case development, solution design and implementation, and stakeholder
-    management. Certified Scrum Master and Product Owner with strong communication skills, bridging
-    business needs and technology solutions.
+    Senior automation analyst with 10+ years in management consulting and intelligent automation, now
+    bringing that experience to building products with AI. Takes complex operational problems from
+    discovery and business case through to working solutions, from RPA and Power Platform delivery to
+    web apps built with AI coding tools. Has led project teams of up to five on client engagements,
+    working directly with client stakeholders. Certified Scrum Master and Product Owner.
   languages:
     - { language: English, level: Native }
     - { language: Punjabi, level: Native }
     - { language: Urdu, level: Highly proficient }
     - { language: Spanish, level: Working knowledge }
+  # The CV's Interests: each with a short note, or the month it began.
   outsideWork:
+    - activity: Building AI side projects
+      note: >-
+        Evening builds with AI coding tools, such as brandgrabit.com, a live web app that pulls any
+        website's logos, colours and fonts
     - { activity: Boxing at Legends MMA, start: '2023-09' }
   # Clients from Mujtaba's professional work, cleared by him to name (2026-09-28). Logos live in
   # public/clients/ and are tinted to the site's navy; a client without one shows by name.
@@ -116,14 +126,14 @@ main:
       label: Years of experience
     - value: '5'
       label: Sectors served
-    - value: '7'
+    - value: '11'
       label: Case studies
-    - value: '2'
+    - value: '5'
       label: Products built
   sections:
     work:
       heading: Selected work
-      intro: What I've delivered for clients, and what I've built for myself.
+      intro: What I've delivered at work, and what I've built for myself.
     skills:
       heading: Toolkit
       intro: The skills I bring, the tools I've worked with, and the certifications behind them.
@@ -154,6 +164,6 @@ main:
     - platform: github
       url: https://github.com/buildwithmuj
   seo:
-    description: Mujtaba Shah, Senior Automation Analyst and AI product builder. I redesign messy processes, automate them, and build products people use.
+    description: Mujtaba Shah, Senior Automation Analyst and AI product builder. Ten years in consulting and automation, now turning messy problems into products with AI.
     image: /og-default.png
-    imageAlt: 'Mujtaba Shah, Intelligent Automation & AI Product Builder: I redesign messy processes, automate them, and build products people actually use.'
+    imageAlt: 'Mujtaba Shah, Intelligent Automation & AI Product Builder: I turn messy problems into working products with AI.'

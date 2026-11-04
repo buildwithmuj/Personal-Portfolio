@@ -23,6 +23,7 @@ test('View CV in About opens the CV over the page, and its close button shuts it
     'Experience',
     'Education',
     'Skills',
+    'Tools',
     'Certifications',
     'Languages',
     'Interests',
@@ -33,8 +34,8 @@ test('View CV in About opens the CV over the page, and its close button shuts it
   await expect(cv).toBeHidden();
 });
 
-// The CV reads as the owner's formal CV does: its own profile paragraph (not the home page's line)
-// and its own skills. On a computer the bar's two buttons sit at the pop-up's right edge, and the
+// The CV has its own words: its headline and profile paragraph (not the home page's line), and its
+// own skills and tools. On a computer the bar's two buttons sit at the pop-up's right edge, and the
 // foot is the name alone: no ball, no date.
 test('the CV keeps to the formal CV, its buttons at the right edge of the bar', async ({
   page,
@@ -47,9 +48,13 @@ test('the CV keeps to the formal CV, its buttons at the right edge of the bar', 
   await cv.evaluate((dialog) => Promise.all(dialog.getAnimations().map((a) => a.finished)));
   const section = (name: string) =>
     cv.locator('section').filter({ has: page.getByRole('heading', { level: 3, name }) });
+  await expect(cv.locator('.role')).toHaveText(profileValue('cvHeadline'));
   await expect(section('Profile').locator('p')).toHaveText(profileParagraph('cvProfile'));
   await expect(section('Skills').locator('li')).toHaveText(
     yamlList('src/content/skills.yaml', 'cvSkills'),
+  );
+  await expect(section('Tools').locator('li')).toHaveText(
+    yamlList('src/content/skills.yaml', 'cvTools'),
   );
   const frame = await cv.boundingBox();
   const close = await cv.getByRole('button', { name: 'Close CV' }).boundingBox();
@@ -94,8 +99,9 @@ test('the open CV has no WCAG 2.2 AA violations', async ({ page, browserName }) 
   expect(results.violations).toEqual([]);
 });
 
-// Each role lists its highlights, and education and languages are filled in.
-test('the CV lists each role with its highlights, and the education and languages', async ({
+// Each role lists its highlights, education and languages are filled in, and each interest has a
+// line beneath it: a note, or the month it began.
+test('the CV lists each role with its highlights, and the education, languages and interests', async ({
   page,
 }) => {
   await page.goto('/');
@@ -110,6 +116,11 @@ test('the CV lists each role with its highlights, and the education and language
   }
   await expect(section('Education').locator('.entry').first()).toBeVisible();
   await expect(section('Languages').locator('li').first()).toBeVisible();
+  const interests = section('Interests').locator('li');
+  await expect(interests.first()).toBeVisible();
+  for (const interest of await interests.all()) {
+    await expect(interest.locator('span')).toHaveText(/\S/);
+  }
 });
 
 // The PDF download is printed from this pop-up (scripts/cv-pdf.ts), which notes a fingerprint of

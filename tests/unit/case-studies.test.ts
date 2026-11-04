@@ -69,6 +69,13 @@ describe('caseStudyLabel (content spec §5.4)', () => {
     );
   });
 
+  it("uses a study's own label in place of its kind", () => {
+    assert.equal(
+      caseStudyLabel({ kind: 'client', label: 'DigiBlu project', sector: 'Company website' }),
+      'DigiBlu project · Company website',
+    );
+  });
+
   it('falls back to the kind alone', () => {
     assert.equal(caseStudyLabel({ kind: 'client' }), 'Client work');
   });
