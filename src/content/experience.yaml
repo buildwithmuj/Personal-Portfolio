@@ -1,32 +1,38 @@
-# Roles for the CV (the pop-up and the PDF), newest first by start date. The bullets are the owner's
-# formal CV, word for word (2026), so clients are described by industry, never named.
+# Roles for the CV (the pop-up and the PDF), newest first by start date. Reworked from the owner's
+# formal CV and LinkedIn towards AI product roles (2026-11-02). Clients are described by industry,
+# never named, and no result carries a figure until the owner has one to share. DigiBlu has agreed
+# to its website and Learning Experience Hub being named. In the owner's review (2026-11-04) the two
+# Infosys roles took five bullets each, the analyst's from the CV and LinkedIn.
 digiblu:
   employer: DigiBlu
   role: Senior Automation Analyst
   start: '2021-12'
   highlights:
-    - Led automation initiatives for clients including a UK healthcare group, delivering RPA and workflow solutions that streamlined business processes, reduced manual work, and improved turnaround times.
-    - Partnered with a pensions administrator firm to conduct as-is business process assessments, define future-state operating models, and create detailed SOPs and technical documentation to enable automation-driven service delivery.
-    - Delivered opportunity assessments and ROI-focused business cases, securing senior stakeholder approval for automation roadmaps and investment.
-    - Designed and implemented intelligent automation solutions integrating automation technologies, document digitisation, and process orchestration, delivering measurable benefits in efficiency, compliance, and cost reduction.
-    - Collaborated with business and IT stakeholders through workshops, requirements gathering, and solution design sessions, ensuring alignment between automation delivery and strategic objectives.
+    - Led the strategy, design and build of internal initiatives, including DigiBlu's new website (digiblu.com) and a pilot Learning Experience Hub for employees, working with the technical architect on enterprise setup, security and scale.
+    - Led automation initiatives for clients including a UK healthcare group, delivering RPA and workflow solutions that reduced manual work and improved turnaround times.
+    - Led a SharePoint reorganisation for a US communications provider's sales teams, producing the project plan, content audit and governance framework to prepare for a new sales content platform.
+    - Delivered automations using APIs and stored procedures, and a Power Apps replacement for a legacy service charges system, through testing, deployment and hypercare.
+    - Assessed as-is processes for a pensions administrator, defining the future-state operating models and SOPs behind automation-driven service delivery.
+    - Delivered opportunity assessments and ROI-focused business cases that secured senior stakeholder approval for automation investment.
 infosys-management-consultant:
   employer: Infosys Consulting
   role: Management Consultant
   start: '2018-04'
   end: '2021-11'
   highlights:
-    - Managed digital transformation programs for clients, including RPA implementation and a Digital Experience Platform discovery for a major educational institution, improving operational efficiency and user engagement.
-    - Conducted technical feasibility assessments and designed future-state processes, developing comprehensive business cases that secured senior stakeholder buy-in and funding.
-    - Defined end-to-end solution requirements (functional, non-functional, and security) and produced detailed specifications to guide development and implementation teams.
-    - Enabled adoption of digital solutions by delivering change management, training, and stakeholder engagement, while also supporting public sector procurement and compliance assessments.
+    - Served as Product Owner for self-service data dashboards on a Google Cloud data warehouse for a global satellite communications company, owning the backlog, priorities and roadmap.
+    - Managed digital transformation programmes, including RPA implementation for a UK public-sector organisation and a Digital Experience Platform discovery for a major educational institution.
+    - Developed delivery strategies and roadmaps, coordinating phased RPA and analytics rollouts within regulatory, security and change constraints.
+    - Ran technical feasibility assessments and built the cost-benefit models and business cases that secured senior stakeholder buy-in and funding.
+    - Defined end-to-end requirements for delivery teams, ran vendor assessments and public-sector procurement, and drove adoption through change management and training.
 infosys-consulting-analyst:
   employer: Infosys Consulting
   role: Consulting Analyst
   start: '2016-09'
   end: '2018-03'
   highlights:
-    - Supported senior consultants on engagements across financial services, public sector, and education, conducting research, data analysis, and documentation to inform strategic initiatives.
-    - Contributed to client workshops, requirements gathering, and stakeholder meetings, building a strong understanding of business challenges and shaping potential solutions.
-    - Assisted in the development of key deliverables including process maps, business cases, and executive-level presentations, ensuring clarity and impact for decision-makers.
-    - Enhanced consulting skills through formal training and on-the-job learning, gaining exposure to emerging technologies such as RPA and digital platforms while developing industry knowledge.
+    - Delivered consulting on digital transformation and process automation programmes for clients in financial services, pharmaceuticals, education and the public sector.
+    - Gathered and documented requirements from client stakeholders, and assessed current processes to find inefficiencies and recommend technology-enabled solutions.
+    - Assessed the technical and business feasibility of automation opportunities, identifying RPA candidates to improve operational efficiency.
+    - Ran user acceptance testing activities, gave testing and quality assurance support to implementation teams, and delivered end-user training on process and system changes.
+    - Produced research, data analysis, process maps, business cases and executive presentations, and co-led a Lean UX workshop for a global chemicals company.

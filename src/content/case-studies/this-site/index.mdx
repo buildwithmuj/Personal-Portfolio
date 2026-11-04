@@ -12,11 +12,27 @@ stats:
   - { value: '100', label: Lighthouse accessibility score }
   - { value: '3', label: Browser engines tested on every change }
   - { value: '0', label: Cookies set by this site }
+stack:
+  - layer: Site
+    tools: [Astro, TypeScript, MDX, CSS]
+    job: Static pages, with the words kept in plain content files that are checked at build time.
+  - layer: CV
+    tools: [Playwright]
+    job: Prints the PDF from the same content as the CV pop-up, so the two can't drift apart.
+  - layer: Hosting
+    tools: [GitHub Pages, GitHub Actions]
+    job: Publishes the site only once every check has passed.
+  - layer: Testing
+    tools: [Playwright, axe, Lighthouse, Node test runner]
+    job: Chrome, Safari and Firefox, accessibility, speed scores and page weight.
+  - layer: AI
+    tools: [Claude Code]
+    job: How I built it, in small steps, reviewing each one.
 links:
   - label: Source code
     url: https://github.com/buildwithmuj/Personal-Portfolio
 featured: true
-order: 7
+order: 10
 ---
 
 {/* Mujtaba to review every sentence. */}
@@ -27,7 +43,7 @@ I wanted my site built the way I'd want a client's: the basics tested first, the
 
 <Callout>Every change is checked automatically before it can reach the live site.</Callout>
 
-## How it's built
+## How I worked
 
 <Figure caption="How the site is built and checked, from a written spec to the live site">
 
@@ -37,6 +53,16 @@ I wanted my site built the way I'd want a client's: the basics tested first, the
 
 I wrote down what the site had to do first. Then I built it with AI coding tools in small steps,
 each one tested and reviewed before it went in.
+
+## Key decisions
+
+**One source for the CV.** The pop-up and the PDF both come from the same content, and a test fails if
+the PDF falls behind the words.
+
+**No cookies.** The site doesn't need them, so it doesn't set any, and there's no banner in your way.
+
+**Write the floors down first.** Speed, security and accessibility each have a minimum score, and a
+change that falls below one can't go live.
 
 ## Where it is now
 

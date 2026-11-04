@@ -21,11 +21,12 @@ const monthYear = new Intl.DateTimeFormat('en-GB', {
   holding the name, Download PDF and a close button above the CV as one document. It closes with
   the button, Escape or a click beside it. Without JavaScript those links open the PDF.
 
-  Its words are the owner's formal CV: the profile paragraph, each role's bullets and the skills,
-  as written there. The document keeps to what applicant tracking systems read well: real text in
-  one reading order, the usual section names as headings, and each role as title, employer and
-  dates. The branding is light, in the Blue sky palette: a sky-blue full stop after the name, the
-  job title on a sky marker, section labels led by a short blue bar, and blue bullets.
+  Its words are the CV's own, more formal than the site's. The document keeps to what applicant
+  tracking systems read well: real text in one reading order, the usual section names as headings,
+  and each role as title, employer and dates. The side projects sit under Interests, at the owner's
+  choice (2026-11-04), so the CV opens on the profile and the roles. The branding is light, in the Blue
+  sky palette: a sky-blue full stop after the name, the headline on a sky marker, section labels led
+  by a short blue bar, and blue bullets.
 */}
 <dialog class="cv-view" aria-labelledby="cv-view-name">
   <div class="bar">
@@ -48,7 +49,7 @@ const monthYear = new Intl.DateTimeFormat('en-GB', {
           <span class="dot" aria-hidden="true"></span>
         </h2>
         <p class="role">
-          <mark>{profile.jobTitle}</mark>, {profile.worksFor}
+          <mark>{profile.cvHeadline}</mark>
         </p>
       </div>
       <ul class="contact" role="list">
@@ -111,6 +112,14 @@ const monthYear = new Intl.DateTimeFormat('en-GB', {
           </ul>
         </section>
         <section>
+          <h3>Tools</h3>
+          <ul class="tags">
+            {skills.cvTools.map((tool) => (
+              <li>{tool}</li>
+            ))}
+          </ul>
+        </section>
+        <section>
           <h3>Certifications</h3>
           <ul class="certs">
             {skills.certifications.map((certification) => (
@@ -134,10 +143,13 @@ const monthYear = new Intl.DateTimeFormat('en-GB', {
         </section>
         <section>
           <h3>Interests</h3>
-          <ul class="tags">
-            {profile.outsideWork.map(({ activity, start }) => (
+          <ul class="certs">
+            {profile.outsideWork.map(({ activity, start, note }) => (
               <li>
-                {activity}, since {monthYear.format(new Date(`${start}-01T00:00:00Z`))}
+                {activity}
+                <span>
+                  {note ?? `Since ${monthYear.format(new Date(`${start}-01T00:00:00Z`))}`}
+                </span>
               </li>
             ))}
           </ul>

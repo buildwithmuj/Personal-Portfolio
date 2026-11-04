@@ -8,16 +8,51 @@ main:
     - Power BI and data products
     - Product ownership
     - Low-code, no-code and AI building
-  # The CV's skills, as the owner's formal CV lists them (the pop-up and the PDF show these).
+  # The CV's skills and tools (the pop-up and the PDF show these), led by AI and product work since
+  # the owner's move towards AI product roles (2026-11-02). Fact-checked in the owner's review
+  # (2026-11-04): every skill is in the CV or LinkedIn or seen in the owner's own builds, and every
+  # tool is one the owner named or used on a project. The OpenAI API and Framer are Viola AI's, back
+  # at the owner's word. TypeScript and Playwright stay off: the AI tools wrote that code, and the CV
+  # shouldn't read as hands-on programming.
   cvSkills:
+    - Intelligent Automation (RPA)
+    - Product Ownership
+    - AI-Assisted Development
+    - Agentic AI Workflows
+    - Prompting & Working with LLMs
     - Project Management
-    - Requirements Gathering
-    - Process Mapping (As-Is/To-Be)
-    - Technical Writing (SOPs)
-    - Agile Methodologies (Scrum, Kanban)
-    - Business Analysis
+    - Agile (Scrum, Kanban)
+    - Roadmaps & Prioritisation
+    - Solution Design
+    - Business Cases & ROI
     - Stakeholder Management
+    - Workshop Facilitation
+    - Business Analysis
+    - Process Mapping (As-Is/To-Be)
+    - Requirements Gathering
+    - UAT & Testing
+    - Change Management & Training
+    - Technical Writing (SOPs)
+  cvTools:
+    - Claude Code
+    - Codex
+    - ChatGPT
+    - OpenAI API
+    - GitHub
+    - Next.js
+    - Supabase
+    - Vercel
+    - Cloudflare
+    - Sentry
+    - Framer
+    - Shopify
+    - UiPath
+    - Power Apps
+    - Power Automate
     - Power BI
+    - SharePoint
+    - Jira
+    - Google Cloud
   # From the CV and LinkedIn, in the site's own words: grouped with the skills above in the Toolkit.
   # The last seven joined in the owner's final review (2026-09-30), each from a line of the CV or
   # the LinkedIn profile, to fill each slide out to six.
@@ -81,20 +116,44 @@ main:
   # the whole wordmark was too small at icon size. Blue Prism may join in a future release (the set
   # has no logo for it). The owner chose these free marks over Microsoft's newer
   # icons, whose terms cover only diagrams, training and documentation.
-  # The first five are pinned to the taskbar, the owner's pick (final review, 2026-09-30): nine in a
-  # row were too many. Those marked `tray` wait behind the bar's arrow, as Windows keeps its hidden
-  # icons.
+  # The builder tools joined on 2026-11-02, from the owner's own list (GitHub, Cloudflare, Vercel,
+  # Sentry) and the products' repos (Next.js, Supabase, Shopify): Simple Icons 13.21.0, CC0. Black
+  # for GitHub, Next.js and Vercel, their brand guides' colour; the others in their brand colours.
+  # The first five are pinned to the taskbar: nine in a row were too many (final review, 2026-09-30).
+  # They now lead with the AI and builder tools, for the move towards AI product roles (2026-11-02).
+  # Those marked `tray` wait behind the bar's arrow, as Windows keeps its hidden icons.
   tools:
-    - name: Microsoft 365
-      logo: /tools/microsoft-365.svg
-    - name: Power Apps
-      logo: /tools/power-apps.svg
     - name: Claude
       logo: /tools/claude.svg
     - name: ChatGPT
       logo: /tools/chatgpt.svg
+    - name: GitHub
+      logo: /tools/github.svg
+    - name: Next.js
+      logo: /tools/nextjs.svg
+    - name: Cloudflare
+      logo: /tools/cloudflare.svg
+    - name: Vercel
+      logo: /tools/vercel.svg
+      tray: true
+    - name: Supabase
+      logo: /tools/supabase.svg
+      tray: true
+    - name: Sentry
+      logo: /tools/sentry.svg
+      tray: true
+    - name: Shopify
+      logo: /tools/shopify.svg
+      tray: true
+    - name: Microsoft 365
+      logo: /tools/microsoft-365.svg
+      tray: true
+    - name: Power Apps
+      logo: /tools/power-apps.svg
+      tray: true
     - name: Jira
       logo: /tools/jira.svg
+      tray: true
     - name: Power BI
       logo: /tools/power-bi.svg
       tray: true
@@ -120,6 +179,8 @@ main:
       logo: /tools/kimi.svg
       tray: true
   # Each opens as a certificate from its folder; add image: /certificates/<name>.webp once it is in public/.
+  # Names and issuers as the owner's LinkedIn lists them (checked 2026-11-04), where the owner keeps
+  # them up to date.
   certifications:
     - title: Certified ScrumMaster (CSM)
       issuer: Scrum Alliance
@@ -136,3 +197,12 @@ main:
     - title: Claude 101
       issuer: Anthropic
       short: Claude 101
+    - title: Introduction to Claude Cowork
+      issuer: Anthropic
+      short: Claude Cowork
+    - title: AI Foundations
+      issuer: OpenAI
+      short: AI Foundations
+    - title: Applied AI Foundations
+      issuer: OpenAI
+      short: Applied AI

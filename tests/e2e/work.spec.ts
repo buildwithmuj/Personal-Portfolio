@@ -191,7 +191,7 @@ test('the All work page lists every case study', async ({ page }) => {
   await page.goto('/projects');
   await expect(page.getByRole('heading', { level: 1, name: 'All work' })).toBeVisible();
   const labels = page.locator('#all-work .card-label');
-  await expect(labels).toHaveCount(8);
+  await expect(labels).toHaveCount(ORDERED.length);
 });
 
 // Every case study ends with the next four, in order and wrapping round, as small cards to move
@@ -239,6 +239,27 @@ test('client case studies show their employer', async ({ page }) => {
   await expect(page.locator('.case-study .facts')).toContainText(
     study('healthcare-automation', 'employer'),
   );
+});
+
+// DigiBlu's own projects sit with the work, but they weren't for a client, so they don't say so.
+test('work for DigiBlu itself carries its own label', async ({ page }) => {
+  await page.goto('/work/learning-hub');
+  await expect(page.locator('.case-study .label')).toHaveText(
+    'DigiBlu project · Internal platform',
+  );
+  await expect(page.locator('.case-study .facts')).toContainText(study('learning-hub', 'employer'));
+});
+
+// How a product is built, layer by layer: each layer's name, its tools, and the job they do here.
+test('a product shows how it is built, layer by layer', async ({ page }) => {
+  await page.goto('/work/learning-hub');
+  const built = page.getByRole('region', { name: "How it's built" });
+  await expect(built.locator('.layer').first().locator('dt')).toHaveText('App');
+  await expect(built.locator('.layer').first().locator('.tools li').first()).toHaveText('Next.js');
+  await expect(built.locator('.layer').first().locator('.job')).toHaveText(/\S/);
+  // No stack, no section: the client studies don't have one.
+  await page.goto('/work/healthcare-automation');
+  await expect(page.locator('.built')).toHaveCount(0);
 });
 
 // A case study opens calmly: the head is the label, the title and one line. The facts (the role,

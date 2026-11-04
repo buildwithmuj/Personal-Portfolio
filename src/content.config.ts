@@ -64,11 +64,25 @@ const profile = defineCollection({
       })
       .optional(),
     // For the CV (CvViewer.astro).
-    // The CV's opening paragraph, as the owner's formal CV words it (the hero's line is for the site).
+    // The line under the name. `jobTitle` stays the owner's actual title, for each role and search.
+    cvHeadline: z.string().min(1),
+    // The CV's opening paragraph, in its own formal words (the hero's line is for the site).
     cvProfile: z.string().min(1),
     languages: z.array(z.object({ language: z.string().min(1), level: z.string().min(1) })),
+    // The CV's Interests: each with a short note, or the month it began (YYYY-MM), shown beneath.
     outsideWork: z.array(
-      z.object({ activity: z.string().min(1), start: z.string().regex(/^\d{4}-\d{2}$/) }),
+      z
+        .object({
+          activity: z.string().min(1),
+          start: z
+            .string()
+            .regex(/^\d{4}-\d{2}$/)
+            .optional(),
+          note: z.string().min(1).optional(),
+        })
+        .refine(({ start, note }) => (start === undefined) !== (note === undefined), {
+          message: 'Give an interest either a note or a start month',
+        }),
     ),
     // The hero's logo strip: clients the owner has worked with (cleared to name, 2026-09-28), each
     // with a logo in public/clients/ when there is one (a navy PNG, 84px tall), or shown by name.
@@ -146,6 +160,8 @@ const caseStudies = defineCollection({
         cover: image(),
         coverAlt: z.string().min(1),
         kind: z.enum(['client', 'product']),
+        // What to call the kind when its usual name doesn't fit, e.g. work for the owner's employer.
+        label: z.string().min(1).optional(),
         sector: z.string().min(1).optional(),
         status: z.enum(caseStudyStatuses).optional(),
         employer: z.string().min(1).optional(),
@@ -154,6 +170,16 @@ const caseStudies = defineCollection({
         stats: z
           .array(z.object({ value: z.string().min(1).max(8), label: z.string().min(1).max(48) }))
           .max(3)
+          .default([]),
+        // How it's built, layer by layer: the tools, and the job they do here.
+        stack: z
+          .array(
+            z.object({
+              layer: z.string().min(1),
+              tools: z.array(z.string().min(1)).min(1),
+              job: z.string().min(1),
+            }),
+          )
           .default([]),
         links: z.array(z.object({ label: z.string().min(1), url: httpsUrl })).default([]),
         featured: z.boolean().default(false),
@@ -203,7 +229,7 @@ const experience = defineCollection({
     role: z.string().min(1),
     start: yearMonth,
     end: yearMonth.optional(),
-    // What was done in the role, as the owner's formal CV words it.
+    // What was done in the role, in the CV's formal words.
     highlights: z.array(z.string().min(1)).default([]),
   }),
 });
@@ -226,8 +252,9 @@ const skills = defineCollection({
       skills: z.array(z.string().min(1)).min(1),
       // From the CV: listed in the CV, and among the Toolkit's grouped skills (below).
       cvOnly: z.array(z.string().min(1)).default([]),
-      // The CV's own skills list, as the owner's formal CV words it.
+      // The CV's own skills and tools lists, in its formal words.
       cvSkills: z.array(z.string().min(1)).min(1),
+      cvTools: z.array(z.string().min(1)).min(1),
       // The Toolkit's Skills tab: every skill and CV-only skill once, under a heading each.
       // The skills' phases, each a slide in the Toolkit's deck (its CSS shows up to four).
       groups: z

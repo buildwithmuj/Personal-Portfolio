@@ -18,7 +18,7 @@ interface Props {
 }
 
 const { study, more, ogImageUrl, ogImageSize, structuredData } = Astro.props;
-const { title, summary, role, employer, tags, stats, links, cover, coverAlt } = study.data;
+const { title, summary, role, employer, tags, stats, stack, links, cover, coverAlt } = study.data;
 ---
 
 <Base
@@ -79,6 +79,27 @@ const { title, summary, role, employer, tags, stats, links, cover, coverAlt } = 
       <div class="card body">
         <slot />
       </div>
+      {/* How it's built: each layer of the stack, its tools, and the job they do in this project. */}
+      {stack.length > 0 && (
+        <section class="card built" aria-labelledby="built-heading">
+          <h2 id="built-heading">How it's built</h2>
+          <dl>
+            {stack.map(({ layer, tools, job }) => (
+              <div class="layer">
+                <dt>{layer}</dt>
+                <dd>
+                  <ul class="tools" role="list">
+                    {tools.map((tool) => (
+                      <li>{tool}</li>
+                    ))}
+                  </ul>
+                </dd>
+                <dd class="job">{job}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
       {links.length > 0 && (
         <section class="links" aria-labelledby="links-heading">
           <h2 id="links-heading">Links</h2>
@@ -271,6 +292,62 @@ const { title, summary, role, employer, tags, stats, links, cover, coverAlt } = 
     line-height: 1.1;
   }
 
+  /* The stack, a row per layer: its name, the tools as chips, and the job they do here. */
+  .built {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .built h2 {
+    font-size: var(--text-lg);
+  }
+
+  .built dl {
+    margin: 0;
+  }
+
+  .layer {
+    display: grid;
+    grid-template-columns: 11rem minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-2) var(--space-6);
+    padding-block: var(--space-4);
+    border-block-start: 1px solid var(--color-shell);
+  }
+
+  .layer dt {
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+  }
+
+  .tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-content: start;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tools li {
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--color-chip);
+    font-size: var(--text-xs);
+  }
+
+  .job {
+    color: var(--color-text-muted);
+    font-weight: var(--weight-regular);
+  }
+
+  @media (width < 48rem) {
+    .layer {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
   /* A band, not a poster: the story starts within the first screen. */
   .cover {
     overflow: hidden;
@@ -300,6 +377,11 @@ const { title, summary, role, employer, tags, stats, links, cover, coverAlt } = 
 
   .body > :global(*) {
     grid-column: 2;
+  }
+
+  /* Screenshots take the card's full width, so the words in them can be read. */
+  .body > :global(.figure) {
+    grid-column: 1 / -1;
   }
 
   .body > :global(h2) {
