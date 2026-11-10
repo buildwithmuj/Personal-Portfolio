@@ -77,7 +77,7 @@ to run while it's still `https://example.com`.
 3. Project name `portfolio` (it must match `name` in `wrangler.jsonc`). Production branch `main`.
 4. Build command `pnpm build`. Keep the default deploy command (`npx wrangler deploy`). Keep builds for
    non-production branches **on**: that's what builds the `dev` preview (staging).
-5. Add build variables: `PNPM_VERSION` = `10.34.5` and `NODE_VERSION` = `24`. pnpm's root `engines`
+5. Add build variables: `PNPM_VERSION` = `10.34.5` and `NODE_VERSION` = `26`. pnpm's root `engines`
    check fails on a mismatched Node.
 6. Save. Cloudflare may build `main` straight away. That build fails, because `main` only holds
    documentation so far. That's expected, and nothing is deployed.

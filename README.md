@@ -10,7 +10,7 @@ changing how the site is built.
 ## Stack
 
 - Astro 7 (static output), TypeScript 6 (strictest settings), MDX, plain CSS with design tokens
-- pnpm 10 and Node 24
+- pnpm 10 and Node 26
 - Tests: `node --test` (unit), Playwright (end to end, accessibility with axe, page weight), Lighthouse 13
 - Hosting: GitHub Pages, deployed by `.github/workflows/pages.yml` once CI passes on `main`. The
   Cloudflare setup (`wrangler.jsonc`, `public/_headers`, [docs/setup.md](docs/setup.md)) is kept for
@@ -20,7 +20,7 @@ changing how the site is built.
 
 ## Getting started
 
-Prerequisites: Node 24 (see `.nvmrc`) and pnpm 10.34.5 (`npm install -g pnpm@10.34.5`).
+Prerequisites: Node 26 (see `.nvmrc`) and pnpm 10.34.5 (`npm install -g pnpm@10.34.5`).
 
 ```bash
 pnpm install
