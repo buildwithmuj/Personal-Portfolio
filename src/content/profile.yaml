@@ -72,8 +72,9 @@ main:
       - question: Which tools have you worked with?
         answer: >-
           I've delivered client projects with Microsoft 365, Power Apps, Power BI, RPA platforms and
-          APIs, some hands-on and some alongside developers. For my own builds I use Claude Code and
-          Codex, with Next.js, GitHub, Cloudflare, Vercel, Supabase and Sentry.
+          APIs, some hands-on and some alongside developers. I plan and document work in Jira and
+          Confluence, and use Microsoft 365 Copilot and Copilot Studio. For my own builds I use Claude
+          Code and Codex, with Next.js, GitHub, Cloudflare, Vercel, Supabase and Sentry.
       - question: What are you learning?
         answer: >-
           Agentic AI: automations that can work through a task rather than follow a fixed script.

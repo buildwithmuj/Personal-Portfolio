@@ -21,3 +21,13 @@ an Unsplash render on 2026-09-30) and the `this-site` build diagram (`detail.png
 The tool logos in `public/tools/` come from [Simple Icons](https://simpleicons.org) (CC0) and
 [SVG Logos](https://svgporn.com) (CC0), in each brand's own colours; see the notes in
 `src/content/skills.yaml`. They are the brands' trademarks, shown only to name the tools.
+
+The exceptions, each with its source and licence noted inside the file too:
+
+- `copilot.svg`, `teams.svg` and `sharepoint.svg`: from [theSVG](https://github.com/glincker/thesvg)
+  by way of Iconify's `thesvg-color` set, under the MIT License: Copyright (c) 2025 thesvg.org. The
+  licence lets anyone use, copy, modify and publish the files, provided this notice goes with them.
+- `microsoft-365.svg` and `power-automate.svg`: from [selfh.st/icons](https://github.com/selfhst/icons)
+  by selfh.st, by way of Iconify, under
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Used unchanged, apart from removing the
+  fixed size.
