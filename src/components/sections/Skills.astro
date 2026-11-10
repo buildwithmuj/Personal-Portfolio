@@ -501,10 +501,23 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
   }
 
   /*
-   * On a phone the bar keeps to one row, as a real taskbar does: the icons alone, close together,
-   * their names still read out to screen readers (and shown in the tray).
+   * Where the sky has room for five names side by side (the longest, Confluence, is 55px), five to
+   * a row and a little wider, so the tray stays four rows high, inside a computer's fixed-height
+   * card.
    */
-  @container (width < 480px) {
+  @container (width >= 380px) {
+    .tray {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      width: min(100% - 16px, 360px);
+    }
+  }
+
+  /*
+   * On a phone the bar keeps to one row, as a real taskbar does: the icons alone, close together,
+   * their names still read out to screen readers (and shown in the tray). With names, the seven
+   * buttons need 510px; below that the More arrow wrapped to a second row.
+   */
+  @container (width < 510px) {
     .taskbar {
       gap: 2px;
       padding-inline: 8px;
@@ -1113,9 +1126,9 @@ const FOLDER_FRONT = 'M0 70Q0 58 12 58H228Q240 58 240 70V186Q240 200 226 200H14Q
       font-size: var(--text-xs);
     }
 
-    /* Room above the bar for the tray to open into, five rows of tools on the narrowest phone. */
+    /* Room above the bar for the tray to open into: six rows of tools on the narrowest phone. */
     .desk {
-      min-height: 370px;
+      min-height: 450px;
     }
   }
 

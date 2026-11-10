@@ -13,7 +13,8 @@ main:
   # (2026-11-04): every skill is in the CV or LinkedIn or seen in the owner's own builds, and every
   # tool is one the owner named or used on a project. The OpenAI API and Framer are Viola AI's, back
   # at the owner's word. TypeScript and Playwright stay off: the AI tools wrote that code, and the CV
-  # shouldn't read as hands-on programming.
+  # shouldn't read as hands-on programming. Microsoft 365 Copilot, Copilot Studio and Confluence
+  # joined at the owner's word (2026-11-10); the owner doesn't use GitHub Copilot.
   cvSkills:
     - Intelligent Automation (RPA)
     - Product Ownership
@@ -38,6 +39,8 @@ main:
     - Codex
     - ChatGPT
     - OpenAI API
+    - Microsoft 365 Copilot
+    - Copilot Studio
     - GitHub
     - Next.js
     - Supabase
@@ -52,6 +55,7 @@ main:
     - Power BI
     - SharePoint
     - Jira
+    - Confluence
     - Google Cloud
   # From the CV and LinkedIn, in the site's own words: grouped with the skills above in the Toolkit.
   # The last seven joined in the owner's final review (2026-09-30), each from a line of the CV or
@@ -100,12 +104,13 @@ main:
         - UAT and testing
         - Change management
         - Vendor assessments
-  # The home page's tools, each logo in its brand colours (public/tools/, CC0 from SVG Logos and
-  # Simple Icons; Kimi and OpenAI's marks are black by their own brand guides).
+  # The home page's tools, each logo in its brand colours (public/tools/, mostly CC0 from SVG Logos
+  # and Simple Icons; OpenAI's mark is black by its own brand guide, and Kimi's is its black app
+  # icon). Each file not from those two sets names its source and licence inside it.
   # The owner's own list (the copy interview, 2026-09-30): tools worked with, hands-on or alongside
   # the team that built with them. Power Apps, Power BI, RPA and APIs are also in the CV or LinkedIn;
-  # the rest are the owner's word. The Microsoft 365, Power Apps and Power Automate marks are Simple
-  # Icons 9.21.0 (CC0) in their brand colours. Power Automate took the place of a drawn "RPA" robot
+  # the rest are the owner's word. The Power Apps mark is Simple Icons 9.21.0 (CC0) in its brand
+  # colour, as Microsoft 365's and Power Automate's were. Power Automate took the place of a drawn "RPA" robot
   # at the owner's request (final review, 2026-09-30): every tool should show a real logo.
   # APIs shows the OpenAPI mark (Simple Icons 13.21.0, CC0, in its green #6ba539): the standard most
   # APIs are described in, and the closest thing to a logo for them; the owner chose it over a
@@ -121,18 +126,34 @@ main:
   # for GitHub, Next.js and Vercel, their brand guides' colour; the others in their brand colours.
   # The first five are pinned to the taskbar: nine in a row were too many (final review, 2026-09-30).
   # They now lead with the AI and builder tools, for the move towards AI product roles (2026-11-02).
+  # Copilot (2026-11-10, at the owner's word) stands for Microsoft 365 Copilot and Copilot Studio,
+  # which has no mark of its own in a free set; it is pinned third, after the other AI assistants,
+  # so Cloudflare now leads the tray. Its mark is theSVG Color's (MIT, from Iconify): SVG Logos has
+  # only the Copilot wordmark, unreadable at icon size. Confluence, beside Jira, is SVG Logos'
+  # (CC0, from Iconify, like Jira's).
+  # Brought up to date at the owner's request (2026-11-10), to each brand's newest mark in a free
+  # set, since Simple Icons has dropped Microsoft's: Teams and SharePoint from theSVG Color (MIT),
+  # Microsoft 365 and Power Automate from selfh.st (CC BY 4.0), Kimi's app icon from SVG Logos (CC0,
+  # the version without its grain, 1KB to the textured one's 660KB) and Vercel from Simple Icons
+  # 16.36.0. Microsoft 365 shows its hexagon: the Copilot app icon that replaced it is already the
+  # Copilot tile. These are free third-party drawings, not Microsoft's own icon downloads. The other
+  # logos were already the newest their free sets have (checked 2026-11-10); no free set has a newer
+  # Power Apps, or Atlassian's 2024 Jira and Confluence marks.
   # Those marked `tray` wait behind the bar's arrow, as Windows keeps its hidden icons.
   tools:
     - name: Claude
       logo: /tools/claude.svg
     - name: ChatGPT
       logo: /tools/chatgpt.svg
+    - name: Copilot
+      logo: /tools/copilot.svg
     - name: GitHub
       logo: /tools/github.svg
     - name: Next.js
       logo: /tools/nextjs.svg
     - name: Cloudflare
       logo: /tools/cloudflare.svg
+      tray: true
     - name: Vercel
       logo: /tools/vercel.svg
       tray: true
@@ -153,6 +174,9 @@ main:
       tray: true
     - name: Jira
       logo: /tools/jira.svg
+      tray: true
+    - name: Confluence
+      logo: /tools/confluence.svg
       tray: true
     - name: Power BI
       logo: /tools/power-bi.svg
