@@ -16,7 +16,9 @@ updates:
       # TypeScript 7 is unsupported by @astrojs/check (spec §3/§15).
       - dependency-name: typescript
         versions: ['>=7']
-      # The runtime is Node 26 (from 24 on 2026-11-10).
+      # The runtime is Node 26 (from 24 on 2026-11-10). package.json's engines also accept Node 24
+      # because Dependabot's updater only runs Node 24 (24.22.2 in November 2026), and refuses every
+      # npm update otherwise; drop the 24 range once it runs Node 26.
       - dependency-name: '@types/node'
         versions: ['>=27']
   - package-ecosystem: github-actions
