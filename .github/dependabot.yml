@@ -16,9 +16,9 @@ updates:
       # TypeScript 7 is unsupported by @astrojs/check (spec §3/§15).
       - dependency-name: typescript
         versions: ['>=7']
-      # The runtime is Node 24.
+      # The runtime is Node 26 (from 24 on 2026-11-10).
       - dependency-name: '@types/node'
-        versions: ['>=25']
+        versions: ['>=27']
   - package-ecosystem: github-actions
     directory: /
     target-branch: dev

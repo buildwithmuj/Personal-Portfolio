@@ -2,18 +2,21 @@
 # formal CV and LinkedIn towards AI product roles (2026-11-02). Clients are described by industry,
 # never named, and no result carries a figure until the owner has one to share. DigiBlu has agreed
 # to its website and Learning Experience Hub being named. In the owner's review (2026-11-04) the two
-# Infosys roles took five bullets each, the analyst's from the CV and LinkedIn.
+# Infosys roles took five bullets each, the analyst's from the CV and LinkedIn. On 2026-11-10 the
+# owner asked for plainer, more human wording: stock phrases went ("automation-driven service
+# delivery", "technology-enabled solutions", "end-to-end", "drove adoption"), with no change of
+# meaning.
 digiblu:
   employer: DigiBlu
   role: Senior Automation Analyst
   start: '2021-12'
   highlights:
     - Led the strategy, design and build of internal initiatives, including DigiBlu's new website (digiblu.com) and a pilot Learning Experience Hub for employees, working with the technical architect on enterprise setup, security and scale.
-    - Led automation initiatives for clients including a UK healthcare group, delivering RPA and workflow solutions that reduced manual work and improved turnaround times.
-    - Led a SharePoint reorganisation for a US communications provider's sales teams, producing the project plan, content audit and governance framework to prepare for a new sales content platform.
+    - Led automation projects for clients including a UK healthcare group, using RPA and workflow tools to cut manual work and speed up turnaround times.
+    - Led a SharePoint reorganisation for a US communications provider's sales teams, covering the project plan, content audit and governance framework ahead of a move to a new sales content platform.
     - Delivered automations using APIs and stored procedures, and a Power Apps replacement for a legacy service charges system, through testing, deployment and hypercare.
-    - Assessed as-is processes for a pensions administrator, defining the future-state operating models and SOPs behind automation-driven service delivery.
-    - Delivered opportunity assessments and ROI-focused business cases that secured senior stakeholder approval for automation investment.
+    - Assessed as-is processes for a pensions administrator and defined the future-state operating models and SOPs for an automated service.
+    - Wrote opportunity assessments and ROI business cases that won senior sign-off for automation investment.
 infosys-management-consultant:
   employer: Infosys Consulting
   role: Management Consultant
@@ -22,17 +25,17 @@ infosys-management-consultant:
   highlights:
     - Served as Product Owner for self-service data dashboards on a Google Cloud data warehouse for a global satellite communications company, owning the backlog, priorities and roadmap.
     - Managed digital transformation programmes, including RPA implementation for a UK public-sector organisation and a Digital Experience Platform discovery for a major educational institution.
-    - Developed delivery strategies and roadmaps, coordinating phased RPA and analytics rollouts within regulatory, security and change constraints.
-    - Ran technical feasibility assessments and built the cost-benefit models and business cases that secured senior stakeholder buy-in and funding.
-    - Defined end-to-end requirements for delivery teams, ran vendor assessments and public-sector procurement, and drove adoption through change management and training.
+    - Planned phased RPA and analytics rollouts, with delivery roadmaps built around regulatory, security and change constraints.
+    - Ran technical feasibility assessments and built the cost-benefit models and business cases that secured senior backing and funding.
+    - Defined requirements for delivery teams, ran vendor assessments and public-sector procurement, and led the change management and training that got people using the new systems.
 infosys-consulting-analyst:
   employer: Infosys Consulting
   role: Consulting Analyst
   start: '2016-09'
   end: '2018-03'
   highlights:
-    - Delivered consulting on digital transformation and process automation programmes for clients in financial services, pharmaceuticals, education and the public sector.
-    - Gathered and documented requirements from client stakeholders, and assessed current processes to find inefficiencies and recommend technology-enabled solutions.
-    - Assessed the technical and business feasibility of automation opportunities, identifying RPA candidates to improve operational efficiency.
-    - Ran user acceptance testing activities, gave testing and quality assurance support to implementation teams, and delivered end-user training on process and system changes.
+    - Consulted on digital transformation and process automation programmes for clients in financial services, pharmaceuticals, education and the public sector.
+    - Gathered and documented requirements from client stakeholders, and reviewed current processes to find inefficiencies and recommend where technology could help.
+    - Assessed the technical and business feasibility of automation opportunities and shortlisted the processes suited to RPA.
+    - Ran user acceptance testing, supported implementation teams with testing and quality assurance, and trained end users on new processes and systems.
     - Produced research, data analysis, process maps, business cases and executive presentations, and co-led a Lean UX workshop for a global chemicals company.
