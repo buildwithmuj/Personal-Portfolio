@@ -20,7 +20,7 @@ main:
   about: >-
     Hey, I'm Muj, a consultant who loves digging into what AI can do for everyday work, and testing it
     on products of my own.
-  interests: 'Outside work: boxing at Legends MMA, four languages, and building side projects.'
+  interests: 'Outside work: boxing at Legends MMA, travelling, four languages, and building side projects.'
   # A typical weekday, in London time: the shape most days tend to take, not a record of any one
   # (reworded with the owner in the copy interview, 2026-09-30). The About card's board ticks each
   # task the moment its time comes. The working day runs from the plan at 08:30 to the wrap-up
@@ -74,7 +74,7 @@ main:
           I've delivered client projects with Microsoft 365, Power Apps, Power BI, RPA platforms and
           APIs, some hands-on and some alongside developers. I plan and document work in Jira and
           Confluence, and use Microsoft 365 Copilot and Copilot Studio. For my own builds I use Claude
-          Code and Codex, with Next.js, GitHub, Cloudflare, Vercel, Supabase and Sentry.
+          Code and Codex, with GitHub, Cloudflare, Vercel, Supabase and Sentry.
       - question: What are you learning?
         answer: >-
           Agentic AI: automations that can work through a task rather than follow a fixed script.
@@ -86,26 +86,32 @@ main:
   # For the CV (the pop-up and PDF). The owner's review (2026-11-04): the headline is the actual job
   # title, since "AI Product Owner & Builder" overstated it, and the profile says how consulting and
   # automation now meet building products with AI. The side projects moved from their own section
-  # to Interests. Brandgrabit has no AI inside: it was built with AI tools.
+  # to Interests. Brandgrabit has no AI inside: it was built with AI tools. On 2026-11-10 the owner
+  # asked for "process automation" in place of naming RPA and the Power Platform, and for no team
+  # size.
   cvHeadline: Senior Automation Analyst
   cvProfile: >-
     Senior automation analyst with 10+ years in management consulting and intelligent automation, now
     bringing that experience to building products with AI. Takes complex operational problems from
-    discovery and business case through to working solutions, from RPA and Power Platform delivery to
-    web apps built with AI coding tools. Has led project teams of up to five on client engagements,
-    working directly with client stakeholders. Certified Scrum Master and Product Owner.
+    discovery and business case through to working solutions, from process automation to web apps
+    built with AI coding tools. Has led project teams on client engagements, working directly with
+    client stakeholders. Certified Scrum Master and Product Owner.
   languages:
     - { language: English, level: Native }
     - { language: Punjabi, level: Native }
     - { language: Urdu, level: Highly proficient }
     - { language: Spanish, level: Working knowledge }
-  # The CV's Interests: each with a short note, or the month it began.
+  # The CV's Interests: each with a short note, or the month it began. Boxing's note and Travelling
+  # are the owner's (2026-11-10).
   outsideWork:
     - activity: Building AI side projects
       note: >-
         Evening builds with AI coding tools, such as brandgrabit.com, a live web app that pulls any
         website's logos, colours and fonts
-    - { activity: Boxing at Legends MMA, start: '2023-09' }
+    - activity: Boxing at Legends MMA
+      note: One-to-one training and boxing classes for fitness, since September 2023
+    - activity: Travelling
+      note: Greece, Turkey, Morocco and Dubai so far, aiming for 50 countries
   # Clients from Mujtaba's professional work, cleared by him to name (2026-09-28). Logos live in
   # public/clients/ and are tinted to the site's navy; a client without one shows by name.
   proof:
