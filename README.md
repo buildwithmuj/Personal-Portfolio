@@ -20,7 +20,7 @@ changing how the site is built.
 
 ## Getting started
 
-Prerequisites: Node 26 (see `.nvmrc`) and pnpm 10.34.5 (`npm install -g pnpm@10.34.5`).
+Prerequisites: Node 26 (see `.nvmrc`; `engines` also accepts Node 24, for Dependabot) and pnpm 10.34.5 (`npm install -g pnpm@10.34.5`).
 
 ```bash
 pnpm install
